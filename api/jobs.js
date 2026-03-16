@@ -68,7 +68,6 @@ export default async function handler(req, res) {
       location: `${job.city}, ${job.state}`,
       pay_rate: job.salary || 'Not specified',
       job_id: job.id,
-      summary: job.description.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').replace(/\s+/g, ' ').trim().split(/[.!?]+/).filter(s => s.trim().length > 0).slice(0, 2).join('. ').substring(0, 300) + '.',
       apply_url: `https://jobs.impactbusinessgroup.com/index.smpl?arg=jb_details&jid=${job.id}&rid=TawkToChat`
     }));
 
