@@ -1,0 +1,72 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "iMPact Jobs API",
+    "version": "1.0.0",
+    "description": "Search iMPact Business Group job openings by role and location"
+  },
+  "servers": [
+    {
+      "url": "https://impact-jobs-api.vercel.app"
+    }
+  ],
+  "paths": {
+    "/api/jobs": {
+      "get": {
+        "operationId": "searchJobs",
+        "summary": "Search for job openings",
+        "description": "Search current iMPact Business Group job openings by role type and location",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "description": "The type of role or job title the visitor is looking for",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "The preferred city or state for the job",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of matching jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {"type": "string"},
+                          "location": {"type": "string"},
+                          "pay_rate": {"type": "string"},
+                          "job_id": {"type": "string"},
+                          "apply_url": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
