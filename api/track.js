@@ -1,32 +1,37 @@
 // api/track.js
-// Receives page visit pings from the WordPress site,
-// looks up the subscriber in Mailchimp, and sends an email alert
-// after 10 minutes of inactivity (session window).
+// Receives page visit pings from WordPress,
+// stores sessions in Upstash Redis,
+// and sends email alerts after 10 minutes of inactivity.
 
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
+import { Redis } from '@upstash/redis';
 
-// In-memory session store: { subscriberId: { subscriber, pages, timer } }
-const sessions = {};
+const redis = Redis.fromEnv();
 
-// How long to wait after last ping before firing the alert (10 minutes)
-const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
+const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
-// --- Mailchimp lookup ---
+// --- Mailchimp lookup: checks both audiences ---
 async function getSubscriber(subscriberId) {
   const apiKey = process.env.MAILCHIMP_API_KEY;
-  const audienceId = process.env.MAILCHIMP_CLIENT_AUDIENCE_ID;
-  const dc = apiKey.split('-')[1]; // e.g. us15
+  const dc = apiKey.split('-')[1];
 
-  const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members/${subscriberId}`;
+  const audiences = [
+    process.env.MAILCHIMP_CLIENT_AUDIENCE_ID,
+    process.env.MAILCHIMP_AUDIENCE_ID_2,
+  ].filter(Boolean);
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
+  for (const audienceId of audiences) {
+    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members/${subscriberId}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+  }
 
-  if (!response.ok) return null;
-  return await response.json();
+  return null;
 }
 
 // --- Send alert email via Gmail ---
@@ -70,7 +75,6 @@ async function sendAlert(subscriber, pages) {
 
 // --- Main handler ---
 export default async function handler(req, res) {
-  // Allow requests from your WordPress site
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -84,33 +88,35 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing subscriberId or page' });
   }
 
-  // If a session exists, clear the existing timer and add the page
-  if (sessions[subscriberId]) {
-    clearTimeout(sessions[subscriberId].timer);
-    sessions[subscriberId].pages.push({ page, time: Date.now() });
+  // Check exclusion list
+  const excluded = process.env.EXCLUDED_SUBSCRIBER_IDS || '';
+  if (excluded.split(',').map(s => s.trim()).includes(subscriberId)) {
+    return res.status(200).json({ ok: true, skipped: true });
+  }
+
+  const sessionKey = `session:${subscriberId}`;
+  const existing = await redis.get(sessionKey);
+
+  if (existing) {
+    // Add page to existing session
+    const session = existing;
+    session.pages.push({ page, time: Date.now() });
+    session.lastSeen = Date.now();
+    await redis.set(sessionKey, session, { ex: 3600 }); // expire after 1 hour max
   } else {
-    // New session -- look up subscriber in Mailchimp
+    // New session -- look up subscriber
     const subscriber = await getSubscriber(subscriberId);
     if (!subscriber) {
       return res.status(404).json({ error: 'Subscriber not found' });
     }
-    sessions[subscriberId] = {
+    const session = {
       subscriber,
       pages: [{ page, time: Date.now() }],
-      timer: null,
+      lastSeen: Date.now(),
+      alerted: false,
     };
+    await redis.set(sessionKey, session, { ex: 3600 });
   }
-
-  // Set/reset the 10-minute inactivity timer
-  sessions[subscriberId].timer = setTimeout(async () => {
-    const { subscriber, pages } = sessions[subscriberId];
-    delete sessions[subscriberId];
-    try {
-      await sendAlert(subscriber, pages);
-    } catch (err) {
-      console.error('Failed to send alert:', err);
-    }
-  }, SESSION_TIMEOUT_MS);
 
   return res.status(200).json({ ok: true });
 }
