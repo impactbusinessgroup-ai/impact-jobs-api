@@ -1,17 +1,29 @@
 // api/track.js
 // Receives page visit pings from WordPress,
-// stores sessions in Upstash Redis,
-// and sends email alerts after 10 minutes of inactivity.
+// stores sessions in Upstash Redis via REST API directly
 
-import nodemailer from 'nodemailer';
-import { Redis } from '@upstash/redis';
+// --- Upstash Redis helpers using REST API directly ---
+async function redisGet(key) {
+  const url = `${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+  });
+  const data = await res.json();
+  if (!data.result) return null;
+  return JSON.parse(data.result);
+}
 
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
-
-const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+async function redisSet(key, value, exSeconds) {
+  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+  });
+}
 
 // --- Mailchimp lookup: checks both audiences ---
 async function getSubscriber(subscriberId) {
@@ -29,51 +41,11 @@ async function getSubscriber(subscriberId) {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (response.ok) {
-      const data = await response.json();
-      return data;
+      return await response.json();
     }
   }
 
   return null;
-}
-
-// --- Send alert email via Gmail ---
-async function sendAlert(subscriber, pages) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
-
-  const name = `${subscriber.merge_fields.FNAME} ${subscriber.merge_fields.LNAME}`.trim() || subscriber.email_address;
-  const company = subscriber.merge_fields.COMPANY || 'Unknown Company';
-  const title = subscriber.merge_fields.TITLE || '';
-  const accountManager = subscriber.merge_fields.REPNAME || '';
-
-  const pageList = pages
-    .map(p => `<li>${p.page} &mdash; ${new Date(p.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</li>`)
-    .join('');
-
-  const html = `
-    <h2>Client Visit Alert</h2>
-    <p>
-      <strong>${name}</strong>${title ? `, ${title}` : ''}<br>
-      ${company}<br>
-      ${accountManager ? `Account Manager: ${accountManager}` : ''}
-    </p>
-    <h3>Pages visited:</h3>
-    <ul>${pageList}</ul>
-    <p style="color:#999;font-size:12px;">iMPact client tracker &mdash; ${new Date().toLocaleDateString()}</p>
-  `;
-
-  await transporter.sendMail({
-    from: `"iMPact Tracker" <${process.env.GMAIL_USER}>`,
-    to: 'info@impactbusinessgroup.com',
-    subject: `Client Visit: ${name} (${company})`,
-    html,
-  });
 }
 
 // --- Main handler ---
@@ -98,16 +70,15 @@ export default async function handler(req, res) {
   }
 
   const sessionKey = `session:${subscriberId}`;
-  const existing = await redis.get(sessionKey);
+  const existing = await redisGet(sessionKey);
 
   if (existing) {
     // Add page to existing session
-    const session = existing;
-    session.pages.push({ page, time: Date.now() });
-    session.lastSeen = Date.now();
-    await redis.set(sessionKey, session, { ex: 3600 }); // expire after 1 hour max
+    existing.pages.push({ page, time: Date.now() });
+    existing.lastSeen = Date.now();
+    await redisSet(sessionKey, existing, 3600);
   } else {
-    // New session -- look up subscriber
+    // New session -- look up subscriber in Mailchimp
     const subscriber = await getSubscriber(subscriberId);
     if (!subscriber) {
       return res.status(404).json({ error: 'Subscriber not found' });
@@ -118,7 +89,7 @@ export default async function handler(req, res) {
       lastSeen: Date.now(),
       alerted: false,
     };
-    await redis.set(sessionKey, session, { ex: 3600 });
+    await redisSet(sessionKey, session, 3600);
   }
 
   return res.status(200).json({ ok: true });
