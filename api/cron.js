@@ -84,6 +84,10 @@ async function sendAlert(subscriber, pages) {
 
 // --- Main handler ---
 export default async function handler(req, res) {
+  // Disable caching
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+
   // Security check
   if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -99,7 +103,14 @@ export default async function handler(req, res) {
 
   for (const key of keys) {
     const session = await redisGet(key);
-    console.log('Session:', JSON.stringify({ key, hasSession: !!session, alerted: session?.alerted, lastSeen: session?.lastSeen, inactive: Date.now() - Number(session?.lastSeen), timeout: SESSION_TIMEOUT_MS }));
+    console.log('Session debug:', JSON.stringify({
+      key,
+      hasSession: !!session,
+      alerted: session?.alerted,
+      lastSeen: session?.lastSeen,
+      inactive: Date.now() - Number(session?.lastSeen),
+      timeout: SESSION_TIMEOUT_MS
+    }));
     if (!session || session.alerted) continue;
 
     const inactive = Date.now() - Number(session.lastSeen);
