@@ -36,7 +36,9 @@ async function getSubscriber(subscriberId) {
   ].filter(Boolean);
 
   for (const audienceId of audiences) {
-    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members/${subscriberId}`;
+   // Mailchimp API uses MD5 hash of lowercase email, but we have UNIQID
+// So we search by UNIQID instead
+const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?unique_email_id=${subscriberId}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
