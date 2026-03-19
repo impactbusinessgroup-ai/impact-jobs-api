@@ -42,9 +42,12 @@ const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?uni
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
-    if (response.ok) {
-      return await response.json();
-    }
+   if (response.ok) {
+  const data = await response.json();
+  if (data.members && data.members.length > 0) {
+    return data.members[0];
+  }
+}
   }
 
   return null;
