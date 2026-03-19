@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     const session = await redisGet(key);
     if (!session || session.alerted) continue;
 
-    const inactive = Date.now() - session.lastSeen;
+    const inactive = Date.now() - Number(session.lastSeen);
 
     if (inactive >= SESSION_TIMEOUT_MS) {
       try {
