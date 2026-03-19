@@ -13,18 +13,16 @@ async function redisGet(key) {
     headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
   });
   const data = await res.json();
-  console.log('Raw Redis type:', typeof data.result);
-  console.log('Raw Redis preview:', String(data.result).slice(0, 150));
   if (!data.result) return null;
   try {
     let value = data.result;
-    let iterations = 0;
-    while (typeof value === 'string' && iterations < 5) {
+    while (typeof value === 'string') {
       value = JSON.parse(value);
-      iterations++;
     }
-    console.log('Parsed type:', typeof value);
-    console.log('Parsed keys:', typeof value === 'object' && value !== null ? Object.keys(value).join(',') : 'not object');
+    // Unwrap outer {value, ex} wrapper if present
+    if (value && typeof value.value === 'string') {
+      value = JSON.parse(value.value);
+    }
     return value;
   } catch (e) {
     console.error('redisGet parse error:', e.message);
