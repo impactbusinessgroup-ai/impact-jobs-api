@@ -15,9 +15,14 @@ async function redisGet(key) {
   const data = await res.json();
   if (!data.result) return null;
   try {
-    const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-    return typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+    let value = data.result;
+    // Keep parsing until we get a plain object
+    while (typeof value === 'string') {
+      value = JSON.parse(value);
+    }
+    return value;
   } catch (e) {
+    console.error('redisGet parse error:', e);
     return null;
   }
 }
