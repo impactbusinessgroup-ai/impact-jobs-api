@@ -14,7 +14,12 @@ async function redisGet(key) {
   });
   const data = await res.json();
   if (!data.result) return null;
-  return JSON.parse(data.result);
+  try {
+    const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+    return typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function redisSet(key, value, exSeconds) {
@@ -50,7 +55,7 @@ async function sendAlert(subscriber, pages) {
 
   const name = `${subscriber.merge_fields.FNAME} ${subscriber.merge_fields.LNAME}`.trim() || subscriber.email_address;
   const company = subscriber.merge_fields.COMPANY || 'Unknown Company';
-  const title = subscriber.merge_fields.TITLE || '';
+  const title = subscriber.merge_fields.JOBTITLE || '';
   const accountManager = subscriber.merge_fields.REPNAME || '';
 
   const pageList = pages
