@@ -11,8 +11,13 @@ async function redisGet(key) {
   const data = await res.json();
   if (!data.result) return null;
   try {
-    const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-    return typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+    let value = data.result;
+    let iterations = 0;
+    while (typeof value === 'string' && iterations < 5) {
+      value = JSON.parse(value);
+      iterations++;
+    }
+    return value;
   } catch (e) {
     return null;
   }
@@ -57,7 +62,7 @@ async function getSubscriber(subscriberId) {
 }
 
 // --- Main handler ---
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -81,12 +86,10 @@ export default async function handler(req, res) {
   const existing = await redisGet(sessionKey);
 
   if (existing && existing.pages) {
-    // Add page to existing session
     existing.pages.push({ page, time: Date.now() });
     existing.lastSeen = Date.now();
     await redisSet(sessionKey, existing, 3600);
   } else {
-    // New session -- look up subscriber in Mailchimp
     const subscriber = await getSubscriber(subscriberId);
     if (!subscriber) {
       return res.status(404).json({ error: 'Subscriber not found' });
@@ -101,4 +104,4 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({ ok: true });
-}
+};
