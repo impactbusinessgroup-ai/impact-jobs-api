@@ -4,7 +4,7 @@
 
 const nodemailer = require('nodemailer');
 
-const SESSION_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes (testing)
+const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 2 minutes (testing)
 
 // --- Upstash Redis helpers using REST API directly ---
 async function redisGet(key) {
@@ -70,11 +70,13 @@ async function sendAlert(subscriber, pages) {
     .map(p => `<li>${p.page} &mdash; ${new Date(p.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</li>`)
     .join('');
 
-  const html = `
+const html = `
     <h2>Client Visit Alert</h2>
     <p>
       <strong>${name}</strong>${title ? `, ${title}` : ''}<br>
       ${company}<br>
+      ${email ? `Email: <a href="mailto:${email}">${email}</a><br>` : ''}
+      ${phone ? `Phone: ${phone}<br>` : ''}
       ${accountManager ? `Account Manager: ${accountManager}` : ''}
     </p>
     <h3>Pages visited:</h3>
