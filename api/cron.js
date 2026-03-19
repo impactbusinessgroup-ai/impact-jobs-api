@@ -99,6 +99,7 @@ export default async function handler(req, res) {
 
   for (const key of keys) {
     const session = await redisGet(key);
+    console.log('Session:', JSON.stringify({ key, hasSession: !!session, alerted: session?.alerted, lastSeen: session?.lastSeen, inactive: Date.now() - Number(session?.lastSeen), timeout: SESSION_TIMEOUT_MS }));
     if (!session || session.alerted) continue;
 
     const inactive = Date.now() - Number(session.lastSeen);
