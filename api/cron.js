@@ -1,17 +1,44 @@
 // api/cron.js
-// Runs every minute via Vercel cron.
-// Checks Redis for sessions inactive for 10+ minutes and fires alert emails.
+// Runs every minute via cron-job.org
+// Checks Upstash Redis for sessions inactive 10+ minutes and fires alert emails
 
 import nodemailer from 'nodemailer';
-import { Redis } from '@upstash/redis';
-
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
 
 const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
+// --- Upstash Redis helpers using REST API directly ---
+async function redisGet(key) {
+  const url = `${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+  });
+  const data = await res.json();
+  if (!data.result) return null;
+  return JSON.parse(data.result);
+}
+
+async function redisSet(key, value, exSeconds) {
+  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+  });
+}
+
+async function redisKeys(pattern) {
+  const url = `${process.env.KV_REST_API_URL}/keys/${encodeURIComponent(pattern)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+  });
+  const data = await res.json();
+  return data.result || [];
+}
+
+// --- Send alert email via Gmail ---
 async function sendAlert(subscriber, pages) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -44,44 +71,4 @@ async function sendAlert(subscriber, pages) {
 
   await transporter.sendMail({
     from: `"iMPact Tracker" <${process.env.GMAIL_USER}>`,
-    to: 'info@impactbusinessgroup.com',
-    subject: `Client Visit: ${name} (${company})`,
-    html,
-  });
-}
-
-export default async function handler(req, res) {
-  // Only allow Vercel cron calls
-  if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  // Get all session keys from Redis
-  const keys = await redis.keys('session:*');
-
-  if (!keys.length) {
-    return res.status(200).json({ ok: true, checked: 0 });
-  }
-
-  let alerted = 0;
-
-  for (const key of keys) {
-    const session = await redis.get(key);
-    if (!session || session.alerted) continue;
-
-    const inactive = Date.now() - session.lastSeen;
-
-    if (inactive >= SESSION_TIMEOUT_MS) {
-      try {
-        await sendAlert(session.subscriber, session.pages);
-        session.alerted = true;
-        await redis.set(key, session, { ex: 3600 });
-        alerted++;
-      } catch (err) {
-        console.error(`Failed to send alert for ${key}:`, err);
-      }
-    }
-  }
-
-  return res.status(200).json({ ok: true, checked: keys.length, alerted });
-}
+    to: 'info@impactbusines
