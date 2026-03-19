@@ -10,7 +10,12 @@ async function redisGet(key) {
   });
   const data = await res.json();
   if (!data.result) return null;
-  return JSON.parse(data.result);
+  try {
+    const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+    return typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function redisSet(key, value, exSeconds) {
@@ -36,18 +41,16 @@ async function getSubscriber(subscriberId) {
   ].filter(Boolean);
 
   for (const audienceId of audiences) {
-   // Mailchimp API uses MD5 hash of lowercase email, but we have UNIQID
-// So we search by UNIQID instead
-const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?unique_email_id=${subscriberId}`;
+    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?unique_email_id=${subscriberId}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
-   if (response.ok) {
-  const data = await response.json();
-  if (data.members && data.members.length > 0) {
-    return data.members[0];
-  }
-}
+    if (response.ok) {
+      const data = await response.json();
+      if (data.members && data.members.length > 0) {
+        return data.members[0];
+      }
+    }
   }
 
   return null;
@@ -77,7 +80,7 @@ export default async function handler(req, res) {
   const sessionKey = `session:${subscriberId}`;
   const existing = await redisGet(sessionKey);
 
-  if (existing) {
+  if (existing && existing.pages) {
     // Add page to existing session
     existing.pages.push({ page, time: Date.now() });
     existing.lastSeen = Date.now();
