@@ -12,17 +12,19 @@ async function redisGet(key) {
   if (!data.result) return null;
   try {
     let value = data.result;
-    let iterations = 0;
-    while (typeof value === 'string' && iterations < 5) {
+    while (typeof value === 'string') {
       value = JSON.parse(value);
-      iterations++;
+    }
+    // Unwrap outer {value, ex} wrapper if present
+    if (value && typeof value.value === 'string') {
+      value = JSON.parse(value.value);
     }
     return value;
   } catch (e) {
+    console.error('redisGet parse error:', e.message);
     return null;
   }
 }
-
 async function redisSet(key, value, exSeconds) {
   const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
   await fetch(url, {
