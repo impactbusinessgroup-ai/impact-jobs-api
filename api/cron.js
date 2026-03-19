@@ -71,4 +71,44 @@ async function sendAlert(subscriber, pages) {
 
   await transporter.sendMail({
     from: `"iMPact Tracker" <${process.env.GMAIL_USER}>`,
-    to: 'info@impactbusines
+    to: 'info@impactbusinessgroup.com',
+    subject: `Client Visit: ${name} (${company})`,
+    html,
+  });
+}
+
+// --- Main handler ---
+export default async function handler(req, res) {
+  // Security check
+  if (req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const keys = await redisKeys('session:*');
+
+  if (!keys.length) {
+    return res.status(200).json({ ok: true, checked: 0 });
+  }
+
+  let alerted = 0;
+
+  for (const key of keys) {
+    const session = await redisGet(key);
+    if (!session || session.alerted) continue;
+
+    const inactive = Date.now() - session.lastSeen;
+
+    if (inactive >= SESSION_TIMEOUT_MS) {
+      try {
+        await sendAlert(session.subscriber, session.pages);
+        session.alerted = true;
+        await redisSet(key, session, 3600);
+        alerted++;
+      } catch (err) {
+        console.error(`Failed to send alert for ${key}:`, err);
+      }
+    }
+  }
+
+  return res.status(200).json({ ok: true, checked: keys.length, alerted });
+}
