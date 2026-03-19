@@ -2,7 +2,7 @@
 // Runs every minute via cron-job.org
 // Checks Upstash Redis for sessions inactive 2+ minutes (testing) and fires alert emails
 
-import nodemailer from 'nodemailer';
+const nodemailer = require('nodemailer');
 
 const SESSION_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes (testing)
 
@@ -13,16 +13,21 @@ async function redisGet(key) {
     headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
   });
   const data = await res.json();
+  console.log('Raw Redis type:', typeof data.result);
+  console.log('Raw Redis preview:', String(data.result).slice(0, 150));
   if (!data.result) return null;
   try {
     let value = data.result;
-    // Keep parsing until we get a plain object
-    while (typeof value === 'string') {
+    let iterations = 0;
+    while (typeof value === 'string' && iterations < 5) {
       value = JSON.parse(value);
+      iterations++;
     }
+    console.log('Parsed type:', typeof value);
+    console.log('Parsed keys:', typeof value === 'object' && value !== null ? Object.keys(value).join(',') : 'not object');
     return value;
   } catch (e) {
-    console.error('redisGet parse error:', e);
+    console.error('redisGet parse error:', e.message);
     return null;
   }
 }
@@ -88,7 +93,7 @@ async function sendAlert(subscriber, pages) {
 }
 
 // --- Main handler ---
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Disable caching
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -108,20 +113,11 @@ export default async function handler(req, res) {
 
   for (const key of keys) {
     const session = await redisGet(key);
-    console.log('Session debug:', JSON.stringify({
-  console.log('Session debug:', JSON.stringify({
-      key,
-      hasSession: !!session,
-      alerted: session?.alerted,
-      lastSeen: session?.lastSeen,
-      inactive: Date.now() - Number(session?.lastSeen),
-      timeout: SESSION_TIMEOUT_MS,
-      rawKeys: session ? Object.keys(session) : [],
-      sessionType: typeof session
-    }));
+    console.log('Session lastSeen:', session?.lastSeen, 'type:', typeof session?.lastSeen);
     if (!session || session.alerted) continue;
 
     const inactive = Date.now() - Number(session.lastSeen);
+    console.log('Inactive ms:', inactive, 'timeout:', SESSION_TIMEOUT_MS);
 
     if (inactive >= SESSION_TIMEOUT_MS) {
       try {
@@ -130,10 +126,10 @@ export default async function handler(req, res) {
         await redisSet(key, session, 3600);
         alerted++;
       } catch (err) {
-        console.error(`Failed to send alert for ${key}:`, err);
+        console.error(`Failed to send alert for ${key}:`, err.message);
       }
     }
   }
 
   return res.status(200).json({ ok: true, checked: keys.length, alerted });
-}
+};
