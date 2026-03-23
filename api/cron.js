@@ -4,7 +4,7 @@
 
 const nodemailer = require('nodemailer');
 
-const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 // --- Upstash Redis helpers using REST API directly ---
 async function redisGet(key) {
