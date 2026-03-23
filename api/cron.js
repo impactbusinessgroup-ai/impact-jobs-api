@@ -1,10 +1,10 @@
 // api/cron.js
 // Runs every minute via cron-job.org
-// Checks Upstash Redis for sessions inactive 2+ minutes (testing) and fires alert emails
+// Checks Upstash Redis for sessions inactive 10+ minutes and fires alert emails
 
 const nodemailer = require('nodemailer');
 
-const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 2 minutes (testing)
+const SESSION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
 // --- Upstash Redis helpers using REST API directly ---
 async function redisGet(key) {
@@ -65,12 +65,20 @@ async function sendAlert(subscriber, pages) {
   const company = subscriber.merge_fields.COMPANY || 'Unknown Company';
   const title = subscriber.merge_fields.JOBTITLE || '';
   const accountManager = subscriber.merge_fields.REPNAME || '';
+  const email = subscriber.email_address || '';
+  const phone = subscriber.merge_fields.PHNUMBER || '';
 
-  const pageList = pages
+  // Clean cid parameter from page URLs
+  const cleanPages = pages.map(p => ({
+    ...p,
+    page: p.page.replace(/[?&]cid=[^&]*/g, '')
+  }));
+
+  const pageList = cleanPages
     .map(p => `<li>${p.page} &mdash; ${new Date(p.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</li>`)
     .join('');
 
-const html = `
+  const html = `
     <h2>Client Visit Alert</h2>
     <p>
       <strong>${name}</strong>${title ? `, ${title}` : ''}<br>
@@ -113,11 +121,9 @@ module.exports = async function handler(req, res) {
 
   for (const key of keys) {
     const session = await redisGet(key);
-    console.log('Session lastSeen:', session?.lastSeen, 'type:', typeof session?.lastSeen);
     if (!session || session.alerted) continue;
 
     const inactive = Date.now() - Number(session.lastSeen);
-    console.log('Inactive ms:', inactive, 'timeout:', SESSION_TIMEOUT_MS);
 
     if (inactive >= SESSION_TIMEOUT_MS) {
       try {
