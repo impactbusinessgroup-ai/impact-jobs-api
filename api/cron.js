@@ -75,7 +75,7 @@ async function sendAlert(subscriber, pages) {
   }));
 
   const pageList = cleanPages
-    .map(p => `<li>${p.page} &mdash; ${new Date(p.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })}</li>`)
+    .map(p => `<li><a href="https://www.impactbusinessgroup.com${p.page}" style="color:#1A4EA2;">${'https://www.impactbusinessgroup.com' + p.page}</a> &mdash; ${new Date(p.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })}</li>`)
     .join('');
 
   const html = `
