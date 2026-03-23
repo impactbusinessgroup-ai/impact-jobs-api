@@ -46,7 +46,7 @@ const {
         REPPHONE: repPhone || '',
         CALENDLY: repCalendly || '',
       },
-      tags: ['Client'],
+      tags: ['Client', source ? source : ''].filter(Boolean),
     }),
   });
 
