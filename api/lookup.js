@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
   ].filter(Boolean);
 
   for (const audienceId of audiences) {
-    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?email_address=${encodeURIComponent(email)}&count=1`;
+    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${audienceId}/members?email_address=${encodeURIComponent(email)}&exact=true&count=1`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
