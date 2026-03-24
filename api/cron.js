@@ -92,9 +92,12 @@ async function sendAlert(subscriber, pages) {
     <p style="color:#999;font-size:12px;">iMPact client tracker &mdash; ${new Date().toLocaleDateString()}</p>
   `;
 
+const repEmail = subscriber.merge_fields.REPEMAIL || '';
+
   await transporter.sendMail({
     from: `"iMPact Tracker" <${process.env.GMAIL_USER}>`,
-    to: 'info@impactbusinessgroup.com',
+    to: repEmail || 'info@impactbusinessgroup.com',
+    cc: repEmail ? 'info@impactbusinessgroup.com' : '',
     subject: `Client Visit: ${name} (${company})`,
     html,
   });
