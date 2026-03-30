@@ -1,16 +1,13 @@
 // api/jobs-fetch.js
 
 const STAFFING_KEYWORDS = [
-  // staffing / recruiting
   'staffing','recruiting','recruiter','talent','placement','personnel',
   'manpower','adecco','robert half','kelly','randstad','insight global',
   'aerotek','apex','teksystems','express employment','search group',
   'headhunter','exec search','executive search',
-  // job boards
   'jobleads','virtualvocations','whatjobs','energy jobline','ziprecruiter',
   'indeed','glassdoor','careerbuilder','monster','simplyhired','jobvite',
   'jobboard',
-  // large consulting / outsourcing
   'accenture','deloitte','wipro','infosys','cognizant','capgemini',
   'compunnel','tata consultancy','hcl technologies','tech mahindra',
   'ajilon','modis','experis','pontoon','allegis',
@@ -30,8 +27,17 @@ const EXCLUDE_TITLES = [
 const JSEARCH_QUERIES = [
   'engineer Grand Rapids Michigan',
   'accounting Grand Rapids Michigan',
+  'information technology Grand Rapids Michigan',
   'engineer Tampa Florida',
   'accounting Tampa Florida',
+  'information technology Tampa Florida',
+];
+
+const PRIMARY_KEYWORDS = [
+  'engineer','engineering','accountant','accounting','finance','financial',
+  'controller','cfo','cto','it manager','it director','network','software',
+  'developer','systems admin','helpdesk','help desk','manufacturing',
+  'machinist','production','quality','procurement','supply chain',
 ];
 
 // --- Upstash Redis helpers ---
@@ -80,7 +86,7 @@ async function loadBlocklists() {
   return { companies, titles };
 }
 
-// --- Normalize company name for deduplication ---
+// --- Normalize company name ---
 function normalizeCompany(name) {
   return name
     .toLowerCase()
@@ -94,7 +100,47 @@ function normalizeCompany(name) {
 function detectCategory(title, description) {
   const text = (title + ' ' + (description || '')).toLowerCase();
   if (/accountant|accounting|controller|cfo|finance|financial|bookkeeper|audit|tax/.test(text)) return 'accounting';
+  if (/\bit\b|information technology|network|software|developer|systems admin|helpdesk|help desk|cyber|devops/.test(text)) return 'it';
   return 'engineering';
+}
+
+// --- Check if title contains a primary keyword ---
+function hasPrimaryKeyword(title) {
+  const t = title.toLowerCase();
+  return PRIMARY_KEYWORDS.some(kw => t.includes(kw));
+}
+
+// --- Gemini classification for ambiguous titles ---
+async function isRelevantViaGemini(title, description) {
+  const prompt = `You are a filter for a staffing agency that places candidates in Engineering, Manufacturing, Accounting, Finance, and IT roles in the United States.
+
+Based on this job posting, would this company potentially need a staffing partner to fill this type of role?
+
+Job title: ${title}
+Job description: ${description || 'Not available'}
+
+Answer only YES or NO.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 5, temperature: 0 },
+        }),
+      }
+    );
+    const data = await res.json();
+    const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
+    console.log(`Gemini classified "${title}": ${answer}`);
+    return answer === 'YES';
+  } catch (e) {
+    console.error('Gemini classification error:', e.message);
+    return true;
+  }
 }
 
 // --- Filter checks ---
@@ -109,6 +155,14 @@ function isJobBoard(employerName) {
   return patterns.some(p => name.includes(p));
 }
 
+function isNotFullTime(job) {
+  const type = (job.job_employment_type || '').toUpperCase();
+  const types = job.job_employment_types || [];
+  if (type && type !== 'FULLTIME') return true;
+  if (types.length > 0 && !types.includes('FULLTIME')) return true;
+  return false;
+}
+
 function isAgencyPosting(description) {
   if (!description) return false;
   const text = description.toLowerCase();
@@ -121,14 +175,11 @@ function isExcludedTitle(title, dynamicTitles) {
   return allExclusions.some(ex => t.includes(ex));
 }
 
-function hasEngineerOrAccounting(title, description) {
-  const text = (title + ' ' + (description || '')).toLowerCase();
-  return /engineer|engineering|accountant|accounting/.test(text);
-}
-
 function isBlockedCompany(employerName, dynamicCompanies) {
   const normalized = normalizeCompany(employerName);
-  return dynamicCompanies.map(c => normalizeCompany(c)).some(c => normalized.includes(c) || c.includes(normalized));
+  return dynamicCompanies.map(c => normalizeCompany(c)).some(c =>
+    normalized.includes(c) || c.includes(normalized)
+  );
 }
 
 // --- Fetch one page from JSearch ---
@@ -170,12 +221,11 @@ module.exports = async function handler(req, res) {
   const qualifiedLeads = [];
   let totalFetched = 0;
   let totalFiltered = 0;
+  let geminiCalls = 0;
 
-  // Load dynamic blocklists from Redis
   const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
-  console.log(`Blocklists loaded: ${blockedCompanies.length} companies, ${blockedTitles.length} titles`);
+  console.log(`Blocklists: ${blockedCompanies.length} companies, ${blockedTitles.length} titles`);
 
-  // Load companies already seen today
   const existingKeys = await redisKeys(`lead:${today}:*`);
   for (const key of existingKeys) {
     const lead = await redisGet(key);
@@ -193,15 +243,20 @@ module.exports = async function handler(req, res) {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
 
-      // Filter chain
-      if (!hasEngineerOrAccounting(title, description)) { totalFiltered++; continue; }
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
       if (isJobBoard(employer)) { totalFiltered++; continue; }
+      if (isNotFullTime(job)) { totalFiltered++; continue; }
       if (isAgencyPosting(description)) { totalFiltered++; continue; }
       if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
-      // Dedupe by company
+      let isRelevant = hasPrimaryKeyword(title);
+      if (!isRelevant) {
+        geminiCalls++;
+        isRelevant = await isRelevantViaGemini(title, description);
+      }
+      if (!isRelevant) { totalFiltered++; continue; }
+
       const normalized = normalizeCompany(employer);
       if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
       seenCompanies.add(normalized);
@@ -215,31 +270,4 @@ module.exports = async function handler(req, res) {
         jobTitle: title,
         company: employer,
         normalizedCompany: normalized,
-        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, ''),
-        description: description.slice(0, 2000),
-        source: 'jsearch',
-        jobUrl: job.job_apply_link || '',
-        category,
-        status: 'new',
-        contacts: [],
-        createdAt: Date.now(),
-      };
-
-      await redisSet(leadId, lead, 60 * 60 * 24 * 7);
-      qualifiedLeads.push(leadId);
-    }
-
-    await new Promise(r => setTimeout(r, 300));
-  }
-
-  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified`);
-
-  return res.status(200).json({
-    ok: true,
-    date: today,
-    fetched: totalFetched,
-    filtered: totalFiltered,
-    qualified: qualifiedLeads.length,
-    leadIds: qualifiedLeads,
-  });
-};
+        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(
