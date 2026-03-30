@@ -20,12 +20,35 @@ const EXCLUDE_TITLES = [
   'structural engineer','geotechnical','environmental engineer'
 ];
 
-const JSEARCH_QUERIES = [
-  'engineer Grand Rapids Michigan',
-  'accounting Grand Rapids Michigan',
-  'engineer Tampa Florida',
-  'accounting Tampa Florida',
-];
+// TEMP: test single query
+  const testQuery = 'engineer Grand Rapids Michigan';
+  const params = new URLSearchParams({
+    query: testQuery,
+    page: '1',
+    num_pages: '1',
+    date_posted: '3days',
+    country: 'us',
+    radius: '50',
+  });
+  const url = `https://jsearch.p.rapidapi.com/search?${params}`;
+  const res = await fetch(url, {
+    headers: {
+      'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+      'x-rapidapi-key': process.env.JSEARCH_API_KEY,
+      'Content-Type': 'application/json',
+    },
+  });
+  const rawData = await res.json();
+  console.log('JSearch status:', res.status);
+  console.log('JSearch response:', JSON.stringify(rawData).slice(0, 500));
+
+  return res.status(200).json({
+    ok: true,
+    jsearchStatus: res.status,
+    dataKeys: Object.keys(rawData),
+    dataCount: rawData.data?.length || 0,
+    rawSample: JSON.stringify(rawData).slice(0, 1000),
+  });
 
 // --- Upstash Redis helpers ---
 async function redisGet(key) {
