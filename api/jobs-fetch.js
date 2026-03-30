@@ -10,6 +10,9 @@ const STAFFING_KEYWORDS = [
   'pontoon','allegis','creative financial staffing','orion talent',
   'actalent','interim staffing','kforce','spherion','volt ',
   'staffmark','on assignment','hired','hirequest',
+  // military branches
+  'us navy','us army','us air force','us marine','us coast guard',
+  'national guard',
 ];
 
 const AGENCY_PHRASES = [
@@ -190,7 +193,7 @@ async function fetchJSearchPage(query, page = 1) {
     query,
     page: String(page),
     num_pages: '1',
-    date_posted: '3days',
+    date_posted: 'today',
     country: 'us',
     radius: '50',
   });
