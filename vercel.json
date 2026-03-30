@@ -1,1 +1,6 @@
-{}
+{
+  "routes": [
+    { "src": "/review", "dest": "/api/review" },
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
+}
