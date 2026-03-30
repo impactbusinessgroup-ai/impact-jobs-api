@@ -270,4 +270,32 @@ module.exports = async function handler(req, res) {
         jobTitle: title,
         company: employer,
         normalizedCompany: normalized,
-        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(
+        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, ''),
+        description: description.slice(0, 2000),
+        source: 'jsearch',
+        jobUrl: job.job_apply_link || '',
+        category,
+        status: 'new',
+        contacts: [],
+        createdAt: Date.now(),
+      };
+
+      await redisSet(leadId, lead, 60 * 60 * 24 * 7);
+      qualifiedLeads.push(leadId);
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified, ${geminiCalls} Gemini calls`);
+
+  return res.status(200).json({
+    ok: true,
+    date: today,
+    fetched: totalFetched,
+    filtered: totalFiltered,
+    qualified: qualifiedLeads.length,
+    geminiCalls,
+    leadIds: qualifiedLeads,
+  });
+};
