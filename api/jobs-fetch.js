@@ -1,24 +1,15 @@
 // api/jobs-fetch.js
 
 const STAFFING_KEYWORDS = [
-  // staffing / recruiting firms
-  'staffing','recruiting','recruiter','talent','placement','personnel',
-  'manpower','adecco','robert half','kelly','randstad','insight global',
-  'aerotek','apex','teksystems','express employment','search group',
-  'headhunter','exec search','executive search',
-  'ajilon','modis','experis','pontoon','allegis',
-  'creative financial staffing','orion talent','actalent',
-  // large consulting / outsourcing
-  'accenture','deloitte','wipro','infosys','cognizant','capgemini',
-  'compunnel','tata consultancy','hcl technologies','tech mahindra',
-  'ey ','ernst young','kpmg','pricewaterhousecoopers','pwc',
-  // defense / government contractors
-  'general dynamics','gd information technology','lockheed','raytheon',
-  'northrop','boeing','leidos',
-  // military
-  'us navy','us army','us air force','us marine corps','us coast guard',
-  // healthcare staffing
-  'interim healthcare','interim staffing',
+  // staffing / recruiting firms only
+  'staffing','recruiting','recruiter','placement','personnel',
+  'manpower','adecco','robert half','kelly services','randstad',
+  'insight global','aerotek','apex systems','teksystems',
+  'express employment','search group','headhunter',
+  'exec search','executive search','ajilon','modis','experis',
+  'pontoon','allegis','creative financial staffing','orion talent',
+  'actalent','interim staffing','kforce','spherion','volt ',
+  'staffmark','on assignment','hired','hirequest',
 ];
 
 const AGENCY_PHRASES = [
