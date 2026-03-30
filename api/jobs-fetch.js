@@ -155,12 +155,11 @@ function isJobBoard(employerName) {
   return patterns.some(p => name.includes(p));
 }
 
-function isNotFullTime(job) {
-  const type = (job.job_employment_type || '').toUpperCase();
-  const types = job.job_employment_types || [];
-  if (type && type !== 'FULLTIME') return true;
-  if (types.length > 0 && !types.includes('FULLTIME')) return true;
-  return false;
+function isContractRole(job) {
+  const type = (job.job_employment_type || '').toLowerCase();
+  const types = (job.job_employment_types || []).map(t => t.toLowerCase());
+  const allTypes = [type, ...types].join(' ');
+  return /contractor|contract to hire|contract-to-hire|temp to hire|temp-to-hire|temporary/.test(allTypes);
 }
 
 function isAgencyPosting(description) {
@@ -243,7 +242,7 @@ module.exports = async function handler(req, res) {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
 
-if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
+      if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
       if (isJobBoard(employer)) { totalFiltered++; continue; }
       if (isContractRole(job)) { totalFiltered++; continue; }
