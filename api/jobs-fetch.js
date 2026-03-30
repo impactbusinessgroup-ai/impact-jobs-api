@@ -243,19 +243,12 @@ module.exports = async function handler(req, res) {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
 
-let filterReason = null;
-      if (isExcludedTitle(title, blockedTitles)) filterReason = 'excluded_title';
-      else if (isStaffingCompany(employer)) filterReason = 'staffing';
-      else if (isJobBoard(employer)) filterReason = 'jobboard';
-      else if (isNotFullTime(job)) filterReason = 'not_fulltime';
-      else if (isAgencyPosting(description)) filterReason = 'agency';
-      else if (isBlockedCompany(employer, blockedCompanies)) filterReason = 'blocked_company';
-
-      if (filterReason) {
-        console.log(`Filtered [${filterReason}]: ${employer} - ${title} - type: ${job.job_employment_type}`);
-        totalFiltered++;
-        continue;
-      }
+if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
+      if (isStaffingCompany(employer)) { totalFiltered++; continue; }
+      if (isJobBoard(employer)) { totalFiltered++; continue; }
+      if (isContractRole(job)) { totalFiltered++; continue; }
+      if (isAgencyPosting(description)) { totalFiltered++; continue; }
+      if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
       let isRelevant = hasPrimaryKeyword(title);
       if (!isRelevant) {
