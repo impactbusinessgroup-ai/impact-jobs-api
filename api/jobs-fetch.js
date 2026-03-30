@@ -21,40 +21,13 @@ const EXCLUDE_TITLES = [
 ];
 
 const JSEARCH_QUERIES = [
-  // Engineering / Manufacturing - Grand Rapids
-  'Engineer Grand Rapids Michigan',
-  'Manufacturing Grand Rapids Michigan',
-  'Machinist Grand Rapids Michigan',
-  'Production Supervisor Grand Rapids Michigan',
-  'Quality Engineer Grand Rapids Michigan',
-  // Accounting / Finance - Grand Rapids
-  'Accountant Grand Rapids Michigan',
-  'Controller Grand Rapids Michigan',
-  'Finance Grand Rapids Michigan',
-  'CFO Grand Rapids Michigan',
-  // IT - Grand Rapids
-  'IT Manager Grand Rapids Michigan',
-  'Network Engineer Grand Rapids Michigan',
-  'Software Developer Grand Rapids Michigan',
-  'Systems Administrator Grand Rapids Michigan',
-  // Engineering / Manufacturing - Tampa
-  'Engineer Tampa Florida',
-  'Manufacturing Tampa Florida',
-  'Machinist Tampa Florida',
-  'Production Supervisor Tampa Florida',
-  'Quality Engineer Tampa Florida',
-  // Accounting / Finance - Tampa
-  'Accountant Tampa Florida',
-  'Controller Tampa Florida',
-  'Finance Tampa Florida',
-  // IT - Tampa
-  'IT Manager Tampa Florida',
-  'Network Engineer Tampa Florida',
-  'Software Developer Tampa Florida',
-  'Systems Administrator Tampa Florida',
+  'engineer Grand Rapids Michigan',
+  'accounting Grand Rapids Michigan',
+  'engineer Tampa Florida',
+  'accounting Tampa Florida',
 ];
 
-// --- Upstash Redis helpers (same pattern as cron.js) ---
+// --- Upstash Redis helpers ---
 async function redisGet(key) {
   const url = `${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`;
   const res = await fetch(url, {
@@ -103,11 +76,10 @@ function normalizeCompany(name) {
     .trim();
 }
 
-// --- Detect job category from title/description ---
+// --- Detect job category ---
 function detectCategory(title, description) {
   const text = (title + ' ' + description).toLowerCase();
   if (/accountant|accounting|controller|cfo|finance|financial|bookkeeper|audit|tax/.test(text)) return 'accounting';
-  if (/\bit\b|information technology|network|software|developer|systems admin|helpdesk|help desk|cyber|devops|cloud/.test(text)) return 'it';
   return 'engineering';
 }
 
@@ -129,7 +101,7 @@ function isExcludedTitle(title) {
 
 function hasEngineerOrAccounting(title, description) {
   const text = (title + ' ' + description).toLowerCase();
-  return /engineer|engineering|accountant|accounting|controller|finance|financial/.test(text);
+  return /engineer|engineering|accountant|accounting/.test(text);
 }
 
 // --- Fetch one page from JSearch ---
@@ -138,8 +110,9 @@ async function fetchJSearchPage(query, page = 1) {
     query,
     page: String(page),
     num_pages: '1',
-    date_posted: 'today',
+    date_posted: '3days',
     country: 'us',
+    radius: '50',
   });
   const url = `https://jsearch.p.rapidapi.com/search?${params}`;
   const res = await fetch(url, {
@@ -161,9 +134,12 @@ async function fetchJSearchPage(query, page = 1) {
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
-if (req.headers['authorization'] !== 'Bearer test123') {
+  if (req.headers['authorization'] !== 'Bearer test123') {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  console.log('JOBS_CRON_SECRET present:', !!process.env.JOBS_CRON_SECRET);
+  console.log('JSEARCH_API_KEY present:', !!process.env.JSEARCH_API_KEY);
 
   const today = new Date().toISOString().split('T')[0];
   const seenCompanies = new Set();
@@ -171,7 +147,7 @@ if (req.headers['authorization'] !== 'Bearer test123') {
   let totalFetched = 0;
   let totalFiltered = 0;
 
-  // Load companies already seen today to avoid cross-query dupes
+  // Load companies already seen today
   const existingKeys = await redisKeys(`lead:${today}:*`);
   for (const key of existingKeys) {
     const lead = await redisGet(key);
@@ -179,7 +155,9 @@ if (req.headers['authorization'] !== 'Bearer test123') {
   }
 
   for (const query of JSEARCH_QUERIES) {
+    console.log(`Fetching: ${query}`);
     const jobs = await fetchJSearchPage(query);
+    console.log(`Got ${jobs.length} jobs for: ${query}`);
     totalFetched += jobs.length;
 
     for (const job of jobs) {
@@ -187,25 +165,17 @@ if (req.headers['authorization'] !== 'Bearer test123') {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
 
-      // Filter 1 -- must match engineer or accounting broadly
       if (!hasEngineerOrAccounting(title, description)) { totalFiltered++; continue; }
-
-      // Filter 2 -- exclude specific titles
       if (isExcludedTitle(title)) { totalFiltered++; continue; }
-
-      // Filter 3 -- exclude staffing companies
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
-
-      // Filter 4 -- exclude agency language in description
       if (isAgencyPosting(description)) { totalFiltered++; continue; }
 
-      // Filter 5 -- dedupe by normalized company name
       const normalized = normalizeCompany(employer);
       if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
       seenCompanies.add(normalized);
 
       const category = detectCategory(title, description);
-      const leadId = `lead:${today}:${normalized.replace(/\s/g, '-')}`;
+      const leadId = `lead:${today}:${normalized.replace(/\s/g, '-').slice(0, 50)}`;
 
       const lead = {
         id: leadId,
@@ -223,15 +193,14 @@ if (req.headers['authorization'] !== 'Bearer test123') {
         createdAt: Date.now(),
       };
 
-      await redisSet(leadId, lead, 60 * 60 * 24 * 7); // keep 7 days
+      await redisSet(leadId, lead, 60 * 60 * 24 * 7);
       qualifiedLeads.push(leadId);
     }
 
-    // Small delay between queries to be kind to the API
     await new Promise(r => setTimeout(r, 300));
   }
 
-  console.log(`Jobs fetch complete: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified`);
+  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified`);
 
   return res.status(200).json({
     ok: true,
