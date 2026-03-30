@@ -1,10 +1,19 @@
 // api/jobs-fetch.js
 
 const STAFFING_KEYWORDS = [
+  // staffing / recruiting
   'staffing','recruiting','recruiter','talent','placement','personnel',
   'manpower','adecco','robert half','kelly','randstad','insight global',
   'aerotek','apex','teksystems','express employment','search group',
-  'headhunter','exec search','executive search'
+  'headhunter','exec search','executive search',
+  // job boards
+  'jobleads','virtualvocations','whatjobs','energy jobline','ziprecruiter',
+  'indeed','glassdoor','careerbuilder','monster','simplyhired','jobvite',
+  'jobboard',
+  // large consulting / outsourcing
+  'accenture','deloitte','wipro','infosys','cognizant','capgemini',
+  'compunnel','tata consultancy','hcl technologies','tech mahindra',
+  'ajilon','modis','experis','pontoon','allegis',
 ];
 
 const AGENCY_PHRASES = [
@@ -25,6 +34,7 @@ const JSEARCH_QUERIES = [
   'accounting Tampa Florida',
 ];
 
+// --- Upstash Redis helpers ---
 async function redisGet(key) {
   const url = `${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`;
   const res = await fetch(url, {
@@ -63,6 +73,14 @@ async function redisKeys(pattern) {
   return data.result || [];
 }
 
+// --- Load dynamic blocklists from Redis ---
+async function loadBlocklists() {
+  const companies = await redisGet('blocklist:companies') || [];
+  const titles = await redisGet('blocklist:titles') || [];
+  return { companies, titles };
+}
+
+// --- Normalize company name for deduplication ---
 function normalizeCompany(name) {
   return name
     .toLowerCase()
@@ -72,15 +90,23 @@ function normalizeCompany(name) {
     .trim();
 }
 
+// --- Detect job category ---
 function detectCategory(title, description) {
   const text = (title + ' ' + (description || '')).toLowerCase();
   if (/accountant|accounting|controller|cfo|finance|financial|bookkeeper|audit|tax/.test(text)) return 'accounting';
   return 'engineering';
 }
 
+// --- Filter checks ---
 function isStaffingCompany(employerName) {
   const name = employerName.toLowerCase();
   return STAFFING_KEYWORDS.some(kw => name.includes(kw));
+}
+
+function isJobBoard(employerName) {
+  const name = employerName.toLowerCase();
+  const patterns = ['jobline','vocation','whatjobs','jobleads','jobboard','careers page'];
+  return patterns.some(p => name.includes(p));
 }
 
 function isAgencyPosting(description) {
@@ -89,9 +115,10 @@ function isAgencyPosting(description) {
   return AGENCY_PHRASES.some(phrase => text.includes(phrase));
 }
 
-function isExcludedTitle(title) {
+function isExcludedTitle(title, dynamicTitles) {
   const t = title.toLowerCase();
-  return EXCLUDE_TITLES.some(ex => t.includes(ex));
+  const allExclusions = [...EXCLUDE_TITLES, ...dynamicTitles.map(t => t.toLowerCase())];
+  return allExclusions.some(ex => t.includes(ex));
 }
 
 function hasEngineerOrAccounting(title, description) {
@@ -99,6 +126,12 @@ function hasEngineerOrAccounting(title, description) {
   return /engineer|engineering|accountant|accounting/.test(text);
 }
 
+function isBlockedCompany(employerName, dynamicCompanies) {
+  const normalized = normalizeCompany(employerName);
+  return dynamicCompanies.map(c => normalizeCompany(c)).some(c => normalized.includes(c) || c.includes(normalized));
+}
+
+// --- Fetch one page from JSearch ---
 async function fetchJSearchPage(query, page = 1) {
   const params = new URLSearchParams({
     query,
@@ -124,6 +157,7 @@ async function fetchJSearchPage(query, page = 1) {
   return data.data || [];
 }
 
+// --- Main handler ---
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -137,6 +171,11 @@ module.exports = async function handler(req, res) {
   let totalFetched = 0;
   let totalFiltered = 0;
 
+  // Load dynamic blocklists from Redis
+  const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
+  console.log(`Blocklists loaded: ${blockedCompanies.length} companies, ${blockedTitles.length} titles`);
+
+  // Load companies already seen today
   const existingKeys = await redisKeys(`lead:${today}:*`);
   for (const key of existingKeys) {
     const lead = await redisGet(key);
@@ -154,11 +193,15 @@ module.exports = async function handler(req, res) {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
 
+      // Filter chain
       if (!hasEngineerOrAccounting(title, description)) { totalFiltered++; continue; }
-      if (isExcludedTitle(title)) { totalFiltered++; continue; }
+      if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
+      if (isJobBoard(employer)) { totalFiltered++; continue; }
       if (isAgencyPosting(description)) { totalFiltered++; continue; }
+      if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
+      // Dedupe by company
       const normalized = normalizeCompany(employer);
       if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
       seenCompanies.add(normalized);
