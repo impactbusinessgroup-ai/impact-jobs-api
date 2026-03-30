@@ -10,7 +10,9 @@ const STAFFING_KEYWORDS = [
   'jobboard',
   'accenture','deloitte','wipro','infosys','cognizant','capgemini',
   'compunnel','tata consultancy','hcl technologies','tech mahindra',
-  'ajilon','modis','experis','pontoon','allegis',
+  'ajilon','modis','experis','pontoon','allegis', 'general dynamics information technology','general dynamics',
+'interim healthcare','interim staffing',
+'us navy','us army','us air force','us marine','military',
 ];
 
 const AGENCY_PHRASES = [
@@ -151,7 +153,7 @@ function isStaffingCompany(employerName) {
 
 function isJobBoard(employerName) {
   const name = employerName.toLowerCase();
-  const patterns = ['jobline','vocation','whatjobs','jobleads','jobboard','careers page'];
+  const patterns = ['jobline','vocation','whatjobs','jobleads','jobboard','careers page','entry level technology jobs','entry-level-technology'];
   return patterns.some(p => name.includes(p));
 }
 
