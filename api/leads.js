@@ -47,13 +47,17 @@ module.exports = async function handler(req, res) {
 
   // GET -- return today's leads
  if (method === 'GET') {
-    const keys = await redisKeys(`lead:*`);
+const keys = await redisKeys('lead:*');
     const leads = [];
 
     for (const key of keys) {
-      const lead = await redisGet(key);
-      if (lead && lead.status !== 'skipped') {
-        leads.push(lead);
+      try {
+        const lead = await redisGet(key);
+        if (lead && lead.status !== 'skipped' && lead.company) {
+          leads.push(lead);
+        }
+      } catch(e) {
+        console.error('Error reading lead key:', key, e.message);
       }
     }
 
