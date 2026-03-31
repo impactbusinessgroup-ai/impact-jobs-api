@@ -12,137 +12,142 @@ module.exports = async function handler(req, res) {
 <title>iMPact Lead Review</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a1a; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ECEEF2; color: #1a1a1a; }
 
-  .header { background: #0F1E3D; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-  .header-logo { height: 36px; }
-  .header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-  .header-meta { color: rgba(255,255,255,0.6); font-size: 13px; }
+  .header { background: #0F1E3D; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  .header-logo { height: 34px; }
+  .header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .header-meta { color: rgba(255,255,255,0.55); font-size: 12px; text-align: right; }
 
-  .container { max-width: 860px; margin: 0 auto; padding: 28px 16px; }
+  .container { max-width: 880px; margin: 0 auto; padding: 28px 16px 60px; }
 
-  .queue-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .queue-bar h2 { font-size: 22px; font-weight: 600; color: #0F1E3D; }
-  .queue-bar .sub { font-size: 13px; color: #888; margin-top: 2px; }
-  .lead-count { background: #0F1E3D; color: white; font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 20px; }
+  .queue-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+  .queue-bar h2 { font-size: 24px; font-weight: 700; color: #0F1E3D; }
+  .queue-bar .sub { font-size: 13px; color: #888; margin-top: 3px; }
+  .lead-count-badge { background: #FFA000; color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,160,0,0.35); }
 
-  .card { background: white; border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: box-shadow 0.2s; }
-  .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.11); }
+  .card { background: white; border-radius: 18px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.07); transition: box-shadow 0.2s, transform 0.2s; }
+  .card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.12); transform: translateY(-1px); }
 
-  .card-top { background: linear-gradient(135deg, #0F1E3D 0%, #1A4EA2 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-  .card-top-left {}
-  .company-name { font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px; }
-  .company-location { font-size: 13px; color: rgba(255,255,255,0.65); }
-  .card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .card-top { background: linear-gradient(135deg, #0B1729 0%, #1A3A6E 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .company-logo-wrap { width: 48px; height: 48px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .company-logo-wrap img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+  .company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: 0.5px; }
+  .company-text {}
+  .company-name { font-size: 18px; font-weight: 700; color: white; line-height: 1.2; }
+  .company-location { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 3px; }
 
-  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px; }
-  .pill-eng { background: rgba(29,158,117,0.25); color: #7FFFDC; border: 1px solid rgba(93,202,165,0.4); }
-  .pill-acc { background: rgba(26,78,162,0.4); color: #93C5FD; border: 1px solid rgba(147,197,253,0.4); }
-  .pill-it { background: rgba(239,159,39,0.25); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); }
+  .card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 
-  .btn-block-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; }
-  .btn-block-top:hover { background: rgba(255,255,255,0.2); color: white; }
-  .btn-unblock-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(226,75,74,0.6); background: rgba(226,75,74,0.15); color: #FCA5A5; cursor: pointer; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.4px; text-transform: uppercase; }
+  .pill-eng { background: rgba(29,158,117,0.3); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.3); }
+  .pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); }
+  .pill-it { background: rgba(255,160,0,0.25); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); }
+
+  .btn-block-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-block-top:hover { background: rgba(255,255,255,0.18); color: white; }
+  .btn-unblock-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(252,75,74,0.5); background: rgba(226,75,74,0.15); color: #FCA5A5; cursor: pointer; white-space: nowrap; }
 
   .card-body { padding: 20px 24px; }
 
-  .job-info-row { display: flex; gap: 12px; margin-bottom: 18px; align-items: stretch; }
-  .job-title-block { flex: 1; background: #f8f9fc; border-radius: 12px; padding: 14px 16px; border-left: 4px solid #1A4EA2; }
-  .job-title-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .job-title-value { font-size: 15px; font-weight: 600; color: #0F1E3D; }
+  .job-info-row { display: flex; gap: 14px; margin-bottom: 18px; align-items: stretch; }
+  .job-title-block { flex: 1; background: #F4F6FB; border-radius: 12px; padding: 14px 16px; border-left: 4px solid #FFA000; }
+  .job-title-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px; font-weight: 600; }
+  .job-title-value { font-size: 15px; font-weight: 700; color: #0F1E3D; line-height: 1.3; }
 
-  .cal-block { background: #f8f9fc; border-radius: 12px; overflow: hidden; width: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
-  .cal-month { background: #1A4EA2; color: white; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; width: 100%; text-align: center; padding: 5px 0; }
-  .cal-day { font-size: 26px; font-weight: 700; color: #0F1E3D; padding: 6px 0 4px; }
-  .cal-year { font-size: 10px; color: #999; padding-bottom: 6px; }
+  .cal-block { background: white; border-radius: 12px; overflow: hidden; width: 76px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid #E8ECF4; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .cal-month { background: #1A4EA2; color: white; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; width: 100%; text-align: center; padding: 5px 0; }
+  .cal-day { font-size: 28px; font-weight: 800; color: #0F1E3D; padding: 6px 0 2px; line-height: 1; }
+  .cal-year { font-size: 10px; color: #aaa; padding-bottom: 8px; font-weight: 500; }
 
-  .jd-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #1A4EA2; cursor: pointer; margin-bottom: 16px; font-weight: 500; }
-  .jd-toggle svg { transition: transform 0.2s; }
-  .jd-toggle.open svg { transform: rotate(180deg); }
+  .jd-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #1A4EA2; cursor: pointer; margin-bottom: 16px; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 6px; border: none; transition: background 0.15s; }
+  .jd-toggle:hover { background: #DBEAFE; }
 
-  .jd-popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+  .jd-popup-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
   .jd-popup-overlay.open { display: flex; }
-  .jd-popup { background: white; border-radius: 16px; max-width: 640px; width: 90%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
-  .jd-popup-header { padding: 18px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-  .jd-popup-header h3 { font-size: 16px; font-weight: 600; color: #0F1E3D; }
-  .jd-popup-close { font-size: 20px; color: #999; cursor: pointer; line-height: 1; background: none; border: none; }
-  .jd-popup-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; line-height: 1.7; color: #444; white-space: pre-wrap; }
+  .jd-popup { background: white; border-radius: 18px; max-width: 660px; width: 92%; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .jd-popup-header { padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+  .jd-popup-header h3 { font-size: 16px; font-weight: 700; color: #0F1E3D; }
+  .jd-popup-close { width: 28px; height: 28px; border-radius: 50%; background: #f0f2f5; border: none; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center; }
+  .jd-popup-close:hover { background: #e0e3ea; }
+  .jd-popup-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; line-height: 1.75; color: #444; white-space: pre-wrap; }
 
-  .section-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .divider { border: none; border-top: 1px solid #F0F2F5; margin: 16px 0; }
+  .section-label { font-size: 10px; font-weight: 700; color: #AAB0BE; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
 
-  .contact-block { border: 1px solid #eef0f4; border-radius: 12px; padding: 16px; margin-bottom: 10px; transition: all 0.2s; background: #fafbfd; }
-  .contact-block.sent { border-color: #5DCAA5; background: #f0fdf8; }
+  .contact-block { border: 1.5px solid #EEF0F5; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; transition: all 0.2s; background: #FAFBFD; }
+  .contact-block.sent { border-color: #5DCAA5; background: #F0FDF8; }
   .contact-header { display: flex; align-items: center; gap: 12px; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
+  .avatar { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }
   .avatar-am { background: linear-gradient(135deg, #1D9E75, #085041); }
   .contact-info { flex: 1; }
-  .contact-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-  .contact-name { font-size: 14px; font-weight: 600; color: #0F1E3D; }
-  .contact-title-sub { font-size: 12px; color: #666; }
-  .email-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
-  .email-placeholder { font-size: 12px; color: #bbb; font-style: italic; }
-  .email-value { font-size: 12px; color: #1A4EA2; font-weight: 500; }
-  .credit-note { font-size: 11px; color: #bbb; }
+  .contact-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
+  .contact-name { font-size: 14px; font-weight: 700; color: #0F1E3D; }
+  .contact-title-sub { font-size: 12px; color: #777; }
+  .email-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+  .email-placeholder { font-size: 12px; color: #C0C5D0; font-style: italic; }
+  .email-value { font-size: 12px; color: #1A4EA2; font-weight: 600; }
+  .credit-note { font-size: 11px; color: #C0C5D0; margin-top: 2px; }
 
-  .badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
   .badge-suggested { background: #FEF3C7; color: #92400E; }
   .badge-added { background: #DBEAFE; color: #1E40AF; }
   .badge-sent { background: #D1FAE5; color: #065F46; }
 
   .contact-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
-  .btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e0e3ea; background: white; color: #333; transition: all 0.15s; }
-  .btn:hover { background: #f5f7fa; }
+  .btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #E0E3EA; background: white; color: #333; transition: all 0.15s; }
+  .btn:hover { background: #F5F7FA; border-color: #C8CDD8; }
   .btn-primary { background: #0F1E3D; color: white; border-color: #0F1E3D; }
   .btn-primary:hover { background: #1a2f5a; }
+  .btn-orange { background: #FFA000; color: white; border-color: #FFA000; }
+  .btn-orange:hover { background: #E8620A; border-color: #E8620A; }
   .btn-li { background: #0A66C2; color: white; border-color: #0A66C2; }
   .btn-li:hover { background: #0958a8; }
   .btn-fetch { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }
   .btn-fetch:hover { background: #FDE68A; }
   .btn-sent { background: #D1FAE5; color: #065F46; border-color: #5DCAA5; cursor: default; }
-  .btn-ghost { color: #999; font-size: 12px; border: none; background: none; cursor: pointer; padding: 4px 8px; }
+  .btn-ghost { color: #B0B8C8; font-size: 12px; border: none; background: none; cursor: pointer; padding: 4px 6px; font-weight: 500; }
   .btn-ghost:hover { color: #e24b4a; }
 
   .tab-row { display: flex; gap: 6px; margin: 12px 0 8px; }
-  .tab { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1px solid #e0e3ea; cursor: pointer; color: #666; background: white; transition: all 0.15s; }
+  .tab { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1.5px solid #E0E3EA; cursor: pointer; color: #666; background: white; font-weight: 500; transition: all 0.15s; }
   .tab.active { background: #0F1E3D; color: white; border-color: #0F1E3D; }
 
-  .subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid #e0e3ea; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; margin-bottom: 6px; }
+  .subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; margin-bottom: 6px; }
   .subject-input:focus { outline: none; border-color: #1A4EA2; }
-  textarea { width: 100%; font-size: 12px; line-height: 1.65; padding: 10px 12px; border: 1px solid #e0e3ea; border-radius: 8px; background: white; color: #1a1a1a; resize: vertical; font-family: inherit; min-height: 95px; }
+  textarea { width: 100%; font-size: 12px; line-height: 1.7; padding: 10px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; resize: vertical; font-family: inherit; min-height: 95px; }
   textarea:focus { outline: none; border-color: #1A4EA2; }
 
-  .search-panel { border: 1px solid #eef0f4; border-radius: 12px; padding: 14px; background: #f8f9fc; margin-bottom: 12px; }
-  .search-panel-label { font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500; }
-  .search-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid #e0e3ea; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; }
+  .search-panel { border: 1.5px solid #EEF0F5; border-radius: 12px; padding: 14px; background: #F8F9FC; margin-bottom: 12px; }
+  .search-panel-label { font-size: 12px; color: #777; margin-bottom: 8px; font-weight: 600; }
+  .search-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; }
   .search-input:focus { outline: none; border-color: #1A4EA2; }
-  .search-results { margin-top: 6px; border: 1px solid #e0e3ea; border-radius: 10px; overflow: hidden; background: white; }
-  .search-result-item { padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }
+  .search-results { margin-top: 8px; border: 1.5px solid #E0E3EA; border-radius: 10px; overflow: hidden; background: white; }
+  .search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #F5F5F5; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }
   .search-result-item:last-child { border-bottom: none; }
-  .search-result-item:hover { background: #f5f7fa; }
-  .search-add-btn { font-size: 11px; font-weight: 600; color: #1A4EA2; background: #EFF6FF; padding: 3px 10px; border-radius: 6px; }
+  .search-result-item:hover { background: #F5F7FA; }
+  .search-add-btn { font-size: 11px; font-weight: 700; color: #1A4EA2; background: #EEF3FF; padding: 3px 10px; border-radius: 6px; }
 
-  .card-footer { display: flex; gap: 8px; align-items: center; padding: 16px 24px; border-top: 1px solid #f0f2f5; background: #fafbfc; }
-  .btn-skip { color: #999; font-size: 13px; border: none; background: none; cursor: pointer; }
+  .card-footer { display: flex; gap: 10px; align-items: center; padding: 14px 24px; border-top: 1px solid #F0F2F5; background: #F8F9FC; }
+  .btn-skip { color: #B0B8C8; font-size: 13px; border: none; background: none; cursor: pointer; font-weight: 500; }
   .btn-skip:hover { color: #e24b4a; }
-  .view-posting-link { font-size: 12px; color: #1A4EA2; text-decoration: none; font-weight: 500; }
-  .view-posting-link:hover { text-decoration: underline; }
+  .view-posting-link { font-size: 12px; color: #1A4EA2; text-decoration: none; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 8px; }
+  .view-posting-link:hover { background: #DBEAFE; }
 
   .loading { text-align: center; padding: 80px; color: #888; font-size: 15px; }
-  .empty { text-align: center; padding: 80px; color: #888; }
+  .empty { text-align: center; padding: 80px; }
   .empty h3 { font-size: 18px; margin-bottom: 8px; color: #444; }
-
-  .divider { border: none; border-top: 1px solid #f0f2f5; margin: 16px 0; }
 </style>
 </head>
 <body>
 
 <div class="header" style="position:relative;">
-  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact Business Group">
+  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">
   <div class="header-center">Lead Review</div>
   <div class="header-meta" id="header-date"></div>
 </div>
 
-<!-- JD Popup -->
 <div class="jd-popup-overlay" id="jd-overlay" onclick="closeJD(event)">
   <div class="jd-popup">
     <div class="jd-popup-header">
@@ -159,7 +164,7 @@ module.exports = async function handler(req, res) {
       <h2>Good morning, Mark</h2>
       <div class="sub" id="queue-sub"></div>
     </div>
-    <div class="lead-count" id="lead-count"></div>
+    <div class="lead-count-badge" id="lead-count"></div>
   </div>
   <div id="leads-container"><div class="loading">Loading leads...</div></div>
 </div>
@@ -169,11 +174,57 @@ const AM = { name: 'Mark Sapoznikov', email: 'msapoznikov@impactbusinessgroup.co
 let leads = [];
 let blocklist = { companies: [], titles: [] };
 let contactCounters = {};
+const logoCache = {};
+
+async function fetchLogo(company, website, leadId) {
+  const cacheKey = company.toLowerCase();
+  if (logoCache[cacheKey] !== undefined) {
+    applyLogo(leadId, logoCache[cacheKey]);
+    return;
+  }
+
+  let domain = '';
+  if (website) {
+    try { domain = new URL(website).hostname.replace('www.', ''); } catch(e) {}
+  }
+  if (!domain) {
+    domain = company.toLowerCase()
+      .replace(/[^a-z0-9\\s]/g, '')
+      .replace(/\\s+/g, '')
+      .slice(0, 20) + '.com';
+  }
+
+  try {
+    const res = await fetch('/api/logo?domain=' + encodeURIComponent(domain));
+    const data = await res.json();
+    const url = data.url || null;
+    logoCache[cacheKey] = url;
+    applyLogo(leadId, url);
+  } catch(e) {
+    logoCache[cacheKey] = null;
+    applyLogo(leadId, null);
+  }
+}
+
+function applyLogo(leadId, url) {
+  const wrap = document.getElementById('logo-' + leadId);
+  if (!wrap) return;
+  if (url) {
+    wrap.innerHTML = '<img src="' + url + '" alt="" onerror="this.parentElement.style.display=\\'none\\';document.getElementById(\\'ini-' + leadId + '\\').style.display=\\'flex\\'">';
+    wrap.style.display = 'flex';
+    const ini = document.getElementById('ini-' + leadId);
+    if (ini) ini.style.display = 'none';
+  } else {
+    wrap.style.display = 'none';
+    const ini = document.getElementById('ini-' + leadId);
+    if (ini) ini.style.display = 'flex';
+  }
+}
 
 async function init() {
   const today = new Date();
   document.getElementById('header-date').textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('queue-sub').textContent = 'All pending leads · ' + today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('queue-sub').textContent = 'All pending leads';
 
   const [leadsRes, blockRes] = await Promise.all([
     fetch('/api/leads').then(r => r.json()),
@@ -181,8 +232,12 @@ async function init() {
   ]);
   leads = leadsRes.leads || [];
   blocklist = { companies: blockRes.companies || [], titles: blockRes.titles || [] };
-  document.getElementById('lead-count').textContent = leads.length + ' leads today';
+  document.getElementById('lead-count').textContent = leads.length + ' pending leads';
   renderLeads();
+
+  leads.forEach(lead => {
+    fetchLogo(lead.company, lead.employerWebsite || '', lead.id);
+  });
 }
 
 function categoryPill(cat) {
@@ -195,44 +250,57 @@ function initials(name) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
+function companyInitials(name) {
+  const words = name.trim().split(/\\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 function isCompanyBlocked(company) {
   return blocklist.companies.some(c => c.toLowerCase() === company.toLowerCase());
 }
 
 function formatPostDate(lead) {
   const d = lead.createdAt ? new Date(lead.createdAt) : new Date();
-  const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-  const day = d.getDate();
-  const year = d.getFullYear();
-  return { month, day, year };
+  return {
+    month: d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+    day: d.getDate(),
+    year: d.getFullYear()
+  };
 }
 
 function renderLeads() {
   const container = document.getElementById('leads-container');
   if (!leads.length) {
-    container.innerHTML = '<div class="empty"><h3>No leads today</h3><p>Check back after the morning fetch runs.</p></div>';
+    container.innerHTML = '<div class="empty"><h3>No pending leads</h3><p style="color:#aaa;font-size:13px;">Check back after the morning fetch runs.</p></div>';
     return;
   }
-  container.innerHTML = leads.map((lead, idx) => renderCard(lead, idx)).join('');
+  container.innerHTML = leads.map(lead => renderCard(lead)).join('');
 }
 
-function renderCard(lead, idx) {
+function renderCard(lead) {
   const blocked = isCompanyBlocked(lead.company);
   const cat = lead.category || 'engineering';
   const { month, day, year } = formatPostDate(lead);
   const hasJD = lead.description && lead.description.length > 0;
+  const ini = companyInitials(lead.company);
+  const safeId = lead.id.replace(/[^a-zA-Z0-9]/g, '_');
 
   return \`
-  <div class="card" id="card-\${lead.id}">
+  <div class="card" id="card-\${safeId}">
     <div class="card-top">
       <div class="card-top-left">
-        <div class="company-name">\${lead.company}</div>
-        <div class="company-location">\${lead.location || ''}</div>
+        <div class="company-logo-wrap" id="logo-\${safeId}" style="display:none;"></div>
+        <div class="company-initials" id="ini-\${safeId}">\${ini}</div>
+        <div class="company-text">
+          <div class="company-name">\${lead.company}</div>
+          <div class="company-location">\${lead.location || ''}</div>
+        </div>
       </div>
       <div class="card-top-right">
         \${categoryPill(cat)}
-        <button class="\${blocked ? 'btn-unblock-top' : 'btn-block-top'}" onclick="toggleBlockCompany('\${lead.company}', this)">
-          \${blocked ? 'Unblock company' : 'Block company'}
+        <button class="\${blocked ? 'btn-unblock-top' : 'btn-block-top'}" onclick="toggleBlockCompany('\${lead.company.replace(/'/g,"\\\\'")}', this)">
+          \${blocked ? 'Unblock' : 'Block company'}
         </button>
       </div>
     </div>
@@ -250,29 +318,28 @@ function renderCard(lead, idx) {
         </div>
       </div>
 
-      \${hasJD ? \`<span class="jd-toggle" onclick="openJD('\${lead.id}', '\${lead.company}', this)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        View job description
-      </span>\` : ''}
+      \${hasJD ? \`<button class="jd-toggle" onclick="openJD('\${safeId}', this)">
+        &#9654; View job description
+      </button>\` : ''}
 
       <div class="divider"></div>
       <div class="section-label">Contacts</div>
-      <div id="contacts-\${lead.id}"></div>
+      <div id="contacts-\${safeId}"></div>
 
       <div class="search-panel">
         <div class="search-panel-label">Add contact from SmartSearch &middot; \${lead.company}</div>
-        <input class="search-input" type="text" placeholder="Search contacts or type to filter..." oninput="filterSS(this, '\${lead.id}')" onfocus="showSS('\${lead.id}')">
-        <div class="search-results" id="ss-\${lead.id}" style="display:none;">
-          <div class="search-result-item" onclick="addContact('\${lead.id}', 'Sarah Johnson', 'HR Director')">
-            <div><div style="font-size:13px;font-weight:500;">Sarah Johnson</div><div style="font-size:11px;color:#888;">HR Director</div></div>
+        <input class="search-input" type="text" placeholder="Search contacts or type to filter..." oninput="filterSS(this, '\${safeId}')" onfocus="showSS('\${safeId}')">
+        <div class="search-results" id="ss-\${safeId}" style="display:none;">
+          <div class="search-result-item" onclick="addContact('\${safeId}', 'Sarah Johnson', 'HR Director')">
+            <div><div style="font-size:13px;font-weight:600;">Sarah Johnson</div><div style="font-size:11px;color:#888;">HR Director</div></div>
             <span class="search-add-btn">+ Add</span>
           </div>
-          <div class="search-result-item" onclick="addContact('\${lead.id}', 'Mike Williams', 'Engineering Manager')">
-            <div><div style="font-size:13px;font-weight:500;">Mike Williams</div><div style="font-size:11px;color:#888;">Engineering Manager</div></div>
+          <div class="search-result-item" onclick="addContact('\${safeId}', 'Mike Williams', 'Engineering Manager')">
+            <div><div style="font-size:13px;font-weight:600;">Mike Williams</div><div style="font-size:11px;color:#888;">Engineering Manager</div></div>
             <span class="search-add-btn">+ Add</span>
           </div>
-          <div class="search-result-item" onclick="addContact('\${lead.id}', 'Tom Baker', 'Plant Manager')">
-            <div><div style="font-size:13px;font-weight:500;">Tom Baker</div><div style="font-size:11px;color:#888;">Plant Manager</div></div>
+          <div class="search-result-item" onclick="addContact('\${safeId}', 'Tom Baker', 'Plant Manager')">
+            <div><div style="font-size:13px;font-weight:600;">Tom Baker</div><div style="font-size:11px;color:#888;">Plant Manager</div></div>
             <span class="search-add-btn">+ Add</span>
           </div>
         </div>
@@ -280,39 +347,39 @@ function renderCard(lead, idx) {
     </div>
 
     <div class="card-footer">
-      <button class="btn-skip" onclick="skipLead('\${lead.id}')">Skip this lead</button>
+      <button class="btn-skip" onclick="skipLead('\${safeId}', '\${lead.id}')">Skip this lead</button>
+      <div style="flex:1;"></div>
       \${lead.jobUrl ? \`<a class="view-posting-link" href="\${lead.jobUrl}" target="_blank">View job posting &#8599;</a>\` : ''}
     </div>
   </div>\`;
 }
 
-// JD popup
-const jdData = {};
-function openJD(leadId, company, toggleEl) {
-  const lead = leads.find(l => l.id === leadId);
+function openJD(safeId, btn) {
+  const lead = leads.find(l => l.id.replace(/[^a-zA-Z0-9]/g, '_') === safeId);
   if (!lead) return;
-  document.getElementById('jd-popup-title').textContent = company + ' \u2013 Job Description';
+  document.getElementById('jd-popup-title').textContent = lead.company + ' \u2013 ' + lead.jobTitle;
   document.getElementById('jd-popup-body').textContent = lead.description || 'No description available.';
   document.getElementById('jd-overlay').classList.add('open');
 }
 function closeJD(e) { if (e.target === document.getElementById('jd-overlay')) document.getElementById('jd-overlay').classList.remove('open'); }
 function closeJDBtn() { document.getElementById('jd-overlay').classList.remove('open'); }
 
-// Close SS dropdown on outside click
 document.addEventListener('click', function(e) {
-  document.querySelectorAll('[id^="ss-"]').forEach(el => {
-    if (!el.parentElement.contains(e.target)) el.style.display = 'none';
-  });
+  if (!e.target.classList.contains('search-input')) {
+    document.querySelectorAll('[id^="ss-"]').forEach(el => {
+      if (!el.contains(e.target)) el.style.display = 'none';
+    });
+  }
 });
 
-function showSS(leadId) {
-  const el = document.getElementById('ss-' + leadId);
+function showSS(safeId) {
+  const el = document.getElementById('ss-' + safeId);
   if (el) el.style.display = 'block';
 }
 
-function filterSS(input, leadId) {
+function filterSS(input, safeId) {
   const val = input.value.toLowerCase();
-  const results = document.getElementById('ss-' + leadId);
+  const results = document.getElementById('ss-' + safeId);
   if (!results) return;
   results.style.display = 'block';
   results.querySelectorAll('.search-result-item').forEach(item => {
@@ -321,10 +388,10 @@ function filterSS(input, leadId) {
   });
 }
 
-function addContact(leadId, name, title) {
-  if (!contactCounters[leadId]) contactCounters[leadId] = 0;
-  contactCounters[leadId]++;
-  const cid = leadId + '-c' + contactCounters[leadId];
+function addContact(safeId, name, title) {
+  if (!contactCounters[safeId]) contactCounters[safeId] = 0;
+  contactCounters[safeId]++;
+  const cid = safeId + '_c' + contactCounters[safeId];
   const ini = initials(name);
   const firstName = name.split(' ')[0];
 
@@ -346,7 +413,7 @@ function addContact(leadId, name, title) {
         </div>
         <div class="credit-note" id="cn-\${cid}">Fetching email uses 2 credits</div>
       </div>
-      <button class="btn-ghost" onclick="removeContact('\${cid}')" title="Remove">&#x2715;</button>
+      <button class="btn-ghost" onclick="removeContact('\${cid}')">&times;</button>
     </div>
     <div class="contact-actions">
       <button class="btn btn-fetch" id="fb-\${cid}" onclick="fetchEmail('\${cid}', '\${name}', '\${title}')">Fetch email (2 credits)</button>
@@ -374,13 +441,13 @@ function addContact(leadId, name, title) {
     </div>
   \`;
 
-  document.getElementById('contacts-' + leadId).appendChild(block);
-  document.getElementById('ss-' + leadId).style.display = 'none';
+  document.getElementById('contacts-' + safeId).appendChild(block);
+  document.getElementById('ss-' + safeId).style.display = 'none';
 }
 
 function removeContact(cid) {
   const el = document.getElementById('cb-' + cid);
-  if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.25s'; setTimeout(() => el.remove(), 250); }
+  if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.2s'; setTimeout(() => el.remove(), 200); }
 }
 
 function fetchEmail(cid, name, title) {
@@ -397,12 +464,11 @@ function fetchEmail(cid, name, title) {
     document.getElementById('cn-' + cid).textContent = '2 credits used';
     btn.textContent = 'Email fetched';
     btn.className = 'btn btn-sent';
-    const cat = 'Engineering';
-    document.getElementById('subj-' + cid).value = 'Partnering on your ' + cat + ' search';
-    document.getElementById('edraft-' + cid).value = 'Hi ' + name.split(' ')[0] + ',\\n\\nI noticed your company is actively hiring and wanted to reach out. At iMPact Business Group we specialize in placing top ' + cat + ' talent across the region and have helped similar companies reduce time-to-hire significantly.\\n\\nWould you be open to a quick 15-minute call?\\n\\n[Calendly link]\\n\\nMark Sapoznikov\\niMPact Business Group';
-    document.getElementById('lidraft-' + cid).value = 'Hi ' + name.split(' ')[0] + ', I noticed your company is actively hiring and wanted to connect. At iMPact Business Group we place top ' + cat + ' talent across the region. Would you be open to a quick chat? [Calendly link] - Mark';
+    document.getElementById('subj-' + cid).value = 'Partnering on your search';
+    document.getElementById('edraft-' + cid).value = 'Hi ' + name.split(' ')[0] + ',\\n\\nI noticed your company is actively hiring and wanted to reach out. At iMPact Business Group we specialize in placing top talent in Engineering, Manufacturing, Accounting, and IT roles across the region.\\n\\nWould you be open to a quick 15-minute call?\\n\\n[Calendly link]\\n\\nMark Sapoznikov\\niMPact Business Group';
+    document.getElementById('lidraft-' + cid).value = 'Hi ' + name.split(' ')[0] + ', I noticed your company is actively hiring and wanted to connect. At iMPact Business Group we place top talent across Engineering, Accounting, and IT. Would you be open to a quick chat? [Calendly link] - Mark';
     document.getElementById('draft-' + cid).style.display = 'block';
-  }, 500);
+  }, 400);
 }
 
 function switchTab(cid, tab, btn) {
@@ -417,9 +483,8 @@ function openOutlook(cid) {
   const subject = encodeURIComponent(document.getElementById('subj-' + cid).value);
   const body = encodeURIComponent(document.getElementById('edraft-' + cid).value);
   window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
-  const btn = document.getElementById('send-' + cid);
-  btn.textContent = 'Sent';
-  btn.className = 'btn btn-sent';
+  document.getElementById('send-' + cid).textContent = 'Sent';
+  document.getElementById('send-' + cid).className = 'btn btn-sent';
   document.getElementById('cb-' + cid).classList.add('sent');
 }
 
@@ -443,23 +508,21 @@ async function toggleBlockCompany(company, btn) {
     btn.className = 'btn-block-top';
   } else {
     blocklist.companies.push(company);
-    btn.textContent = 'Unblock company';
+    btn.textContent = 'Unblock';
     btn.className = 'btn-unblock-top';
   }
 }
 
-async function skipLead(leadId) {
+async function skipLead(safeId, realId) {
   await fetch('/api/leads', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: leadId, updates: { status: 'skipped' } }),
+    body: JSON.stringify({ id: realId, updates: { status: 'skipped' } }),
   });
-  const card = document.getElementById('card-' + leadId);
-  card.style.opacity = '0';
-  card.style.transition = 'opacity 0.25s';
-  setTimeout(() => card.remove(), 250);
-  leads = leads.filter(l => l.id !== leadId);
-  document.getElementById('lead-count').textContent = leads.length + ' leads today';
+  const card = document.getElementById('card-' + safeId);
+  if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.2s'; setTimeout(() => card.remove(), 200); }
+  leads = leads.filter(l => l.id !== realId);
+  document.getElementById('lead-count').textContent = leads.length + ' pending leads';
 }
 
 init();
