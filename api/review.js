@@ -173,7 +173,7 @@ let contactCounters = {};
 async function init() {
   const today = new Date();
   document.getElementById('header-date').textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('queue-sub').textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('queue-sub').textContent = 'All pending leads · ' + today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const [leadsRes, blockRes] = await Promise.all([
     fetch('/api/leads').then(r => r.json()),
