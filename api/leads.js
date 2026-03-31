@@ -64,7 +64,7 @@ const keys = await redisKeys('lead:*');
     // Sort by createdAt descending
     leads.sort((a, b) => b.createdAt - a.createdAt);
 
-    return res.status(200).json({ ok: true, date, leads });
+    return res.status(200).json({ ok: true, leads });
   }
 
   // PATCH -- update a lead (skip, update status, add contact)
