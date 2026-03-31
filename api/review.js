@@ -210,7 +210,12 @@ function applyLogo(leadId, url) {
   const wrap = document.getElementById('logo-' + leadId);
   if (!wrap) return;
   if (url) {
-    wrap.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px;" onerror="this.parentElement.style.display=\'none\'">';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;padding:4px;';
+    img.onerror = function() { wrap.style.display = 'none'; };
+    wrap.innerHTML = '';
+    wrap.appendChild(img);
     wrap.style.display = 'flex';
     const ini = document.getElementById('ini-' + leadId);
     if (ini) ini.style.display = 'none';
