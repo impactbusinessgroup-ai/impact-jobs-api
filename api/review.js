@@ -236,9 +236,9 @@ async function init() {
   renderLeads();
 
   leads.forEach(lead => {
-    fetchLogo(lead.company, lead.employerWebsite || '', lead.id);
+    const safeId = lead.id.replace(/[^a-zA-Z0-9]/g, '_');
+    fetchLogo(lead.company, lead.employerWebsite || '', safeId);
   });
-}
 
 function categoryPill(cat) {
   if (cat === 'accounting') return '<span class="pill pill-acc">Accounting</span>';
