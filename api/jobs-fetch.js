@@ -279,6 +279,7 @@ module.exports = async function handler(req, res) {
         description: description.slice(0, 2000),
         source: 'jsearch',
         jobUrl: job.job_apply_link || '',
+        employerWebsite: job.employer_website || '',
         category,
         status: 'new',
         contacts: [],
