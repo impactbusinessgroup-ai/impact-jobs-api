@@ -46,9 +46,8 @@ module.exports = async function handler(req, res) {
   const { method, query } = req;
 
   // GET -- return today's leads
-  if (method === 'GET') {
-    const date = query.date || new Date().toISOString().split('T')[0];
-    const keys = await redisKeys(`lead:${date}:*`);
+ if (method === 'GET') {
+    const keys = await redisKeys(`lead:*`);
     const leads = [];
 
     for (const key of keys) {
