@@ -154,7 +154,7 @@ module.exports = async function handler(req, res) {
 '  return id.replace(/[^a-zA-Z0-9]/g, \'_\');\n' +
 '}\n' +
 '\n' +
-'async function fetchLogo(company, website, safeId) {\n' +
+'async function fetchLogo(company, website, location, safeId) {\n' +
 '  var cacheKey = company.toLowerCase();\n' +
 '  if (logoCache[cacheKey] !== undefined) {\n' +
 '    applyLogo(safeId, logoCache[cacheKey]);\n' +
@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
 '    domain = company.toLowerCase().replace(/[^a-z0-9]/g, \'\').slice(0, 20) + \'.com\';\n' +
 '  }\n' +
 '  try {\n' +
-'    var res = await fetch(\'/api/logo?domain=\' + encodeURIComponent(domain));\n' +
+'    var res = await fetch(\'/api/logo?domain=\' + encodeURIComponent(domain) + \'&company=\' + encodeURIComponent(company) + \'&location=\' + encodeURIComponent(location || \'\'));\n' +
 '    var data = await res.json();\n' +
 '    var url = data.url || null;\n' +
 '    logoCache[cacheKey] = url;\n' +
@@ -216,7 +216,7 @@ module.exports = async function handler(req, res) {
 '    renderLeads();\n' +
 '    leads.forEach(function(lead) {\n' +
 '      var safeId = getSafeId(lead.id);\n' +
-'      fetchLogo(lead.company, lead.employerWebsite || \'\', safeId);\n' +
+'      fetchLogo(lead.company, lead.employerWebsite || \'\', lead.location || \'\', safeId);\n' +
 '    });\n' +
 '  } catch(e) {\n' +
 '    console.error(\'Init error:\', e);\n' +
