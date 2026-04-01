@@ -308,15 +308,15 @@ module.exports = async function handler(req, res) {
 '        \'<div class="search-panel-label">Add contact from SmartSearch &middot; \' + lead.company + \'</div>\' +\n' +
 '        \'<input class="search-input" type="text" placeholder="Search contacts or type to filter..." oninput="filterSS(this,\\\'\' + safeId + \'\\\')" onfocus="showSS(\\\'\' + safeId + \'\\\')">\' +\n' +
 '        \'<div class="search-results" id="ss-\' + safeId + \'" style="display:none;">\' +\n' +
-'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Sarah Johnson\\\',\\\'HR Director\\\')">\' +\n' +
+'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Sarah Johnson\\\',\\\'HR Director\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
 '            \'<div><div style="font-size:13px;font-weight:600;">Sarah Johnson</div><div style="font-size:11px;color:#888;">HR Director</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
-'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Mike Williams\\\',\\\'Engineering Manager\\\')">\' +\n' +
+'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Mike Williams\\\',\\\'Engineering Manager\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
 '            \'<div><div style="font-size:13px;font-weight:600;">Mike Williams</div><div style="font-size:11px;color:#888;">Engineering Manager</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
-'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Tom Baker\\\',\\\'Plant Manager\\\')">\' +\n' +
+'          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Tom Baker\\\',\\\'Plant Manager\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
 '            \'<div><div style="font-size:13px;font-weight:600;">Tom Baker</div><div style="font-size:11px;color:#888;">Plant Manager</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
@@ -328,6 +328,7 @@ module.exports = async function handler(req, res) {
 '      \'<div style="flex:1;"></div>\' +\n' +
 '      (lead.jobUrl ? \'<a class="view-posting-link" href="\' + lead.jobUrl + \'" target="_blank">View job posting &#8599;</a>\' : \'\') +\n' +
 '    \'</div>\' +\n' +
+'  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadJobTitles["\' + safeId + \'"]=\' + JSON.stringify(lead.jobTitle || \'\') + \';window._leadCategories["\' + safeId + \'"]=\' + JSON.stringify(lead.category || \'engineering\') + \';<\\/script>\' +\n' +
 '  \'</div>\';\n' +
 '}\n' +
 '\n' +
@@ -373,7 +374,7 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
-'function addContact(safeId, name, title) {\n' +
+'function addContact(safeId, name, title, companyName, location) {\n' +
 '  if (!contactCounters[safeId]) contactCounters[safeId] = 0;\n' +
 '  contactCounters[safeId]++;\n' +
 '  var cid = safeId + \'_c\' + contactCounters[safeId];\n' +
@@ -401,7 +402,7 @@ module.exports = async function handler(req, res) {
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
+'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
 '      \'<a href="https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\') + \'" target="_blank" class="btn">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -434,25 +435,55 @@ module.exports = async function handler(req, res) {
 '  if (el) { el.style.opacity = \'0\'; el.style.transition = \'opacity 0.2s\'; setTimeout(function() { el.remove(); }, 200); }\n' +
 '}\n' +
 '\n' +
-'function fetchEmail(cid, name, title) {\n' +
+'async function fetchEmail(cid, name, title, companyName, location) {\n' +
 '  var btn = document.getElementById(\'fb-\' + cid);\n' +
 '  btn.textContent = \'Fetching...\';\n' +
 '  btn.disabled = true;\n' +
-'  setTimeout(function() {\n' +
-'    var fn = name.split(\' \')[0].toLowerCase();\n' +
-'    var ln = name.split(\' \').slice(-1)[0].toLowerCase();\n' +
-'    var email = fn + \'.\' + ln + \'@company.com\';\n' +
-'    document.getElementById(\'ep-\' + cid).style.display = \'none\';\n' +
-'    document.getElementById(\'ev-\' + cid).style.display = \'inline\';\n' +
-'    document.getElementById(\'ev-\' + cid).textContent = email;\n' +
-'    document.getElementById(\'cn-\' + cid).textContent = \'2 credits used\';\n' +
-'    btn.textContent = \'Email fetched\';\n' +
-'    btn.className = \'btn btn-sent\';\n' +
-'    document.getElementById(\'subj-\' + cid).value = \'Partnering on your search\';\n' +
-'    document.getElementById(\'edraft-\' + cid).value = \'Hi \' + name.split(\' \')[0] + \',\\n\\nI noticed your company is actively hiring and wanted to reach out. At iMPact Business Group we specialize in placing top talent in Engineering, Manufacturing, Accounting, and IT roles across the region.\\n\\nWould you be open to a quick 15-minute call?\\n\\n[Calendly link]\\n\\nMark Sapoznikov\\niMPact Business Group\';\n' +
-'    document.getElementById(\'lidraft-\' + cid).value = \'Hi \' + name.split(\' \')[0] + \', I noticed your company is actively hiring and wanted to connect. At iMPact Business Group we place top talent across Engineering, Accounting, and IT. Would you be open to a quick chat? [Calendly link] - Mark\';\n' +
-'    document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
-'  }, 400);\n' +
+'  var safeBase = cid.split(\'_c\')[0];\n' +
+'  try {\n' +
+'    var enrichRes = await fetch(\'/api/enrich\', {\n' +
+'      method: \'POST\',\n' +
+'      headers: { \'Content-Type\': \'application/json\' },\n' +
+'      body: JSON.stringify({ contactName: name, contactTitle: title, companyName: companyName, location: location })\n' +
+'    });\n' +
+'    var enrichData = await enrichRes.json();\n' +
+'    var email = enrichData.email || null;\n' +
+'    if (email) {\n' +
+'      document.getElementById(\'ep-\' + cid).style.display = \'none\';\n' +
+'      document.getElementById(\'ev-\' + cid).style.display = \'inline\';\n' +
+'      document.getElementById(\'ev-\' + cid).textContent = email;\n' +
+'      document.getElementById(\'cn-\' + cid).textContent = \'2 credits used\';\n' +
+'      btn.textContent = \'Email fetched\';\n' +
+'      btn.className = \'btn btn-sent\';\n' +
+'      btn.disabled = true;\n' +
+'      var firstName = name.split(\' \')[0];\n' +
+'      var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeBase]) || \'\';\n' +
+'      var category = (window._leadCategories && window._leadCategories[safeBase]) || \'engineering\';\n' +
+'      try {\n' +
+'        var draftRes = await fetch(\'/api/draft\', {\n' +
+'          method: \'POST\',\n' +
+'          headers: { \'Content-Type\': \'application/json\' },\n' +
+'          body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
+'        });\n' +
+'        var draftData = await draftRes.json();\n' +
+'        if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
+'        if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
+'        if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
+'      } catch(de) {\n' +
+'        document.getElementById(\'subj-\' + cid).value = \'Partnering on your search\';\n' +
+'        document.getElementById(\'edraft-\' + cid).value = \'Hi \' + firstName + \',\\n\\nI noticed \' + companyName + \' is actively hiring and wanted to reach out. At iMPact Business Group we specialize in placing top talent in Engineering, Manufacturing, Accounting, and IT roles nationally.\\n\\nWould you be open to a quick call?\\n\\nMark Sapoznikov\\niMPact Business Group\\nmsapoznikov@impactbusinessgroup.com\';\n' +
+'        document.getElementById(\'lidraft-\' + cid).value = \'Hi \' + firstName + \', I noticed your company is actively hiring and wanted to connect. At iMPact we place top talent in Engineering, Accounting, and IT. Would you be open to a quick chat?\';\n' +
+'      }\n' +
+'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
+'    } else {\n' +
+'      btn.textContent = \'Not found\';\n' +
+'      btn.disabled = true;\n' +
+'      document.getElementById(\'ep-\' + cid).textContent = \'Email not found\';\n' +
+'    }\n' +
+'  } catch(e) {\n' +
+'    btn.textContent = \'Lookup failed\';\n' +
+'    btn.disabled = false;\n' +
+'  }\n' +
 '}\n' +
 '\n' +
 'function switchTab(cid, tab, btn) {\n' +
