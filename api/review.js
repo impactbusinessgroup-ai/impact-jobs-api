@@ -374,7 +374,7 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
-'function addContact(safeId, name, title, companyName, location) {\n' +
+'function addContact(safeId, name, title, companyName, location, prospectId) {\n' +
 '  if (!contactCounters[safeId]) contactCounters[safeId] = 0;\n' +
 '  contactCounters[safeId]++;\n' +
 '  var cid = safeId + \'_c\' + contactCounters[safeId];\n' +
@@ -384,6 +384,7 @@ module.exports = async function handler(req, res) {
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
 '  block.id = \'cb-\' + cid;\n' +
+'  if (prospectId) block.setAttribute(\'data-prospect-id\', prospectId);\n' +
 '  block.innerHTML =\n' +
 '    \'<div class="contact-header">\' +\n' +
 '      \'<div class="avatar avatar-am">\' + ini + \'</div>\' +\n' +
@@ -402,7 +403,7 @@ module.exports = async function handler(req, res) {
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
+'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
 '      \'<a href="https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\') + \'" target="_blank" class="btn">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -435,16 +436,22 @@ module.exports = async function handler(req, res) {
 '  if (el) { el.style.opacity = \'0\'; el.style.transition = \'opacity 0.2s\'; setTimeout(function() { el.remove(); }, 200); }\n' +
 '}\n' +
 '\n' +
-'async function fetchEmail(cid, name, title, companyName, location) {\n' +
+'async function fetchEmail(cid, name, title, companyName, location, prospectId) {\n' +
 '  var btn = document.getElementById(\'fb-\' + cid);\n' +
 '  btn.textContent = \'Fetching...\';\n' +
 '  btn.disabled = true;\n' +
 '  var safeBase = cid.split(\'_c\')[0];\n' +
+'  if (!prospectId) {\n' +
+'    var block = document.getElementById(\'cb-\' + cid);\n' +
+'    if (block) prospectId = block.getAttribute(\'data-prospect-id\') || \'\';\n' +
+'  }\n' +
 '  try {\n' +
+'    var enrichPayload = { contactName: name, contactTitle: title, companyName: companyName, location: location };\n' +
+'    if (prospectId) enrichPayload.prospect_id = prospectId;\n' +
 '    var enrichRes = await fetch(\'/api/enrich\', {\n' +
 '      method: \'POST\',\n' +
 '      headers: { \'Content-Type\': \'application/json\' },\n' +
-'      body: JSON.stringify({ contactName: name, contactTitle: title, companyName: companyName, location: location })\n' +
+'      body: JSON.stringify(enrichPayload)\n' +
 '    });\n' +
 '    var enrichData = await enrichRes.json();\n' +
 '    var email = enrichData.email || null;\n' +

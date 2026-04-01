@@ -19,34 +19,38 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'EXPLORIUM_API_KEY not configured' });
 
   try {
-    // Step 1: Match prospect to get prospect_id
-    var matchRes = await fetch('https://api.explorium.ai/v1/prospects/match', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api_key': apiKey
-      },
-      body: JSON.stringify({
-        request_context: {},
-        prospects_to_match: [{
-          full_name: body.contactName,
-          company_name: body.companyName
-        }]
-      })
-    });
+    var prospectId = body.prospect_id || null;
 
-    if (!matchRes.ok) {
-      console.error('Explorium match failed:', matchRes.status);
-      return res.status(200).json({ email: null });
+    // Step 1: Match prospect to get prospect_id (skip if already provided)
+    if (!prospectId) {
+      var matchRes = await fetch('https://api.explorium.ai/v1/prospects/match', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api_key': apiKey
+        },
+        body: JSON.stringify({
+          request_context: {},
+          prospects_to_match: [{
+            full_name: body.contactName,
+            company_name: body.companyName
+          }]
+        })
+      });
+
+      if (!matchRes.ok) {
+        console.error('Explorium match failed:', matchRes.status);
+        return res.status(200).json({ email: null });
+      }
+
+      var matchData = await matchRes.json();
+      var matched = matchData.matched_prospects && matchData.matched_prospects[0];
+      if (!matched || !matched.prospect_id) {
+        return res.status(200).json({ email: null });
+      }
+
+      prospectId = matched.prospect_id;
     }
-
-    var matchData = await matchRes.json();
-    var matched = matchData.matched_prospects && matchData.matched_prospects[0];
-    if (!matched || !matched.prospect_id) {
-      return res.status(200).json({ email: null });
-    }
-
-    var prospectId = matched.prospect_id;
 
     // Step 2: Enrich prospect to get email
     var enrichRes = await fetch('https://api.explorium.ai/v1/prospects/contacts_information/enrich', {
