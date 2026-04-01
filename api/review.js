@@ -35,19 +35,13 @@ module.exports = async function handler(req, res) {
 '.pill-eng { background: rgba(29,158,117,0.3); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.3); }\n' +
 '.pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); }\n' +
 '.pill-it { background: rgba(255,160,0,0.25); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); }\n' +
-'.btn-block-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); cursor: pointer; transition: all 0.2s; white-space: nowrap; }\n' +
-'.btn-block-top:hover { background: rgba(255,255,255,0.18); color: white; }\n' +
-'.btn-unblock-top { font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(252,75,74,0.5); background: rgba(226,75,74,0.15); color: #FCA5A5; cursor: pointer; white-space: nowrap; }\n' +
+'.card-top-job-title { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 500; line-height: 1.3; }\n' +
 '.card-body { padding: 20px 24px; }\n' +
-'.job-info-row { display: flex; gap: 14px; margin-bottom: 18px; align-items: stretch; }\n' +
-'.job-title-block { flex: 1; background: #F4F6FB; border-radius: 12px; padding: 14px 16px; border-left: 4px solid #FFA000; }\n' +
-'.job-title-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px; font-weight: 600; }\n' +
-'.job-title-value { font-size: 15px; font-weight: 700; color: #0F1E3D; line-height: 1.3; }\n' +
-'.cal-block { background: white; border-radius: 12px; overflow: hidden; width: 76px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid #E8ECF4; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }\n' +
-'.cal-month { background: #1A4EA2; color: white; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; width: 100%; text-align: center; padding: 5px 0; }\n' +
-'.cal-day { font-size: 28px; font-weight: 800; color: #0F1E3D; padding: 6px 0 2px; line-height: 1; }\n' +
-'.cal-year { font-size: 10px; color: #aaa; padding-bottom: 8px; font-weight: 500; }\n' +
-'.jd-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #1A4EA2; cursor: pointer; margin-bottom: 16px; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 6px; border: none; transition: background 0.15s; }\n' +
+'.cal-block { background: rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; width: 62px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.15); }\n' +
+'.cal-month { background: rgba(26,78,162,0.7); color: white; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; width: 100%; text-align: center; padding: 4px 0; }\n' +
+'.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; }\n' +
+'.cal-year { font-size: 9px; color: rgba(255,255,255,0.5); padding-bottom: 5px; font-weight: 500; }\n' +
+'.jd-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #1A4EA2; cursor: pointer; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 6px; border: none; transition: background 0.15s; }\n' +
 '.jd-btn:hover { background: #DBEAFE; }\n' +
 '.jd-popup-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(3px); }\n' +
 '.jd-popup-overlay.open { display: flex; }\n' +
@@ -104,9 +98,13 @@ module.exports = async function handler(req, res) {
 '.search-result-item:last-child { border-bottom: none; }\n' +
 '.search-result-item:hover { background: #F5F7FA; }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #1A4EA2; background: #EEF3FF; padding: 3px 10px; border-radius: 6px; }\n' +
-'.card-footer { display: flex; gap: 10px; align-items: center; padding: 14px 24px; border-top: 1px solid #F0F2F5; background: #F8F9FC; }\n' +
-'.btn-skip { color: #B0B8C8; font-size: 13px; border: none; background: none; cursor: pointer; font-weight: 500; }\n' +
-'.btn-skip:hover { color: #e24b4a; }\n' +
+'.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid #F0F2F5; background: #F8F9FC; }\n' +
+'.btn-footer-skip { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; cursor: pointer; background: #FFF3E0; color: #E65100; border: 1px solid #FFB74D; transition: all 0.15s; }\n' +
+'.btn-footer-skip:hover { background: #FFE0B2; }\n' +
+'.btn-footer-block { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; cursor: pointer; background: #FEECEB; color: #C62828; border: 1px solid #EF9A9A; transition: all 0.15s; }\n' +
+'.btn-footer-block:hover { background: #FFCDD2; }\n' +
+'.btn-footer-unblock { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; cursor: pointer; background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; transition: all 0.15s; }\n' +
+'.btn-footer-unblock:hover { background: #C8E6C9; }\n' +
 '.view-posting-link { font-size: 12px; color: #1A4EA2; text-decoration: none; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 8px; }\n' +
 '.view-posting-link:hover { background: #DBEAFE; }\n' +
 '.loading { text-align: center; padding: 80px; color: #888; font-size: 15px; }\n' +
@@ -277,30 +275,21 @@ module.exports = async function handler(req, res) {
 '        \'<div class="company-logo-wrap" id="logo-\' + safeId + \'" style="display:none;"></div>\' +\n' +
 '        \'<div class="company-initials" id="ini-\' + safeId + \'">\' + ini + \'</div>\' +\n' +
 '        \'<div>\' +\n' +
+'          \'<div class="card-top-job-title">\' + lead.jobTitle + \'</div>\' +\n' +
 '          \'<div class="company-name">\' + lead.company + \'</div>\' +\n' +
 '          \'<div class="company-location">\' + (lead.location || \'\') + \'</div>\' +\n' +
 '        \'</div>\' +\n' +
 '      \'</div>\' +\n' +
 '      \'<div class="card-top-right">\' +\n' +
-'        categoryPill(cat) +\n' +
-'        \'<button class="\' + (blocked ? \'btn-unblock-top\' : \'btn-block-top\') + \'" onclick="toggleBlockCompany(\\\'\' + companyEsc + \'\\\', this)">\' +\n' +
-'          (blocked ? \'Unblock\' : \'Block company\') +\n' +
-'        \'</button>\' +\n' +
-'      \'</div>\' +\n' +
-'    \'</div>\' +\n' +
-'    \'<div class="card-body">\' +\n' +
-'      \'<div class="job-info-row">\' +\n' +
-'        \'<div class="job-title-block">\' +\n' +
-'          \'<div class="job-title-label">Job posting</div>\' +\n' +
-'          \'<div class="job-title-value">\' + lead.jobTitle + \'</div>\' +\n' +
-'        \'</div>\' +\n' +
 '        \'<div class="cal-block">\' +\n' +
 '          \'<div class="cal-month">\' + dates.month + \'</div>\' +\n' +
 '          \'<div class="cal-day">\' + dates.day + \'</div>\' +\n' +
 '          \'<div class="cal-year">\' + dates.year + \'</div>\' +\n' +
 '        \'</div>\' +\n' +
+'        categoryPill(cat) +\n' +
 '      \'</div>\' +\n' +
-'      (hasJD ? \'<button class="jd-btn" onclick="openJD(\\\'\' + safeId + \'\\\')">&#9654; View job description</button>\' : \'\') +\n' +
+'    \'</div>\' +\n' +
+'    \'<div class="card-body">\' +\n' +
 '      \'<div class="divider"></div>\' +\n' +
 '      \'<div class="section-label">Contacts</div>\' +\n' +
 '      \'<div id="contacts-\' + safeId + \'"></div>\' +\n' +
@@ -324,9 +313,11 @@ module.exports = async function handler(req, res) {
 '      \'</div>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="card-footer">\' +\n' +
-'      \'<button class="btn-skip" onclick="skipLead(\\\'\' + safeId + \'\\\',\\\'\' + lead.id + \'\\\')">Skip this lead</button>\' +\n' +
+'      \'<button class="btn-footer-skip" onclick="skipLead(\\\'\' + safeId + \'\\\',\\\'\' + lead.id + \'\\\')">Skip</button>\' +\n' +
+'      \'<button class="\' + (blocked ? \'btn-footer-unblock\' : \'btn-footer-block\') + \'" onclick="toggleBlockCompany(\\\'\' + companyEsc + \'\\\', this)">\' + (blocked ? \'Unblock\' : \'Block company\') + \'</button>\' +\n' +
 '      \'<div style="flex:1;"></div>\' +\n' +
-'      (lead.jobUrl ? \'<a class="view-posting-link" href="\' + lead.jobUrl + \'" target="_blank">View job posting &#8599;</a>\' : \'\') +\n' +
+'      (hasJD ? \'<button class="jd-btn" onclick="openJD(\\\'\' + safeId + \'\\\')">&#9654; Job description</button>\' : \'\') +\n' +
+'      (lead.jobUrl ? \'<a class="view-posting-link" href="\' + lead.jobUrl + \'" target="_blank">View posting &#8599;</a>\' : \'\') +\n' +
 '    \'</div>\' +\n' +
 '  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadJobTitles["\' + safeId + \'"]=\' + JSON.stringify(lead.jobTitle || \'\') + \';window._leadCategories["\' + safeId + \'"]=\' + JSON.stringify(lead.category || \'engineering\') + \';<\\/script>\' +\n' +
 '  \'</div>\';\n' +
@@ -518,7 +509,7 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'async function toggleBlockCompany(company, btn) {\n' +
-'  var blocked = btn.classList.contains(\'btn-unblock-top\');\n' +
+'  var blocked = btn.classList.contains(\'btn-footer-unblock\');\n' +
 '  await fetch(\'/api/blocklist\', {\n' +
 '    method: blocked ? \'DELETE\' : \'POST\',\n' +
 '    headers: { \'Content-Type\': \'application/json\' },\n' +
@@ -527,11 +518,11 @@ module.exports = async function handler(req, res) {
 '  if (blocked) {\n' +
 '    blocklist.companies = blocklist.companies.filter(function(c) { return c !== company; });\n' +
 '    btn.textContent = \'Block company\';\n' +
-'    btn.className = \'btn-block-top\';\n' +
+'    btn.className = \'btn-footer-block\';\n' +
 '  } else {\n' +
 '    blocklist.companies.push(company);\n' +
 '    btn.textContent = \'Unblock\';\n' +
-'    btn.className = \'btn-unblock-top\';\n' +
+'    btn.className = \'btn-footer-unblock\';\n' +
 '  }\n' +
 '}\n' +
 '\n' +
