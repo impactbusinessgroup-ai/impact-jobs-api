@@ -14,9 +14,9 @@ module.exports = async function handler(req, res) {
 
   if (company && process.env.GEMINI_API_KEY) {
     try {
-      var prompt = 'What is the official website domain for this company? Company: ' + company;
+      var prompt = 'What is the official public website domain for this company? Company name: ' + company;
       if (location) prompt += ', Location: ' + location;
-      prompt += '. Reply with only the domain name like example.com, nothing else.';
+      prompt += '. Return only the root domain like \'example.com\'. Do not guess or construct a domain from the company name -- only return a domain you are confident is correct. If you are not confident, return the company name in lowercase with no spaces and .com appended.';
 
       var geminiRes = await fetch(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + process.env.GEMINI_API_KEY,
@@ -24,7 +24,8 @@ module.exports = async function handler(req, res) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 50 }
           })
         }
       );
