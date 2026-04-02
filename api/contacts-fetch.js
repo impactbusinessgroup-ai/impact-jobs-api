@@ -158,7 +158,7 @@ async function processLead(lead) {
     searchBody.person_locations = [lead.location];
   }
 
-  var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/search', {
+  var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
     method: 'POST',
     headers: {
       'x-api-key': process.env.APOLLO_API_KEY,
