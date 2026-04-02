@@ -70,6 +70,17 @@ function parseGeminiJson(text) {
   try { return JSON.parse(clean); } catch (e) { return null; }
 }
 
+function toTitleCase(str) {
+  if (!str) return '';
+  return str.replace(/\w\S*/g, function(t) { return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase(); });
+}
+
+function ensureUrl(val) {
+  if (!val) return '';
+  if (val.indexOf('http') === 0) return val;
+  return 'https://' + val;
+}
+
 function parseLocation(locationStr) {
   if (!locationStr) return { city: '', state: '' };
   var parts = locationStr.split(',').map(function(s) { return s.trim(); });
@@ -164,8 +175,8 @@ async function processLead(lead, apiKey) {
     },
     body: JSON.stringify({
       mode: 'full',
-      page_size: 10,
-      size: 10,
+      page_size: 15,
+      size: 15,
       filters: {
         business_id: { values: [businessId] },
         job_level: { values: analysis.job_levels },
@@ -197,43 +208,46 @@ async function processLead(lead, apiKey) {
     }
   }
 
-  // Take up to 3 candidates
-  var candidates = filtered.slice(0, 3);
+  // Pass up to 10 candidates to Gemini for ranking
+  var candidates = filtered.slice(0, 10);
   if (!candidates.length) {
     console.log('No location-matched prospects for', lead.company);
     return null;
   }
 
   // Gemini ranking step
+  var cat = lead.category || 'engineering';
   var rankList = candidates.map(function(c, idx) {
-    return (idx + 1) + '. ' + (c.prospect.full_name || 'Unknown') + ' - ' + (c.prospect.job_title || 'Unknown') + ' (' + (c.prospect.city || '') + ', ' + (c.prospect.region_name || '') + ')';
+    return idx + '. ' + (c.prospect.full_name || 'Unknown') + ' - ' + (c.prospect.job_title || 'Unknown') + ' (' + (c.prospect.city || '') + ', ' + (c.prospect.region_name || '') + ')';
   }).join('\n');
 
-  var rankPrompt = 'You are helping a recruiter find the hiring manager for this job.\n\n' +
-    'Job Title: ' + lead.jobTitle + '\n' +
-    'Description snippet: ' + descSnippet.slice(0, 500) + '\n\n' +
-    'Candidate contacts at ' + lead.company + ':\n' + rankList + '\n\n' +
-    'Pick the best 1-2 candidates who are most likely the hiring manager or decision maker for this role. ' +
-    'Return ONLY a JSON array of the selected candidate numbers (1-indexed). Example: [1] or [1,3]';
+  var rankPrompt = 'You are selecting the best hiring manager contacts for a staffing agency reaching out about a ' + lead.jobTitle + ' role in ' + cat + ' at ' + lead.company + '.\n\n' +
+    'Priority order for contact selection:\n' +
+    '- For Engineering/Manufacturing roles: first priority is Director of Engineering, VP of Engineering, Director of Manufacturing, VP of Manufacturing, Plant Manager, Director of Operations, VP of Operations. Second priority is Engineering Manager, Operations Manager, Manufacturing Manager. Third and last priority only if nothing better exists: HR Director, Talent Acquisition Manager.\n' +
+    '- For IT roles: first priority is CTO, VP of Engineering, VP of Technology, Director of IT, Director of Engineering, IT Director. Second priority is IT Manager, Engineering Manager, Development Manager. Last priority only if nothing better exists: HR Director, Talent Acquisition Manager.\n' +
+    '- For Accounting/Finance roles: first priority is CFO, VP of Finance, Controller, Director of Finance, Director of Accounting. Second priority is Accounting Manager, Finance Manager. Last priority only if nothing better exists: HR Director.\n' +
+    '- NEVER select: sales roles, channel partners, business development, marketing, customer success, or any role unrelated to the hiring department.\n\n' +
+    'Candidate contacts:\n' + rankList + '\n\n' +
+    'Return 2-3 contacts if available, ranked by priority. Return ONLY a JSON array of prospect indexes from the provided list, e.g. [0, 2]. Maximum 3 contacts.';
 
   var rankText = await callGemini(rankPrompt);
   var selectedIndexes = parseGeminiJson(rankText);
   if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
-    selectedIndexes = [1]; // default to first
+    selectedIndexes = [0]; // default to first
   }
 
   // Extract company-level data from first prospect
   var companyData = {};
   if (prospects.length > 0) {
     var firstP = prospects[0];
-    if (firstP.company_website) companyData.company_website = firstP.company_website;
-    if (firstP.company_linkedin) companyData.company_linkedin = firstP.company_linkedin;
+    if (firstP.company_website) companyData.company_website = ensureUrl(firstP.company_website);
+    if (firstP.company_linkedin) companyData.company_linkedin = ensureUrl(firstP.company_linkedin);
   }
 
-  // Build contact objects
+  // Build contact objects (indexes are 0-based from Gemini)
   var contacts = [];
-  for (var j = 0; j < selectedIndexes.length; j++) {
-    var idx = selectedIndexes[j] - 1; // convert from 1-indexed
+  for (var j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
+    var idx = selectedIndexes[j];
     if (idx >= 0 && idx < candidates.length) {
       var c = candidates[idx];
       var p = c.prospect;
@@ -245,9 +259,9 @@ async function processLead(lead, apiKey) {
         title: p.job_title || '',
         job_level_main: p.job_level_main || '',
         job_department_main: p.job_department_main || analysis.department || '',
-        city: p.city || '',
-        region_name: p.region_name || '',
-        linkedin: p.linkedin || '',
+        city: toTitleCase(p.city || ''),
+        region_name: toTitleCase(p.region_name || ''),
+        linkedin: ensureUrl(p.linkedin || ''),
         locationMatch: c.locationMatch,
         source: 'explorium'
       });

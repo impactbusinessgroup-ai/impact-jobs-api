@@ -333,12 +333,16 @@ module.exports = async function handler(req, res) {
 '    (function() {\n' +
 '      var lhtml = \'\';\n' +
 '      if (lead.company_website) {\n' +
+'        var wUrl = lead.company_website;\n' +
+'        if (wUrl.indexOf(\'http\') !== 0) wUrl = \'https://\' + wUrl;\n' +
 '        var wHost = \'\';\n' +
-'        try { wHost = new URL(lead.company_website).hostname.replace(\'www.\', \'\'); } catch(e) { wHost = lead.company_website; }\n' +
-'        lhtml += \'<a class="company-link" href="\' + lead.company_website + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> \' + wHost + \'</a>\';\n' +
+'        try { wHost = new URL(wUrl).hostname.replace(\'www.\', \'\'); } catch(e) { wHost = lead.company_website; }\n' +
+'        lhtml += \'<a class="company-link" href="\' + wUrl + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> \' + wHost + \'</a>\';\n' +
 '      }\n' +
 '      if (lead.company_linkedin) {\n' +
-'        lhtml += \'<a class="company-link" href="\' + lead.company_linkedin + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
+'        var liUrl = lead.company_linkedin;\n' +
+'        if (liUrl.indexOf(\'http\') !== 0) liUrl = \'https://\' + liUrl;\n' +
+'        lhtml += \'<a class="company-link" href="\' + liUrl + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
 '      }\n' +
 '      return lhtml ? \'<div class="company-links" style="display:flex;">\' + lhtml + \'</div>\' : \'\';\n' +
 '    })() +\n' +
@@ -426,24 +430,15 @@ module.exports = async function handler(req, res) {
 '  var ini = initials(name);\n' +
 '  var firstName = name.split(\' \')[0];\n' +
 '  var badgeHtml = \'\';\n' +
-'  if (opts.suggested) {\n' +
-'    badgeHtml = \'<span class="badge badge-suggested">AI Suggested</span>\';\n' +
-'  } else {\n' +
+'  if (!opts.suggested) {\n' +
 '    badgeHtml = \'<span class="badge badge-added">Added from SS</span>\';\n' +
-'  }\n' +
-'  var locTagHtml = \'\';\n' +
-'  if (opts.locationMatch === \'city\') {\n' +
-'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#D1FAE5;color:#065F46;">Same city</span>\';\n' +
-'  } else if (opts.locationMatch === \'state\') {\n' +
-'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#DBEAFE;color:#1E40AF;">Same state</span>\';\n' +
-'  } else if (opts.locationMatch === \'national\') {\n' +
-'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#FEF3C7;color:#92400E;">National</span>\';\n' +
 '  }\n' +
 '  var cityStateHtml = \'\';\n' +
 '  if (opts.city || opts.region) {\n' +
-'    cityStateHtml = \'<div style="font-size:11px;color:#999;">\' + (opts.city || \'\') + (opts.city && opts.region ? \', \' : \'\') + (opts.region || \'\') + \'</div>\';\n' +
+'    cityStateHtml = \'<div style="font-size:13px;color:#666;">\' + (opts.city || \'\') + (opts.city && opts.region ? \', \' : \'\') + (opts.region || \'\') + \'</div>\';\n' +
 '  }\n' +
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
+'  if (linkedinUrl && linkedinUrl.indexOf(\'http\') !== 0) linkedinUrl = \'https://\' + linkedinUrl;\n' +
 '  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
 '  var hasInferred = opts.inferredEmail && opts.emailInferred;\n' +
 '  var emailRowHtml = \'\';\n' +
@@ -467,7 +462,7 @@ module.exports = async function handler(req, res) {
 '      \'<div class="contact-info">\' +\n' +
 '        \'<div class="contact-name-row">\' +\n' +
 '          \'<span class="contact-name">\' + name + \'</span>\' +\n' +
-'          badgeHtml + locTagHtml +\n' +
+'          badgeHtml +\n' +
 '        \'</div>\' +\n' +
 '        \'<div class="contact-title-sub">\' + title + \'</div>\' +\n' +
 '        cityStateHtml +\n' +
