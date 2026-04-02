@@ -313,8 +313,16 @@ module.exports = async function handler(req, res) {
       if (!lead) { skipped++; continue; }
 
       if (lead.status !== 'new') { skipped++; continue; }
-      if (lead.contacts && lead.contacts.length > 0) { skipped++; continue; }
-      if (lead.contactsEnrichedAt) { skipped++; continue; }
+
+      // Temporary: re-process leads from old Explorium pipeline
+      var hasExploriumContacts = lead.contacts && lead.contacts.length > 0 && lead.contacts[0].source === 'explorium';
+      var enrichedButEmpty = lead.contactsEnrichedAt && (!lead.contacts || lead.contacts.length === 0);
+      var needsReprocess = hasExploriumContacts || enrichedButEmpty;
+
+      if (!needsReprocess) {
+        if (lead.contacts && lead.contacts.length > 0) { skipped++; continue; }
+        if (lead.contactsEnrichedAt) { skipped++; continue; }
+      }
 
       console.log('Processing contacts for:', lead.company, '-', lead.jobTitle);
 
