@@ -191,12 +191,11 @@ module.exports = async function handler(req, res) {
 '    domain = company.toLowerCase().replace(/[^a-z0-9]/g, \'\').slice(0, 20) + \'.com\';\n' +
 '  }\n' +
 '  try {\n' +
-'    var res = await fetch(\'/api/logo?domain=\' + encodeURIComponent(domain) + \'&company=\' + encodeURIComponent(company) + \'&location=\' + encodeURIComponent(location || \'\'));\n' +
+'    var res = await fetch(\'/api/logo?domain=\' + encodeURIComponent(domain));\n' +
 '    var data = await res.json();\n' +
 '    var url = data.url || null;\n' +
 '    logoCache[cacheKey] = url;\n' +
 '    applyLogo(safeId, url);\n' +
-'    applyCompanyLinks(safeId, data.websiteUrl || null, data.linkedinUrl || null);\n' +
 '  } catch(e) {\n' +
 '    logoCache[cacheKey] = null;\n' +
 '    applyLogo(safeId, null);\n' +
@@ -225,24 +224,6 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '}\n' +
 '\n' +
-'function applyCompanyLinks(safeId, websiteUrl, linkedinUrl) {\n' +
-'  var linksEl = document.getElementById(\'links-\' + safeId);\n' +
-'  if (!linksEl) return;\n' +
-'  var html = \'\';\n' +
-'  if (websiteUrl) {\n' +
-'    var hostname = \'\';\n' +
-'    try { hostname = new URL(websiteUrl).hostname.replace(\'www.\', \'\'); } catch(e) { hostname = websiteUrl; }\n' +
-'    html += \'<a class="company-link" href="\' + websiteUrl + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> \' + hostname + \'</a>\';\n' +
-'  }\n' +
-'  if (linkedinUrl) {\n' +
-'    html += \'<a class="company-link" href="\' + linkedinUrl + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
-'  }\n' +
-'  if (html) {\n' +
-'    linksEl.innerHTML = html;\n' +
-'    linksEl.style.display = \'flex\';\n' +
-'  }\n' +
-'}\n' +
-'\n' +
 'async function init() {\n' +
 '  var today = new Date();\n' +
 '  document.getElementById(\'header-date\').textContent = today.toLocaleDateString(\'en-US\', { weekday: \'long\', month: \'long\', day: \'numeric\' });\n' +
@@ -258,7 +239,7 @@ module.exports = async function handler(req, res) {
 '    renderLeads();\n' +
 '    leads.forEach(function(lead) {\n' +
 '      var safeId = getSafeId(lead.id);\n' +
-'      fetchLogo(lead.company, lead.employerWebsite || \'\', lead.location || \'\', safeId);\n' +
+'      fetchLogo(lead.company, lead.company_website || lead.employerWebsite || \'\', lead.location || \'\', safeId);\n' +
 '    });\n' +
 '  } catch(e) {\n' +
 '    console.error(\'Init error:\', e);\n' +
@@ -302,6 +283,20 @@ module.exports = async function handler(req, res) {
 '    return;\n' +
 '  }\n' +
 '  container.innerHTML = leads.map(function(lead) { return renderCard(lead); }).join(\'\');\n' +
+'  leads.forEach(function(lead) {\n' +
+'    if (lead.contacts && lead.contacts.length > 0) {\n' +
+'      var safeId = getSafeId(lead.id);\n' +
+'      lead.contacts.forEach(function(c) {\n' +
+'        addContact(safeId, c.full_name || c.name || \'\', c.job_title || c.title || \'\', lead.company, lead.location || \'\', c.prospect_id || \'\', {\n' +
+'          suggested: true,\n' +
+'          locationMatch: c.locationMatch || \'\',\n' +
+'          city: c.city || \'\',\n' +
+'          region: c.region_name || c.region || \'\',\n' +
+'          linkedin: c.linkedin || \'\'\n' +
+'        });\n' +
+'      });\n' +
+'    }\n' +
+'  });\n' +
 '}\n' +
 '\n' +
 'function renderCard(lead) {\n' +
@@ -333,7 +328,18 @@ module.exports = async function handler(req, res) {
 '        categoryPill(cat) +\n' +
 '      \'</div>\' +\n' +
 '    \'</div>\' +\n' +
-'    \'<div class="company-links" id="links-\' + safeId + \'"></div>\' +\n' +
+'    (function() {\n' +
+'      var lhtml = \'\';\n' +
+'      if (lead.company_website) {\n' +
+'        var wHost = \'\';\n' +
+'        try { wHost = new URL(lead.company_website).hostname.replace(\'www.\', \'\'); } catch(e) { wHost = lead.company_website; }\n' +
+'        lhtml += \'<a class="company-link" href="\' + lead.company_website + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> \' + wHost + \'</a>\';\n' +
+'      }\n' +
+'      if (lead.company_linkedin) {\n' +
+'        lhtml += \'<a class="company-link" href="\' + lead.company_linkedin + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
+'      }\n' +
+'      return lhtml ? \'<div class="company-links" style="display:flex;">\' + lhtml + \'</div>\' : \'\';\n' +
+'    })() +\n' +
 '    \'<div class="card-body">\' +\n' +
 '      \'<div class="divider"></div>\' +\n' +
 '      \'<div class="section-label">Contacts</div>\' +\n' +
@@ -410,12 +416,33 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
-'function addContact(safeId, name, title, companyName, location, prospectId) {\n' +
+'function addContact(safeId, name, title, companyName, location, prospectId, opts) {\n' +
+'  opts = opts || {};\n' +
 '  if (!contactCounters[safeId]) contactCounters[safeId] = 0;\n' +
 '  contactCounters[safeId]++;\n' +
 '  var cid = safeId + \'_c\' + contactCounters[safeId];\n' +
 '  var ini = initials(name);\n' +
 '  var firstName = name.split(\' \')[0];\n' +
+'  var badgeHtml = \'\';\n' +
+'  if (opts.suggested) {\n' +
+'    badgeHtml = \'<span class="badge badge-suggested">AI Suggested</span>\';\n' +
+'  } else {\n' +
+'    badgeHtml = \'<span class="badge badge-added">Added from SS</span>\';\n' +
+'  }\n' +
+'  var locTagHtml = \'\';\n' +
+'  if (opts.locationMatch === \'city\') {\n' +
+'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#D1FAE5;color:#065F46;">Same city</span>\';\n' +
+'  } else if (opts.locationMatch === \'state\') {\n' +
+'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#DBEAFE;color:#1E40AF;">Same state</span>\';\n' +
+'  } else if (opts.locationMatch === \'national\') {\n' +
+'    locTagHtml = \' <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#FEF3C7;color:#92400E;">National</span>\';\n' +
+'  }\n' +
+'  var cityStateHtml = \'\';\n' +
+'  if (opts.city || opts.region) {\n' +
+'    cityStateHtml = \'<div style="font-size:11px;color:#999;">\' + (opts.city || \'\') + (opts.city && opts.region ? \', \' : \'\') + (opts.region || \'\') + \'</div>\';\n' +
+'  }\n' +
+'  var linkedinUrl = opts.linkedin || \'\';\n' +
+'  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
 '\n' +
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
@@ -427,9 +454,10 @@ module.exports = async function handler(req, res) {
 '      \'<div class="contact-info">\' +\n' +
 '        \'<div class="contact-name-row">\' +\n' +
 '          \'<span class="contact-name">\' + name + \'</span>\' +\n' +
-'          \'<span class="badge badge-added">Added from SS</span>\' +\n' +
+'          badgeHtml + locTagHtml +\n' +
 '        \'</div>\' +\n' +
 '        \'<div class="contact-title-sub">\' + title + \'</div>\' +\n' +
+'        cityStateHtml +\n' +
 '        \'<div class="email-row">\' +\n' +
 '          \'<span class="email-placeholder" id="ep-\' + cid + \'">No email fetched yet</span>\' +\n' +
 '          \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\' +\n' +
@@ -440,7 +468,7 @@ module.exports = async function handler(req, res) {
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
 '      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
-'      \'<a href="https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\') + \'" target="_blank" class="btn">LinkedIn &#8599;</a>\' +\n' +
+'      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div id="draft-\' + cid + \'" style="display:none;">\' +\n' +

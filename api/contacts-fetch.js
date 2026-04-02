@@ -223,6 +223,14 @@ async function processLead(lead, apiKey) {
     selectedIndexes = [1]; // default to first
   }
 
+  // Extract company-level data from first prospect
+  var companyData = {};
+  if (prospects.length > 0) {
+    var firstP = prospects[0];
+    if (firstP.company_website) companyData.company_website = firstP.company_website;
+    if (firstP.company_linkedin) companyData.company_linkedin = firstP.company_linkedin;
+  }
+
   // Build contact objects
   var contacts = [];
   for (var j = 0; j < selectedIndexes.length; j++) {
@@ -232,12 +240,14 @@ async function processLead(lead, apiKey) {
       var p = c.prospect;
       contacts.push({
         prospect_id: p.prospect_id || p.id || '',
+        full_name: p.full_name || '',
         name: p.full_name || '',
+        job_title: p.job_title || '',
         title: p.job_title || '',
-        jobLevel: p.job_level_main || '',
-        department: p.job_department_main || analysis.department || '',
+        job_level_main: p.job_level_main || '',
+        job_department_main: p.job_department_main || analysis.department || '',
         city: p.city || '',
-        region: p.region_name || '',
+        region_name: p.region_name || '',
         linkedin: p.linkedin || '',
         locationMatch: c.locationMatch,
         source: 'explorium'
@@ -245,7 +255,7 @@ async function processLead(lead, apiKey) {
     }
   }
 
-  return contacts.length > 0 ? contacts : null;
+  return contacts.length > 0 ? { contacts: contacts, companyData: companyData } : null;
 }
 
 module.exports = async function handler(req, res) {
@@ -277,14 +287,16 @@ module.exports = async function handler(req, res) {
       console.log('Processing contacts for:', lead.company, '-', lead.jobTitle);
 
       try {
-        var contacts = await processLead(lead, apiKey);
+        var result = await processLead(lead, apiKey);
 
-        if (contacts && contacts.length > 0) {
-          lead.contacts = contacts;
+        if (result && result.contacts && result.contacts.length > 0) {
+          lead.contacts = result.contacts;
+          if (result.companyData.company_website) lead.company_website = result.companyData.company_website;
+          if (result.companyData.company_linkedin) lead.company_linkedin = result.companyData.company_linkedin;
           lead.contactsEnrichedAt = Date.now();
           await redisSet(keys[i], lead, 604800); // 7-day TTL
-          contactsFound += contacts.length;
-          console.log('Found', contacts.length, 'contacts for', lead.company);
+          contactsFound += result.contacts.length;
+          console.log('Found', result.contacts.length, 'contacts for', lead.company);
         } else {
           // Mark as enriched even if no contacts found, so we don't retry
           lead.contactsEnrichedAt = Date.now();
