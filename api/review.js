@@ -36,6 +36,9 @@ module.exports = async function handler(req, res) {
 '.pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); }\n' +
 '.pill-it { background: rgba(255,160,0,0.25); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); }\n' +
 '.card-top-job-title { font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.3; }\n' +
+'.company-links { background: #F8F9FC; padding: 10px 24px; border-bottom: 1px solid #F0F2F5; display: none; gap: 16px; align-items: center; }\n' +
+'.company-link { font-size: 12px; color: #1A4EA2; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }\n' +
+'.company-link:hover { text-decoration: underline; }\n' +
 '.card-body { padding: 20px 24px; }\n' +
 '.cal-block { background: rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; width: 62px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.15); }\n' +
 '.cal-month { background: rgba(26,78,162,0.7); color: white; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; width: 100%; text-align: center; padding: 4px 0; }\n' +
@@ -169,6 +172,7 @@ module.exports = async function handler(req, res) {
 '    var url = data.url || null;\n' +
 '    logoCache[cacheKey] = url;\n' +
 '    applyLogo(safeId, url);\n' +
+'    applyCompanyLinks(safeId, data.websiteUrl || null, data.linkedinUrl || null);\n' +
 '  } catch(e) {\n' +
 '    logoCache[cacheKey] = null;\n' +
 '    applyLogo(safeId, null);\n' +
@@ -194,6 +198,24 @@ module.exports = async function handler(req, res) {
 '  } else {\n' +
 '    wrap.style.display = \'none\';\n' +
 '    if (ini) ini.style.display = \'flex\';\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'function applyCompanyLinks(safeId, websiteUrl, linkedinUrl) {\n' +
+'  var linksEl = document.getElementById(\'links-\' + safeId);\n' +
+'  if (!linksEl) return;\n' +
+'  var html = \'\';\n' +
+'  if (websiteUrl) {\n' +
+'    var hostname = \'\';\n' +
+'    try { hostname = new URL(websiteUrl).hostname.replace(\'www.\', \'\'); } catch(e) { hostname = websiteUrl; }\n' +
+'    html += \'<a class="company-link" href="\' + websiteUrl + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> \' + hostname + \'</a>\';\n' +
+'  }\n' +
+'  if (linkedinUrl) {\n' +
+'    html += \'<a class="company-link" href="\' + linkedinUrl + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
+'  }\n' +
+'  if (html) {\n' +
+'    linksEl.innerHTML = html;\n' +
+'    linksEl.style.display = \'flex\';\n' +
 '  }\n' +
 '}\n' +
 '\n' +
@@ -287,6 +309,7 @@ module.exports = async function handler(req, res) {
 '        categoryPill(cat) +\n' +
 '      \'</div>\' +\n' +
 '    \'</div>\' +\n' +
+'    \'<div class="company-links" id="links-\' + safeId + \'"></div>\' +\n' +
 '    \'<div class="card-body">\' +\n' +
 '      \'<div class="divider"></div>\' +\n' +
 '      \'<div class="section-label">Contacts</div>\' +\n' +
