@@ -237,13 +237,19 @@ module.exports = async function handler(req, res) {
     if (lead?.normalizedCompany) seenCompanies.add(lead.normalizedCompany);
   }
 
+  const MAX_QUALIFIED = 10;
+
   for (const query of JSEARCH_QUERIES) {
+    if (qualifiedLeads.length >= MAX_QUALIFIED) break;
+
     console.log(`Fetching: ${query}`);
     const jobs = await fetchJSearchPage(query);
     console.log(`Got ${jobs.length} jobs for: ${query}`);
     totalFetched += jobs.length;
 
     for (const job of jobs) {
+      if (qualifiedLeads.length >= MAX_QUALIFIED) break;
+
       const title = job.job_title || '';
       const employer = job.employer_name || '';
       const description = job.job_description || '';

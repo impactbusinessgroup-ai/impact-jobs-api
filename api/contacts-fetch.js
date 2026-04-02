@@ -169,7 +169,6 @@ async function processLead(lead, apiKey) {
       filters: {
         business_id: { values: [businessId] },
         job_level: { values: analysis.job_levels },
-        has_email: { value: true },
         country_code: { values: ['us'] }
       }
     })
@@ -252,6 +251,57 @@ async function processLead(lead, apiKey) {
         locationMatch: c.locationMatch,
         source: 'explorium'
       });
+    }
+  }
+
+  // --- Email inference for contacts without verified email ---
+  // TODO: Step 1 - SmartSearch email pattern check (placeholder for when API credentials are available)
+  // if (process.env.SMARTSEARCH_API_KEY) {
+  //   for (var ei = 0; ei < contacts.length; ei++) {
+  //     var ssEmail = await smartSearchLookup(contacts[ei].full_name, companyData.company_website);
+  //     if (ssEmail) { contacts[ei].email = ssEmail; contacts[ei].emailVerified = true; }
+  //   }
+  // }
+
+  // Step 3 - Gemini pattern inference for contacts without verified email
+  var emailDomain = '';
+  if (companyData.company_website) {
+    try { emailDomain = new URL(companyData.company_website).hostname.replace('www.', ''); } catch (e) {}
+  }
+
+  if (emailDomain) {
+    // Collect any visible emails from all prospects for pattern examples
+    var exampleEmails = [];
+    for (var ei = 0; ei < prospects.length; ei++) {
+      var pe = prospects[ei];
+      if (pe.professional_email && pe.professional_email.indexOf('@') !== -1) {
+        exampleEmails.push(pe.professional_email);
+      }
+      if (pe.email && pe.email.indexOf('@') !== -1) {
+        exampleEmails.push(pe.email);
+      }
+    }
+    // Deduplicate
+    exampleEmails = exampleEmails.filter(function(v, i, a) { return a.indexOf(v) === i; });
+
+    for (var ci = 0; ci < contacts.length; ci++) {
+      if (contacts[ci].email || contacts[ci].emailVerified) continue;
+
+      var inferPrompt = 'Given these email examples from employees at ' + lead.company + ': ' +
+        (exampleEmails.length > 0 ? exampleEmails.join(', ') : 'none available') +
+        '. What is the most likely email format for ' + contacts[ci].full_name + ' at this company? ' +
+        'The company domain is ' + emailDomain + '. ' +
+        'Common formats are first.last@domain.com, flast@domain.com, firstname@domain.com. ' +
+        'Return only the inferred email address, nothing else. If you cannot determine a pattern with confidence, return null.';
+
+      var inferResult = await callGemini(inferPrompt);
+      if (inferResult && inferResult !== 'null' && inferResult.indexOf('@') !== -1) {
+        var inferredEmail = inferResult.trim().toLowerCase().replace(/[<>"']/g, '');
+        if (inferredEmail.indexOf('@') !== -1) {
+          contacts[ci].inferredEmail = inferredEmail;
+          contacts[ci].emailInferred = true;
+        }
+      }
     }
   }
 

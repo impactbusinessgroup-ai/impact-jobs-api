@@ -292,7 +292,9 @@ module.exports = async function handler(req, res) {
 '          locationMatch: c.locationMatch || \'\',\n' +
 '          city: c.city || \'\',\n' +
 '          region: c.region_name || c.region || \'\',\n' +
-'          linkedin: c.linkedin || \'\'\n' +
+'          linkedin: c.linkedin || \'\',\n' +
+'          inferredEmail: c.inferredEmail || \'\',\n' +
+'          emailInferred: c.emailInferred || false\n' +
 '        });\n' +
 '      });\n' +
 '    }\n' +
@@ -443,6 +445,17 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
 '  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
+'  var hasInferred = opts.inferredEmail && opts.emailInferred;\n' +
+'  var emailRowHtml = \'\';\n' +
+'  if (hasInferred) {\n' +
+'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'" style="display:none;">No email fetched yet</span>\' +\n' +
+'      \'<span class="email-value" id="ev-\' + cid + \'" style="color:#E65100;">\' + opts.inferredEmail + \'</span>\' +\n' +
+'      \' <span class="badge" id="inferred-badge-\' + cid + \'" style="background:#FEF3C7;color:#92400E;">Inferred</span>\';\n' +
+'  } else {\n' +
+'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'">No email fetched yet</span>\' +\n' +
+'      \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
+'  }\n' +
+'  var fetchBtnLabel = hasInferred ? \'Verify email (2 credits)\' : \'Fetch email (2 credits)\';\n' +
 '\n' +
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
@@ -459,15 +472,14 @@ module.exports = async function handler(req, res) {
 '        \'<div class="contact-title-sub">\' + title + \'</div>\' +\n' +
 '        cityStateHtml +\n' +
 '        \'<div class="email-row">\' +\n' +
-'          \'<span class="email-placeholder" id="ep-\' + cid + \'">No email fetched yet</span>\' +\n' +
-'          \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\' +\n' +
+'          emailRowHtml +\n' +
 '        \'</div>\' +\n' +
-'        \'<div class="credit-note" id="cn-\' + cid + \'">Fetching email uses 2 credits</div>\' +\n' +
+'        \'<div class="credit-note" id="cn-\' + cid + \'">\' + (hasInferred ? \'Verify to confirm this email\' : \'Fetching email uses 2 credits\') + \'</div>\' +\n' +
 '      \'</div>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (2 credits)</button>\' +\n' +
+'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">\' + fetchBtnLabel + \'</button>\' +\n' +
 '      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -521,8 +533,12 @@ module.exports = async function handler(req, res) {
 '    var email = enrichData.email || null;\n' +
 '    if (email) {\n' +
 '      document.getElementById(\'ep-\' + cid).style.display = \'none\';\n' +
-'      document.getElementById(\'ev-\' + cid).style.display = \'inline\';\n' +
-'      document.getElementById(\'ev-\' + cid).textContent = email;\n' +
+'      var evEl = document.getElementById(\'ev-\' + cid);\n' +
+'      evEl.style.display = \'inline\';\n' +
+'      evEl.textContent = email;\n' +
+'      evEl.style.color = \'#1A4EA2\';\n' +
+'      var inferBadge = document.getElementById(\'inferred-badge-\' + cid);\n' +
+'      if (inferBadge) inferBadge.remove();\n' +
 '      document.getElementById(\'cn-\' + cid).textContent = \'2 credits used\';\n' +
 '      btn.textContent = \'Email fetched\';\n' +
 '      btn.className = \'btn btn-sent\';\n' +
