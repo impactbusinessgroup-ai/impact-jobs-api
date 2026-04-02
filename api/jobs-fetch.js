@@ -11,7 +11,8 @@ const STAFFING_KEYWORDS = [
   'actalent','interim staffing','kforce','spherion','volt ',
   'staffmark','on assignment','hired','hirequest',
   // military branches
-  'us navy','us army','us air force','us marine','us coast guard',
+  'us navy','u.s. navy','united states navy',
+  'us army','us air force','us marine','us coast guard',
   'national guard',
 ];
 

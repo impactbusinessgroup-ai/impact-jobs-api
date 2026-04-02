@@ -310,9 +310,9 @@ module.exports = async function handler(req, res) {
 
     for (var i = 0; i < keys.length; i++) {
       var lead = await redisGet(keys[i]);
-      if (!lead) { skipped++; continue; }
+      if (!lead) { console.log('Skip ' + keys[i] + ': null lead'); skipped++; continue; }
 
-      if (lead.status !== 'new') { skipped++; continue; }
+      if (lead.status !== 'new') { console.log('Skip ' + lead.company + ': status=' + lead.status); skipped++; continue; }
 
       // Temporary: re-process leads from old Explorium pipeline
       var hasExploriumContacts = lead.contacts && lead.contacts.length > 0 && lead.contacts[0].source === 'explorium';
@@ -320,8 +320,10 @@ module.exports = async function handler(req, res) {
       var needsReprocess = hasExploriumContacts || enrichedButEmpty;
 
       if (!needsReprocess) {
-        if (lead.contacts && lead.contacts.length > 0) { skipped++; continue; }
-        if (lead.contactsEnrichedAt) { skipped++; continue; }
+        if (lead.contacts && lead.contacts.length > 0) { console.log('Skip ' + lead.company + ': already has ' + lead.contacts.length + ' contacts (source=' + lead.contacts[0].source + ')'); skipped++; continue; }
+        if (lead.contactsEnrichedAt) { console.log('Skip ' + lead.company + ': already enriched at ' + new Date(lead.contactsEnrichedAt).toISOString()); skipped++; continue; }
+      } else {
+        console.log('Reprocessing ' + lead.company + ': ' + (hasExploriumContacts ? 'explorium contacts' : 'enriched but empty'));
       }
 
       console.log('Processing contacts for:', lead.company, '-', lead.jobTitle);
