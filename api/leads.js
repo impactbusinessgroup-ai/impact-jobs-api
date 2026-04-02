@@ -47,14 +47,20 @@ module.exports = async function handler(req, res) {
 
   // GET -- return today's leads
  if (method === 'GET') {
-const keys = await redisKeys('lead:*');
+    const keys = await redisKeys('lead:*');
     const leads = [];
+
+    // Load blocked companies for filtering
+    const blockedRaw = await redisGet('blocklist:companies');
+    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : []).map(c => c.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\b(inc|llc|corp|co|ltd|group|enterprises|company|solutions|services|technologies|partners)\b/g, '').replace(/\s+/g, ' ').trim());
 
     for (const key of keys) {
       try {
         const lead = await redisGet(key);
         if (lead && lead.status !== 'skipped' && lead.company) {
-          leads.push(lead);
+          const norm = (lead.normalizedCompany || lead.company.toLowerCase()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+          const isBlocked = blockedCompanies.some(bc => norm.includes(bc) || bc.includes(norm));
+          if (!isBlocked) leads.push(lead);
         }
       } catch(e) {
         console.error('Error reading lead key:', key, e.message);
