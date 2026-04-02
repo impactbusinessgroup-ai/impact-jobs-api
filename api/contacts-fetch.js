@@ -1,5 +1,5 @@
 // api/contacts-fetch.js
-// Cron job: finds new leads with no contacts, runs Gemini + Explorium pipeline
+// Cron job: finds new leads with no contacts, runs Gemini + Apollo pipeline
 // to discover and store suggested hiring manager contacts.
 
 async function redisGet(key) {
@@ -90,135 +90,126 @@ function parseLocation(locationStr) {
   };
 }
 
-function getLocationMatch(prospect, jobCity, jobState) {
-  var pCity = (prospect.city || '').toLowerCase();
-  var pState = (prospect.region_name || '').toLowerCase();
-  var pCountry = (prospect.country_name || '').toLowerCase();
+function getLocationMatch(person, jobCity, jobState) {
+  var pCity = (person.city || '').toLowerCase();
+  var pState = (person.state || '').toLowerCase();
+  var pCountry = (person.country || '').toLowerCase();
 
-  if (pCountry && pCountry !== 'united states') return null;
+  if (pCountry && pCountry !== 'united states' && pCountry !== 'us') return null;
 
   if (jobCity && pCity === jobCity) return 'city';
   if (jobState && pState === jobState) return 'state';
   return 'national';
 }
 
-function filterByLevelAndLocation(prospect, locationMatch) {
+function filterByTitleAndLocation(person, locationMatch) {
   if (!locationMatch) return false;
-  var title = (prospect.job_title || '').toLowerCase();
-  var level = (prospect.job_level_main || '').toLowerCase();
+  var title = (person.title || '').toLowerCase();
 
-  if (level === 'vp' || level === 'c_suite' ||
-      title.indexOf('vp') !== -1 || title.indexOf('vice president') !== -1 ||
-      title.indexOf('c-suite') !== -1 || title.indexOf('chief') !== -1) {
+  if (title.indexOf('vp') !== -1 || title.indexOf('vice president') !== -1 ||
+      title.indexOf('chief') !== -1 || title.indexOf('cto') !== -1 ||
+      title.indexOf('cfo') !== -1 || title.indexOf('coo') !== -1) {
     return true; // national OK
   }
-  if (level === 'director' || title.indexOf('director') !== -1) {
+  if (title.indexOf('director') !== -1) {
     return locationMatch === 'city' || locationMatch === 'state';
   }
   // manager or below
   return locationMatch === 'city';
 }
 
-async function processLead(lead, apiKey) {
-  // Step 1: Gemini analysis of job to determine target levels and department
+async function processLead(lead) {
+  // Step 1: Gemini analysis of job to determine target titles and department
   var descSnippet = (lead.description || '').slice(0, 1000);
+  var cat = lead.category || 'engineering';
   var analysisPrompt = 'Analyze this job posting and determine who the hiring manager likely is.\n\n' +
     'Job Title: ' + lead.jobTitle + '\n' +
-    'Category: ' + (lead.category || 'engineering') + '\n' +
+    'Category: ' + cat + '\n' +
     'Description: ' + descSnippet + '\n\n' +
     'Return ONLY a JSON object with:\n' +
-    '{ "job_levels": [], "department": "" }\n\n' +
-    'job_levels: array of Explorium-compatible values from this list: ["manager", "director", "vp", "c_suite"]. ' +
-    'Pick the levels most likely to be the hiring authority for this role. Usually 2-3 levels.\n' +
-    'department: a single string like "engineering", "operations", "finance", "accounting", "information_technology".\n\n' +
+    '{ "job_levels": [], "department": "", "person_titles": [] }\n\n' +
+    'job_levels: array from this list: ["manager", "director", "vp", "c_suite"]. Pick 2-3 levels.\n' +
+    'department: a single string like "engineering", "operations", "finance", "accounting", "information_technology".\n' +
+    'person_titles: array of 6-8 specific job titles to search for. For example for a Manufacturing Engineer role return titles like ["Director of Engineering", "VP of Engineering", "Plant Manager", "Director of Manufacturing", "VP of Manufacturing", "Director of Operations", "Engineering Manager", "Manufacturing Manager"]. For IT roles include CTO, IT Director, VP of Technology, etc. For Accounting roles include CFO, Controller, VP of Finance, etc. Always include relevant operational leadership titles.\n\n' +
     'Use the reporting structure in the description if mentioned, otherwise infer from the job title and category.';
 
   var analysisText = await callGemini(analysisPrompt);
   var analysis = parseGeminiJson(analysisText);
-  if (!analysis || !analysis.job_levels || !analysis.job_levels.length) {
-    // Default fallback
-    analysis = { job_levels: ['manager', 'director'], department: lead.category || 'engineering' };
+  if (!analysis || !analysis.person_titles || !analysis.person_titles.length) {
+    // Default fallback based on category
+    var defaultTitles = [];
+    if (cat === 'accounting') {
+      defaultTitles = ['CFO', 'VP of Finance', 'Controller', 'Director of Finance', 'Director of Accounting', 'Accounting Manager'];
+    } else if (cat === 'it') {
+      defaultTitles = ['CTO', 'VP of Technology', 'IT Director', 'Director of IT', 'Director of Engineering', 'IT Manager'];
+    } else {
+      defaultTitles = ['Director of Engineering', 'VP of Engineering', 'Plant Manager', 'Director of Manufacturing', 'Director of Operations', 'Engineering Manager'];
+    }
+    analysis = { job_levels: ['manager', 'director'], department: cat, person_titles: defaultTitles };
   }
 
-  // Step 2: Match business in Explorium
-  var matchRes = await fetch('https://api.explorium.ai/v1/businesses/match', {
+  // Step 2: Apollo People Search
+  var searchBody = {
+    person_titles: analysis.person_titles,
+    organization_names: [lead.company],
+    per_page: 10
+  };
+  if (lead.location) {
+    searchBody.person_locations = [lead.location];
+  }
+
+  var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/search', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'api_key': apiKey
+      'x-api-key': process.env.APOLLO_API_KEY,
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      businesses_to_match: [{ name: lead.company }]
-    })
+    body: JSON.stringify(searchBody)
   });
 
-  if (!matchRes.ok) {
-    console.error('Business match failed for', lead.company, matchRes.status);
+  if (!apolloRes.ok) {
+    console.error('Apollo search failed for', lead.company, apolloRes.status);
     return null;
   }
 
-  var matchData = await matchRes.json();
-  var matched = matchData.matched_businesses && matchData.matched_businesses[0];
-  if (!matched || !matched.business_id) {
-    console.log('No business match for', lead.company);
+  var apolloData = await apolloRes.json();
+  var people = apolloData.people || [];
+  if (!people.length) {
+    console.log('No people found for', lead.company);
     return null;
   }
 
-  var businessId = matched.business_id;
-
-  // Step 3: Fetch prospects from Explorium
-  var prospectRes = await fetch('https://api.explorium.ai/v1/prospects', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api_key': apiKey
-    },
-    body: JSON.stringify({
-      mode: 'full',
-      page_size: 15,
-      size: 15,
-      filters: {
-        business_id: { values: [businessId] },
-        job_level: { values: analysis.job_levels },
-        country_code: { values: ['us'] }
-      }
-    })
-  });
-
-  if (!prospectRes.ok) {
-    console.error('Prospect fetch failed for', lead.company, prospectRes.status);
-    return null;
+  // Extract company-level data from first person's account
+  var companyData = {};
+  var firstAccount = people[0] && people[0].organization;
+  if (firstAccount) {
+    if (firstAccount.website_url) companyData.company_website = ensureUrl(firstAccount.website_url);
+    if (firstAccount.linkedin_url) companyData.company_linkedin = ensureUrl(firstAccount.linkedin_url);
+    if (firstAccount.primary_domain) companyData.company_domain = firstAccount.primary_domain;
+    if (firstAccount.logo_url) companyData.company_logo_apollo = ensureUrl(firstAccount.logo_url);
   }
 
-  var prospectData = await prospectRes.json();
-  var prospects = prospectData.data || prospectData.prospects || [];
-  if (!prospects.length) {
-    console.log('No prospects found for', lead.company);
-    return null;
-  }
-
-  // Location filtering
+  // Step 3: Location filtering
   var jobLoc = parseLocation(lead.location);
   var filtered = [];
-  for (var i = 0; i < prospects.length; i++) {
-    var p = prospects[i];
+  for (var i = 0; i < people.length; i++) {
+    var p = people[i];
     var locMatch = getLocationMatch(p, jobLoc.city, jobLoc.state);
-    if (locMatch && filterByLevelAndLocation(p, locMatch)) {
-      filtered.push({ prospect: p, locationMatch: locMatch, index: i });
+    if (locMatch && filterByTitleAndLocation(p, locMatch)) {
+      filtered.push({ person: p, locationMatch: locMatch, index: i });
     }
   }
 
   // Pass up to 10 candidates to Gemini for ranking
   var candidates = filtered.slice(0, 10);
   if (!candidates.length) {
-    console.log('No location-matched prospects for', lead.company);
+    console.log('No location-matched people for', lead.company);
     return null;
   }
 
-  // Gemini ranking step
-  var cat = lead.category || 'engineering';
+  // Step 4: Gemini ranking
   var rankList = candidates.map(function(c, idx) {
-    return idx + '. ' + (c.prospect.full_name || 'Unknown') + ' - ' + (c.prospect.job_title || 'Unknown') + ' (' + (c.prospect.city || '') + ', ' + (c.prospect.region_name || '') + ')';
+    return idx + '. ' + (c.person.first_name || '') + ' ' + (c.person.last_name || '') + ' - ' + (c.person.title || 'Unknown') + ' (' + (c.person.city || '') + ', ' + (c.person.state || '') + ')';
   }).join('\n');
 
   var rankPrompt = 'You are selecting the best hiring manager contacts for a staffing agency reaching out about a ' + lead.jobTitle + ' role in ' + cat + ' at ' + lead.company + '.\n\n' +
@@ -233,69 +224,49 @@ async function processLead(lead, apiKey) {
   var rankText = await callGemini(rankPrompt);
   var selectedIndexes = parseGeminiJson(rankText);
   if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
-    selectedIndexes = [0]; // default to first
+    selectedIndexes = [0];
   }
 
-  // Extract company-level data from first prospect
-  var companyData = {};
-  if (prospects.length > 0) {
-    var firstP = prospects[0];
-    if (firstP.company_website) companyData.company_website = ensureUrl(firstP.company_website);
-    if (firstP.company_linkedin) companyData.company_linkedin = ensureUrl(firstP.company_linkedin);
-  }
-
-  // Build contact objects (indexes are 0-based from Gemini)
+  // Step 5: Build contact objects
   var contacts = [];
   for (var j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
     var idx = selectedIndexes[j];
     if (idx >= 0 && idx < candidates.length) {
       var c = candidates[idx];
-      var p = c.prospect;
+      var p = c.person;
       contacts.push({
-        prospect_id: p.prospect_id || p.id || '',
-        full_name: p.full_name || '',
-        name: p.full_name || '',
-        job_title: p.job_title || '',
-        title: p.job_title || '',
-        job_level_main: p.job_level_main || '',
-        job_department_main: p.job_department_main || analysis.department || '',
+        apollo_id: p.id || '',
+        first_name: p.first_name || '',
+        last_name: p.last_name || '',
+        full_name: ((p.first_name || '') + ' ' + (p.last_name || '')).trim(),
+        name: ((p.first_name || '') + ' ' + (p.last_name || '')).trim(),
+        job_title: p.title || '',
+        title: p.title || '',
         city: toTitleCase(p.city || ''),
-        region_name: toTitleCase(p.region_name || ''),
-        linkedin: ensureUrl(p.linkedin || ''),
+        state: toTitleCase(p.state || ''),
+        region_name: toTitleCase(p.state || ''),
+        linkedin: ensureUrl(p.linkedin_url || ''),
         locationMatch: c.locationMatch,
-        source: 'explorium'
+        source: 'apollo'
       });
     }
   }
 
-  // --- Email inference for contacts without verified email ---
-  // TODO: Step 1 - SmartSearch email pattern check (placeholder for when API credentials are available)
-  // if (process.env.SMARTSEARCH_API_KEY) {
-  //   for (var ei = 0; ei < contacts.length; ei++) {
-  //     var ssEmail = await smartSearchLookup(contacts[ei].full_name, companyData.company_website);
-  //     if (ssEmail) { contacts[ei].email = ssEmail; contacts[ei].emailVerified = true; }
-  //   }
-  // }
-
-  // Step 3 - Gemini pattern inference for contacts without verified email
-  var emailDomain = '';
-  if (companyData.company_website) {
+  // Step 6: Email inference for contacts without verified email
+  var emailDomain = companyData.company_domain || '';
+  if (!emailDomain && companyData.company_website) {
     try { emailDomain = new URL(companyData.company_website).hostname.replace('www.', ''); } catch (e) {}
   }
 
   if (emailDomain) {
-    // Collect any visible emails from all prospects for pattern examples
+    // Collect any visible emails from Apollo people for pattern examples
     var exampleEmails = [];
-    for (var ei = 0; ei < prospects.length; ei++) {
-      var pe = prospects[ei];
-      if (pe.professional_email && pe.professional_email.indexOf('@') !== -1) {
-        exampleEmails.push(pe.professional_email);
-      }
+    for (var ei = 0; ei < people.length; ei++) {
+      var pe = people[ei];
       if (pe.email && pe.email.indexOf('@') !== -1) {
         exampleEmails.push(pe.email);
       }
     }
-    // Deduplicate
     exampleEmails = exampleEmails.filter(function(v, i, a) { return a.indexOf(v) === i; });
 
     for (var ci = 0; ci < contacts.length; ci++) {
@@ -323,14 +294,12 @@ async function processLead(lead, apiKey) {
 }
 
 module.exports = async function handler(req, res) {
-  // Auth check
   var authHeader = req.headers['authorization'] || '';
   if (authHeader !== 'Bearer ' + process.env.JOBS_CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  var apiKey = process.env.EXPLORIUM_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'EXPLORIUM_API_KEY not configured' });
+  if (!process.env.APOLLO_API_KEY) return res.status(500).json({ error: 'APOLLO_API_KEY not configured' });
   if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
 
   try {
@@ -343,7 +312,6 @@ module.exports = async function handler(req, res) {
       var lead = await redisGet(keys[i]);
       if (!lead) { skipped++; continue; }
 
-      // Only process new leads with empty contacts
       if (lead.status !== 'new') { skipped++; continue; }
       if (lead.contacts && lead.contacts.length > 0) { skipped++; continue; }
       if (lead.contactsEnrichedAt) { skipped++; continue; }
@@ -351,18 +319,19 @@ module.exports = async function handler(req, res) {
       console.log('Processing contacts for:', lead.company, '-', lead.jobTitle);
 
       try {
-        var result = await processLead(lead, apiKey);
+        var result = await processLead(lead);
 
         if (result && result.contacts && result.contacts.length > 0) {
           lead.contacts = result.contacts;
           if (result.companyData.company_website) lead.company_website = result.companyData.company_website;
           if (result.companyData.company_linkedin) lead.company_linkedin = result.companyData.company_linkedin;
+          if (result.companyData.company_domain) lead.company_domain = result.companyData.company_domain;
+          if (result.companyData.company_logo_apollo) lead.company_logo_apollo = result.companyData.company_logo_apollo;
           lead.contactsEnrichedAt = Date.now();
-          await redisSet(keys[i], lead, 604800); // 7-day TTL
+          await redisSet(keys[i], lead, 604800);
           contactsFound += result.contacts.length;
           console.log('Found', result.contacts.length, 'contacts for', lead.company);
         } else {
-          // Mark as enriched even if no contacts found, so we don't retry
           lead.contactsEnrichedAt = Date.now();
           lead.contacts = [];
           await redisSet(keys[i], lead, 604800);
@@ -375,7 +344,6 @@ module.exports = async function handler(req, res) {
         skipped++;
       }
 
-      // Rate limiting delay
       if (i < keys.length - 1) await delay(500);
     }
 

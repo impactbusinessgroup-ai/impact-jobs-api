@@ -177,7 +177,7 @@ module.exports = async function handler(req, res) {
 '  return id.replace(/[^a-zA-Z0-9]/g, \'_\');\n' +
 '}\n' +
 '\n' +
-'async function fetchLogo(company, website, location, safeId) {\n' +
+'async function fetchLogo(company, website, location, safeId, apolloLogo) {\n' +
 '  var cacheKey = company.toLowerCase();\n' +
 '  if (logoCache[cacheKey] !== undefined) {\n' +
 '    applyLogo(safeId, logoCache[cacheKey]);\n' +
@@ -185,13 +185,17 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  var domain = \'\';\n' +
 '  if (website) {\n' +
-'    try { domain = new URL(website).hostname.replace(\'www.\', \'\'); } catch(e) {}\n' +
+'    var wsUrl = website;\n' +
+'    if (wsUrl.indexOf(\'http\') !== 0) wsUrl = \'https://\' + wsUrl;\n' +
+'    try { domain = new URL(wsUrl).hostname.replace(\'www.\', \'\'); } catch(e) {}\n' +
 '  }\n' +
 '  if (!domain) {\n' +
 '    domain = company.toLowerCase().replace(/[^a-z0-9]/g, \'\').slice(0, 20) + \'.com\';\n' +
 '  }\n' +
 '  try {\n' +
-'    var res = await fetch(\'/api/logo?domain=\' + encodeURIComponent(domain));\n' +
+'    var logoUrl = \'/api/logo?domain=\' + encodeURIComponent(domain);\n' +
+'    if (apolloLogo) logoUrl += \'&apollo_logo=\' + encodeURIComponent(apolloLogo);\n' +
+'    var res = await fetch(logoUrl);\n' +
 '    var data = await res.json();\n' +
 '    var url = data.url || null;\n' +
 '    logoCache[cacheKey] = url;\n' +
@@ -239,7 +243,7 @@ module.exports = async function handler(req, res) {
 '    renderLeads();\n' +
 '    leads.forEach(function(lead) {\n' +
 '      var safeId = getSafeId(lead.id);\n' +
-'      fetchLogo(lead.company, lead.company_website || lead.employerWebsite || \'\', lead.location || \'\', safeId);\n' +
+'      fetchLogo(lead.company, lead.company_website || lead.employerWebsite || \'\', lead.location || \'\', safeId, lead.company_logo_apollo || \'\');\n' +
 '    });\n' +
 '  } catch(e) {\n' +
 '    console.error(\'Init error:\', e);\n' +

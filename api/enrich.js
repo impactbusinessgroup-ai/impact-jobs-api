@@ -1,6 +1,5 @@
 // api/enrich.js
-// Enriches a contact via Explorium AgentSource API to find their verified email.
-// Two-step process: match prospect by name + company, then enrich for contact info.
+// Enriches a contact via Apollo People Match API to find their verified email.
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,75 +14,60 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Missing contactName or companyName' });
   }
 
-  var apiKey = process.env.EXPLORIUM_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'EXPLORIUM_API_KEY not configured' });
+  var apiKey = process.env.APOLLO_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'APOLLO_API_KEY not configured' });
 
   try {
-    var prospectId = body.prospect_id || null;
+    var apolloId = body.prospect_id || body.apollo_id || null;
+    var matchBody = {};
 
-    // Step 1: Match prospect to get prospect_id (skip if already provided)
-    if (!prospectId) {
-      var matchRes = await fetch('https://api.explorium.ai/v1/prospects/match', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'api_key': apiKey
-        },
-        body: JSON.stringify({
-          request_context: {},
-          prospects_to_match: [{
-            full_name: body.contactName,
-            company_name: body.companyName
-          }]
-        })
-      });
-
-      if (!matchRes.ok) {
-        console.error('Explorium match failed:', matchRes.status);
-        return res.status(200).json({ email: null });
+    if (apolloId) {
+      // Match by Apollo ID
+      matchBody = {
+        id: apolloId,
+        reveal_personal_emails: false,
+        reveal_phone_number: false
+      };
+    } else {
+      // Match by name + company
+      var nameParts = body.contactName.trim().split(' ');
+      var firstName = nameParts[0] || '';
+      var lastName = nameParts.slice(1).join(' ') || '';
+      var domain = '';
+      if (body.companyName) {
+        domain = body.companyName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) + '.com';
       }
-
-      var matchData = await matchRes.json();
-      var matched = matchData.matched_prospects && matchData.matched_prospects[0];
-      if (!matched || !matched.prospect_id) {
-        return res.status(200).json({ email: null });
-      }
-
-      prospectId = matched.prospect_id;
+      matchBody = {
+        first_name: firstName,
+        last_name: lastName,
+        organization_name: body.companyName,
+        domain: domain,
+        reveal_personal_emails: false,
+        reveal_phone_number: false
+      };
     }
 
-    // Step 2: Enrich prospect to get email
-    var enrichRes = await fetch('https://api.explorium.ai/v1/prospects/contacts_information/enrich', {
+    var matchRes = await fetch('https://api.apollo.io/api/v1/people/match', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'api_key': apiKey
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        prospect_id: prospectId,
-        parameters: {
-          contact_types: ['email']
-        }
-      })
+      body: JSON.stringify(matchBody)
     });
 
-    if (!enrichRes.ok) {
-      console.error('Explorium enrich failed:', enrichRes.status);
+    if (!matchRes.ok) {
+      console.error('Apollo match failed:', matchRes.status);
       return res.status(200).json({ email: null });
     }
 
-    var enrichData = await enrichRes.json();
-    var data = enrichData.data || {};
-
-    // Prefer professional email, fall back to first email in list
-    var email = data.professions_email || null;
-    if (!email && data.emails && data.emails.length > 0) {
-      email = data.emails[0].email || null;
-    }
+    var matchData = await matchRes.json();
+    var person = matchData.person || matchData;
+    var email = person.email || null;
 
     return res.status(200).json({ email: email });
   } catch (e) {
-    console.error('Explorium error:', e.message);
+    console.error('Apollo error:', e.message);
     return res.status(200).json({ email: null });
   }
 };
