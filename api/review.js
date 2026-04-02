@@ -110,7 +110,7 @@ module.exports = async function handler(req, res) {
 '.btn-glass-block:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFCDD2 0%, #EF9A9A 100%); box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.35), inset 1px 1px 0 -0.5px rgba(198,40,40,0.25), inset -1px -1px 0 -0.5px rgba(198,40,40,0.25); }\n' +
 '.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 300; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }\n' +
 '.toast-container.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }\n' +
-'.toast { background: #0F1E3D; color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
+'.toast { background: #E65100; color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(230,81,0,0.35); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
 '.toast-undo { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 4px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }\n' +
 '.toast-undo:hover { background: rgba(255,255,255,0.25); }\n' +
 '.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 250; align-items: center; justify-content: center; backdrop-filter: blur(3px); }\n' +
