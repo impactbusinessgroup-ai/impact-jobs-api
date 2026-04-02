@@ -179,9 +179,21 @@ async function processLead(lead) {
     return null;
   }
 
+  // Debug: log first person structure
+  var firstPerson = people[0];
+  console.log('Apollo first person keys:', Object.keys(firstPerson));
+  console.log('Apollo first person sample:', JSON.stringify({ id: firstPerson.id, first_name: firstPerson.first_name, last_name: firstPerson.last_name, name: firstPerson.name, title: firstPerson.title, city: firstPerson.city, state: firstPerson.state, country: firstPerson.country, linkedin_url: firstPerson.linkedin_url, email: firstPerson.email }));
+  if (firstPerson.organization) {
+    console.log('Apollo organization keys:', Object.keys(firstPerson.organization));
+    console.log('Apollo organization sample:', JSON.stringify({ website_url: firstPerson.organization.website_url, linkedin_url: firstPerson.organization.linkedin_url, primary_domain: firstPerson.organization.primary_domain, logo_url: firstPerson.organization.logo_url }));
+  } else {
+    console.log('No organization on person. Checking account:', firstPerson.account ? Object.keys(firstPerson.account) : 'no account either');
+    if (firstPerson.account) console.log('Apollo account sample:', JSON.stringify({ website_url: firstPerson.account.website_url, linkedin_url: firstPerson.account.linkedin_url, primary_domain: firstPerson.account.primary_domain, logo_url: firstPerson.account.logo_url }));
+  }
+
   // Extract company-level data from first person's account
   var companyData = {};
-  var firstAccount = people[0] && people[0].organization;
+  var firstAccount = firstPerson.organization || firstPerson.account;
   if (firstAccount) {
     if (firstAccount.website_url) companyData.company_website = ensureUrl(firstAccount.website_url);
     if (firstAccount.linkedin_url) companyData.company_linkedin = ensureUrl(firstAccount.linkedin_url);
