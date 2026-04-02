@@ -108,6 +108,17 @@ module.exports = async function handler(req, res) {
 '.btn-glass-skip:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFE0B2 0%, #FFCC80 100%); box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.35), inset 1px 1px 0 -0.5px rgba(230,81,0,0.25), inset -1px -1px 0 -0.5px rgba(230,81,0,0.25); }\n' +
 '.btn-glass-block { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FEECEB 0%, #FFCDD2 100%); color: #C62828; box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.25), inset 1px 1px 0 -0.5px rgba(198,40,40,0.2), inset -1px -1px 0 -0.5px rgba(198,40,40,0.2); }\n' +
 '.btn-glass-block:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFCDD2 0%, #EF9A9A 100%); box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.35), inset 1px 1px 0 -0.5px rgba(198,40,40,0.25), inset -1px -1px 0 -0.5px rgba(198,40,40,0.25); }\n' +
+'.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 300; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }\n' +
+'.toast-container.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }\n' +
+'.toast { background: #0F1E3D; color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
+'.toast-undo { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 4px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }\n' +
+'.toast-undo:hover { background: rgba(255,255,255,0.25); }\n' +
+'.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 250; align-items: center; justify-content: center; backdrop-filter: blur(3px); }\n' +
+'.confirm-overlay.open { display: flex; }\n' +
+'.confirm-card { background: white; border-radius: 18px; max-width: 400px; width: 90%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); text-align: center; }\n' +
+'.confirm-card h3 { font-size: 18px; font-weight: 700; color: #0F1E3D; margin-bottom: 8px; }\n' +
+'.confirm-card p { font-size: 13px; color: #888; margin-bottom: 24px; }\n' +
+'.confirm-actions { display: flex; gap: 10px; justify-content: center; }\n' +
 '.loading { text-align: center; padding: 80px; color: #888; font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: #444; }\n' +
@@ -119,6 +130,19 @@ module.exports = async function handler(req, res) {
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
 '  <div class="header-center">Lead Review</div>\n' +
 '  <div class="header-meta" id="header-date"></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="toast-container" id="toast-container"><div class="toast" id="toast-inner"></div></div>\n' +
+'\n' +
+'<div class="confirm-overlay" id="confirm-overlay" onclick="if(event.target===this)closeConfirm()">\n' +
+'  <div class="confirm-card">\n' +
+'    <h3 id="confirm-title"></h3>\n' +
+'    <p id="confirm-sub"></p>\n' +
+'    <div class="confirm-actions">\n' +
+'      <button class="btn-glass" onclick="closeConfirm()">Cancel</button>\n' +
+'      <button class="btn-glass btn-glass-block" id="confirm-action-btn"></button>\n' +
+'    </div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="jd-popup-overlay" id="jd-overlay" onclick="closeJD(event)">\n' +
@@ -529,34 +553,119 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
-'async function toggleBlockCompany(company, btn) {\n' +
-'  var blocked = btn.classList.contains(\'btn-footer-unblock\');\n' +
-'  await fetch(\'/api/blocklist\', {\n' +
-'    method: blocked ? \'DELETE\' : \'POST\',\n' +
-'    headers: { \'Content-Type\': \'application/json\' },\n' +
-'    body: JSON.stringify({ type: \'companies\', value: company })\n' +
-'  });\n' +
-'  if (blocked) {\n' +
-'    blocklist.companies = blocklist.companies.filter(function(c) { return c !== company; });\n' +
-'    btn.textContent = \'Block company\';\n' +
-'    btn.className = \'btn-footer-block\';\n' +
-'  } else {\n' +
-'    blocklist.companies.push(company);\n' +
-'    btn.textContent = \'Unblock\';\n' +
-'    btn.className = \'btn-footer-unblock\';\n' +
-'  }\n' +
+'var _skipTimer = null;\n' +
+'var _skipUndone = false;\n' +
+'\n' +
+'function showToast(html, duration) {\n' +
+'  var container = document.getElementById(\'toast-container\');\n' +
+'  document.getElementById(\'toast-inner\').innerHTML = html;\n' +
+'  container.classList.add(\'show\');\n' +
+'  return setTimeout(function() { container.classList.remove(\'show\'); }, duration || 5000);\n' +
 '}\n' +
 '\n' +
-'async function skipLead(safeId, realId) {\n' +
-'  await fetch(\'/api/leads\', {\n' +
-'    method: \'PATCH\',\n' +
-'    headers: { \'Content-Type\': \'application/json\' },\n' +
-'    body: JSON.stringify({ id: realId, updates: { status: \'skipped\' } })\n' +
+'function hideToast() {\n' +
+'  document.getElementById(\'toast-container\').classList.remove(\'show\');\n' +
+'}\n' +
+'\n' +
+'function showConfirm(title, sub, btnLabel, onConfirm) {\n' +
+'  document.getElementById(\'confirm-title\').textContent = title;\n' +
+'  document.getElementById(\'confirm-sub\').textContent = sub;\n' +
+'  var btn = document.getElementById(\'confirm-action-btn\');\n' +
+'  btn.textContent = btnLabel;\n' +
+'  btn.onclick = function() { closeConfirm(); onConfirm(); };\n' +
+'  document.getElementById(\'confirm-overlay\').classList.add(\'open\');\n' +
+'}\n' +
+'\n' +
+'function closeConfirm() {\n' +
+'  document.getElementById(\'confirm-overlay\').classList.remove(\'open\');\n' +
+'}\n' +
+'\n' +
+'function toggleBlockCompany(company, btn) {\n' +
+'  var isBlocked = isCompanyBlocked(company);\n' +
+'  if (isBlocked) {\n' +
+'    fetch(\'/api/blocklist\', {\n' +
+'      method: \'DELETE\',\n' +
+'      headers: { \'Content-Type\': \'application/json\' },\n' +
+'      body: JSON.stringify({ type: \'companies\', value: company })\n' +
+'    });\n' +
+'    blocklist.companies = blocklist.companies.filter(function(c) { return c.toLowerCase() !== company.toLowerCase(); });\n' +
+'    btn.innerHTML = \'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg> Block company\';\n' +
+'    return;\n' +
+'  }\n' +
+'  showConfirm(\'Block \' + company + \'?\', \'This company won\\\'t appear in future leads.\', \'Block\', function() {\n' +
+'    fetch(\'/api/blocklist\', {\n' +
+'      method: \'POST\',\n' +
+'      headers: { \'Content-Type\': \'application/json\' },\n' +
+'      body: JSON.stringify({ type: \'companies\', value: company })\n' +
+'    });\n' +
+'    blocklist.companies.push(company);\n' +
+'    var cardsToRemove = [];\n' +
+'    leads.forEach(function(l) {\n' +
+'      if (l.company.toLowerCase() === company.toLowerCase()) {\n' +
+'        cardsToRemove.push(getSafeId(l.id));\n' +
+'      }\n' +
+'    });\n' +
+'    leads = leads.filter(function(l) { return l.company.toLowerCase() !== company.toLowerCase(); });\n' +
+'    cardsToRemove.forEach(function(sid) {\n' +
+'      var card = document.getElementById(\'card-\' + sid);\n' +
+'      if (card) { card.style.opacity = \'0\'; card.style.transition = \'opacity 0.3s\'; setTimeout(function() { card.remove(); }, 300); }\n' +
+'    });\n' +
+'    document.getElementById(\'lead-count\').textContent = leads.length + \' pending leads\';\n' +
 '  });\n' +
+'}\n' +
+'\n' +
+'function skipLead(safeId, realId) {\n' +
+'  if (_skipTimer) { clearTimeout(_skipTimer); hideToast(); }\n' +
+'  _skipUndone = false;\n' +
+'  var lead = leads.find(function(l) { return l.id === realId; });\n' +
+'  var companyName = lead ? lead.company : \'\';\n' +
 '  var card = document.getElementById(\'card-\' + safeId);\n' +
-'  if (card) { card.style.opacity = \'0\'; card.style.transition = \'opacity 0.2s\'; setTimeout(function() { card.remove(); }, 200); }\n' +
+'  var cardHTML = card ? card.outerHTML : null;\n' +
+'  var cardParent = card ? card.parentNode : null;\n' +
+'  var cardNext = card ? card.nextSibling : null;\n' +
+'  if (card) { card.style.opacity = \'0\'; card.style.transition = \'opacity 0.2s\'; setTimeout(function() { if (!_skipUndone) card.remove(); }, 200); }\n' +
 '  leads = leads.filter(function(l) { return l.id !== realId; });\n' +
 '  document.getElementById(\'lead-count\').textContent = leads.length + \' pending leads\';\n' +
+'  var toastHTML = \'Lead skipped \\u00b7 \' + companyName + \'. \' +\n' +
+'    \'<button class="toast-undo" onclick="undoSkip()\">Undo</button>\';\n' +
+'  _skipTimer = showToast(toastHTML, 5000);\n' +
+'  var pendingRealId = realId;\n' +
+'  var pendingLead = lead;\n' +
+'  window._skipUndo = function() {\n' +
+'    _skipUndone = true;\n' +
+'    clearTimeout(_skipTimer);\n' +
+'    hideToast();\n' +
+'    if (pendingLead) leads.push(pendingLead);\n' +
+'    document.getElementById(\'lead-count\').textContent = leads.length + \' pending leads\';\n' +
+'    if (cardHTML && cardParent) {\n' +
+'      var temp = document.createElement(\'div\');\n' +
+'      temp.innerHTML = cardHTML;\n' +
+'      var restored = temp.firstChild;\n' +
+'      restored.style.opacity = \'0\';\n' +
+'      restored.style.transition = \'opacity 0.3s\';\n' +
+'      if (cardNext && cardNext.parentNode === cardParent) {\n' +
+'        cardParent.insertBefore(restored, cardNext);\n' +
+'      } else {\n' +
+'        cardParent.appendChild(restored);\n' +
+'      }\n' +
+'      setTimeout(function() { restored.style.opacity = \'1\'; }, 10);\n' +
+'      var rSafeId = getSafeId(pendingLead.id);\n' +
+'      fetchLogo(pendingLead.company, pendingLead.employerWebsite || \'\', pendingLead.location || \'\', rSafeId);\n' +
+'    }\n' +
+'  };\n' +
+'  setTimeout(function() {\n' +
+'    if (!_skipUndone) {\n' +
+'      fetch(\'/api/leads\', {\n' +
+'        method: \'PATCH\',\n' +
+'        headers: { \'Content-Type\': \'application/json\' },\n' +
+'        body: JSON.stringify({ id: pendingRealId, updates: { status: \'skipped\' } })\n' +
+'      });\n' +
+'    }\n' +
+'  }, 5200);\n' +
+'}\n' +
+'\n' +
+'function undoSkip() {\n' +
+'  if (window._skipUndo) window._skipUndo();\n' +
 '}\n' +
 '\n' +
 'init();\n' +
