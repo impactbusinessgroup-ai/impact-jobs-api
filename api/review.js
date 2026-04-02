@@ -23,10 +23,10 @@ module.exports = async function handler(req, res) {
 '.queue-bar .sub { font-size: 13px; color: #888; margin-top: 3px; }\n' +
 '.lead-count-badge { background: #FFA000; color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,160,0,0.35); }\n' +
 '.card { background: white; border-radius: 18px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.07); transition: box-shadow 0.2s, transform 0.2s; }\n' +
-'.card:hover { box-shadow: 0 6px 28px rgba(0,0,0,0.12); transform: translateY(-1px); }\n' +
+'.card:hover { }\n' +
 '.card-top { background: linear-gradient(135deg, #0B1729 0%, #1A3A6E 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
-'.company-logo-wrap { width: 48px; height: 48px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }\n' +
+'.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }\n' +
 '.company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: 0.5px; }\n' +
 '.company-name { font-size: 18px; font-weight: 700; color: white; line-height: 1.2; }\n' +
 '.company-location { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 3px; }\n' +
@@ -99,12 +99,12 @@ module.exports = async function handler(req, res) {
 '.search-result-item:hover { background: #F5F7FA; }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #1A4EA2; background: #EEF3FF; padding: 3px 10px; border-radius: 6px; }\n' +
 '.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid #F0F2F5; background: #F8F9FC; }\n' +
-'.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; position: relative; transition: all 0.2s; background: radial-gradient(61.35% 50.07% at 48.58% 50%, rgb(255,255,255) 0%, rgba(0,0,0,0.02) 100%); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15), inset 1px 1px 0 -0.5px rgba(0,0,0,0.1), inset -1px -1px 0 -0.5px rgba(0,0,0,0.1); text-decoration: none; color: #333; }\n' +
-'.btn-glass:hover { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.2), inset 1px 1px 0 -0.5px rgba(0,0,0,0.15), inset -1px -1px 0 -0.5px rgba(0,0,0,0.15), 0 0 6px rgba(0,0,0,0.08); }\n' +
+'.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; position: relative; transition: all 0.2s; background: radial-gradient(61.35% 50.07% at 48.58% 50%, rgb(255,255,255) 0%, rgba(0,0,0,0.04) 100%); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15), inset 1px 1px 0 -0.5px rgba(0,0,0,0.1), inset -1px -1px 0 -0.5px rgba(0,0,0,0.1); text-decoration: none; color: #333; }\n' +
+'.btn-glass:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, rgb(235,235,235) 0%, rgba(0,0,0,0.06) 100%); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.22), inset 1px 1px 0 -0.5px rgba(0,0,0,0.18), inset -1px -1px 0 -0.5px rgba(0,0,0,0.18); }\n' +
 '.btn-glass-skip { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFF3E0 0%, #FFE0B2 100%); color: #E65100; box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.25), inset 1px 1px 0 -0.5px rgba(230,81,0,0.2), inset -1px -1px 0 -0.5px rgba(230,81,0,0.2); }\n' +
-'.btn-glass-skip:hover { box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.35), 0 0 6px rgba(230,81,0,0.15); }\n' +
+'.btn-glass-skip:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFE0B2 0%, #FFCC80 100%); box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.35), inset 1px 1px 0 -0.5px rgba(230,81,0,0.25), inset -1px -1px 0 -0.5px rgba(230,81,0,0.25); }\n' +
 '.btn-glass-block { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FEECEB 0%, #FFCDD2 100%); color: #C62828; box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.25), inset 1px 1px 0 -0.5px rgba(198,40,40,0.2), inset -1px -1px 0 -0.5px rgba(198,40,40,0.2); }\n' +
-'.btn-glass-block:hover { box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.35), 0 0 6px rgba(198,40,40,0.15); }\n' +
+'.btn-glass-block:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFCDD2 0%, #EF9A9A 100%); box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.35), inset 1px 1px 0 -0.5px rgba(198,40,40,0.25), inset -1px -1px 0 -0.5px rgba(198,40,40,0.25); }\n' +
 '.loading { text-align: center; padding: 80px; color: #888; font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: #444; }\n' +
@@ -182,7 +182,7 @@ module.exports = async function handler(req, res) {
 '  if (url) {\n' +
 '    var img = document.createElement(\'img\');\n' +
 '    img.src = url;\n' +
-'    img.style.cssText = \'width:100%;height:100%;object-fit:contain;padding:4px;\';\n' +
+'    img.style.cssText = \'width:100%;height:100%;object-fit:cover;padding:0;\';\n' +
 '    img.onerror = function() {\n' +
 '      wrap.style.display = \'none\';\n' +
 '      if (ini) ini.style.display = \'flex\';\n' +
@@ -311,11 +311,11 @@ module.exports = async function handler(req, res) {
 '      \'</div>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="card-footer">\' +\n' +
-'      \'<button class="btn-glass btn-glass-skip" onclick="skipLead(\\\'\' + safeId + \'\\\',\\\'\' + lead.id + \'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg> Skip</button>\' +\n' +
-'      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\' + companyEsc + \'\\\', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg> \' + (blocked ? \'Unblock\' : \'Block company\') + \'</button>\' +\n' +
+'      \'<button class="btn-glass btn-glass-skip" onclick="skipLead(\\\'\' + safeId + \'\\\',\\\'\' + lead.id + \'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg> Skip</button>\' +\n' +
+'      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\' + companyEsc + \'\\\', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg> \' + (blocked ? \'Unblock\' : \'Block company\') + \'</button>\' +\n' +
 '      \'<div style="flex:1;"></div>\' +\n' +
-'      (hasJD ? \'<button class="btn-glass" onclick="openJD(\\\'\' + safeId + \'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Job description</button>\' : \'\') +\n' +
-'      (lead.jobUrl ? \'<a class="btn-glass" href="\' + lead.jobUrl + \'" target="_blank"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> View posting</a>\' : \'\') +\n' +
+'      (hasJD ? \'<button class="btn-glass" onclick="openJD(\\\'\' + safeId + \'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Job description</button>\' : \'\') +\n' +
+'      (lead.jobUrl ? \'<a class="btn-glass" href="\' + lead.jobUrl + \'" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> View posting</a>\' : \'\') +\n' +
 '    \'</div>\' +\n' +
 '  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadJobTitles["\' + safeId + \'"]=\' + JSON.stringify(lead.jobTitle || \'\') + \';window._leadCategories["\' + safeId + \'"]=\' + JSON.stringify(lead.category || \'engineering\') + \';<\\/script>\' +\n' +
 '  \'</div>\';\n' +
