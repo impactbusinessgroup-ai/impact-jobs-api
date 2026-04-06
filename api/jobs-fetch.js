@@ -238,7 +238,7 @@ module.exports = async function handler(req, res) {
     if (lead?.normalizedCompany) seenCompanies.add(lead.normalizedCompany);
   }
 
-  const MAX_QUALIFIED = 10;
+  const MAX_QUALIFIED = 3;
 
   for (const query of JSEARCH_QUERIES) {
     if (qualifiedLeads.length >= MAX_QUALIFIED) break;

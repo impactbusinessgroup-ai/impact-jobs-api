@@ -152,7 +152,7 @@ async function processLead(lead) {
   var searchBody = {
     person_titles: analysis.person_titles,
     organization_names: [lead.company],
-    per_page: 3
+    per_page: 10
   };
   if (lead.location) {
     searchBody.person_locations = [lead.location];
