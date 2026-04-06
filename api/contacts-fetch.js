@@ -143,6 +143,8 @@ async function processLead(lead, leadKey) {
     personTitles = getDefaultTitles(cat);
   }
 
+  console.log('Gemini titles:', lead.company, '-', JSON.stringify(personTitles));
+
   // Step 3: Apollo people search (free)
   var jobState = extractState(lead.location);
   var searchBody = {
@@ -153,6 +155,7 @@ async function processLead(lead, leadKey) {
   if (jobState) {
     searchBody.person_locations = [jobState + ', United States'];
   }
+  console.log('Apollo location filter:', lead.company, '-', searchBody.person_locations || '(none)');
 
   var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
     method: 'POST',
