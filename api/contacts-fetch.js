@@ -221,7 +221,7 @@ async function processLeadApollo(lead, cat, descSnippet) {
   var filtered = [];
   for (var i = 0; i < people.length; i++) {
     var p = people[i];
-    if (p.country === null || p.country === undefined) continue;
+    if (p.has_country === false) continue;
     var pOrgName = (p.organization && p.organization.name) || '';
     if (pOrgName && !looseCompanyMatch(pOrgName, lead.company)) continue;
     filtered.push(p);
