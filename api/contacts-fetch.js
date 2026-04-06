@@ -44,7 +44,7 @@ function delay(ms) {
   return new Promise(function(resolve) { setTimeout(resolve, ms); });
 }
 
-async function callGemini(prompt) {
+async function callGemini(prompt, maxTokens) {
   var res = await fetch(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + process.env.GEMINI_API_KEY,
     {
@@ -52,7 +52,7 @@ async function callGemini(prompt) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 400, temperature: 0.2 }
+        generationConfig: { maxOutputTokens: maxTokens || 400, temperature: 0.2 }
       })
     }
   );
@@ -137,7 +137,8 @@ async function processLead(lead, leadKey) {
   // Step 2: Gemini generates broad title keywords
   var titlesPrompt = 'You are helping a staffing agency find the hiring manager for this job posting. The job category is ' + cat + '. Analyze the full job description and identify what department and discipline this role belongs to (e.g. manufacturing engineering, software development, finance, etc.). Then generate 8-12 broad title keywords that would match the hiring manager or decision maker for someone in THAT specific discipline at this type of company. For a manufacturing engineering role, generate titles like plant manager, manufacturing manager, engineering manager, director of manufacturing -- NOT IT or technology titles. Return only a JSON array of short keyword phrases, no other text.\n\nJob Title: ' + lead.jobTitle + '\nCompany: ' + lead.company + '\n\nJob Description:\n' + description;
 
-  var titlesText = await callGemini(titlesPrompt);
+  console.log('Gemini title prompt length:', lead.company, '-', titlesPrompt.length, 'chars');
+  var titlesText = await callGemini(titlesPrompt, 1000);
   console.log('Gemini titles raw:', lead.company, '-', titlesText);
   var personTitles = parseGeminiJson(titlesText);
   if (!Array.isArray(personTitles) || !personTitles.length) {
