@@ -9,6 +9,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  console.log('Enrich incoming body:', JSON.stringify(req.body));
+
   var body = req.body;
   if (!body || !body.contactName || !body.companyName) {
     return res.status(400).json({ error: 'Missing contactName or companyName' });
@@ -20,6 +22,8 @@ module.exports = async function handler(req, res) {
   try {
     var apolloId = body.prospect_id || body.apollo_id || null;
     var matchBody = {};
+
+    console.log('Enrich taking path:', apolloId ? 'Path 1 - Apollo ID' : 'Path 2 - name+company');
 
     if (apolloId) {
       // Match by Apollo ID
