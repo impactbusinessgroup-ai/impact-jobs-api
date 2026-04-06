@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
       // Match by Apollo ID
       matchBody = {
         id: apolloId,
-        reveal_personal_emails: false,
+        reveal_personal_emails: true,
         reveal_phone_number: false
       };
     } else {
@@ -42,7 +42,7 @@ module.exports = async function handler(req, res) {
         last_name: lastName,
         organization_name: body.companyName,
         domain: domain,
-        reveal_personal_emails: false,
+        reveal_personal_emails: true,
         reveal_phone_number: false
       };
     }
