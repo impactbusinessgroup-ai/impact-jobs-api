@@ -254,6 +254,7 @@ module.exports = async function handler(req, res) {
       const title = job.job_title || '';
       const employer = job.employer_name || '';
       const description = job.job_description || '';
+      console.log('Job source domain:', employer, '-', job.employer_website || '(none)');
 
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
