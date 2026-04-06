@@ -139,6 +139,11 @@ async function processLead(lead, leadKey) {
 
   console.log('Gemini title prompt length:', lead.company, '-', titlesPrompt.length, 'chars');
   var titlesText = await callGemini(titlesPrompt, 1000);
+  if (!titlesText) {
+    console.log('Gemini title generation retry for', lead.company);
+    await delay(1000);
+    titlesText = await callGemini(titlesPrompt, 1000);
+  }
   console.log('Gemini titles raw:', lead.company, '-', titlesText);
   var personTitles = parseGeminiJson(titlesText);
   if (!Array.isArray(personTitles) || !personTitles.length) {
