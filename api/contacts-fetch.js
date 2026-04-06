@@ -173,6 +173,7 @@ async function processLead(lead) {
   }
 
   var apolloData = await apolloRes.json();
+  console.log('Apollo raw response:', JSON.stringify(apolloData));
   var people = apolloData.people || [];
   if (!people.length) {
     console.log('No people found for', lead.company);
