@@ -101,11 +101,6 @@ async function processLead(lead) {
   var hunterUrl = 'https://api.hunter.io/v2/domain-search?domain=' + encodeURIComponent(domain) +
     '&type=personal&seniority=senior,executive&api_key=' + process.env.HUNTER_API_KEY;
 
-  var dept = getDepartmentParam(cat);
-  if (dept) {
-    hunterUrl += '&department=' + dept;
-  }
-
   var hunterRes = await fetch(hunterUrl);
   if (!hunterRes.ok) {
     console.error('Hunter search failed for', lead.company, hunterRes.status);
