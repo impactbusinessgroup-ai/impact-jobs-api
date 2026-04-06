@@ -81,13 +81,6 @@ function ensureUrl(val) {
   return 'https://' + val;
 }
 
-function getDepartmentParam(category) {
-  if (category === 'engineering') return 'engineering';
-  if (category === 'it') return 'it';
-  if (category === 'accounting') return 'finance';
-  return '';
-}
-
 async function processLead(lead) {
   var domain = lead.company_domain || '';
   if (!domain) {
