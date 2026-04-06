@@ -305,6 +305,13 @@ module.exports = async function handler(req, res) {
       const category = detectCategory(title, description);
       const leadId = `lead:${today}:${normalized.replace(/\s/g, '-').slice(0, 50)}`;
 
+      let company_domain = null;
+      try {
+        if (job.employer_website) {
+          company_domain = new URL(job.employer_website).hostname.replace(/^www\./, '');
+        }
+      } catch (e) {}
+
       const lead = {
         id: leadId,
         date: today,
@@ -316,6 +323,7 @@ module.exports = async function handler(req, res) {
         source: 'jsearch',
         jobUrl: job.job_apply_link || '',
         employerWebsite: job.employer_website || '',
+        company_domain,
         category,
         status: 'new',
         contacts: [],
