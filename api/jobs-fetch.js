@@ -293,6 +293,7 @@ module.exports = async function handler(req, res) {
         createdAt: Date.now(),
       };
 
+      console.log('JSearch employer_website:', employer, '-', job.employer_website || '(none)');
       await redisSet(leadId, lead, 60 * 60 * 24 * 7);
       qualifiedLeads.push(leadId);
     }
