@@ -135,7 +135,7 @@ async function processLead(lead, leadKey) {
   }
 
   // Step 2: Gemini generates broad title keywords
-  var titlesPrompt = 'Given this job posting for ' + lead.jobTitle + ' at ' + lead.company + ', what are 8-12 broad title keywords that would match the hiring manager or decision maker for this role? Return a JSON array of short keyword phrases (2-4 words each) that Apollo can use for partial title matching. Think broadly -- include manager, director, VP, and plant/site/operations variations relevant to this industry. Return only a JSON array, no other text.\n\nJob Description:\n' + description;
+  var titlesPrompt = 'You are helping a staffing agency find the hiring manager for this job posting. The job category is ' + cat + '. Analyze the full job description and identify what department and discipline this role belongs to (e.g. manufacturing engineering, software development, finance, etc.). Then generate 8-12 broad title keywords that would match the hiring manager or decision maker for someone in THAT specific discipline at this type of company. For a manufacturing engineering role, generate titles like plant manager, manufacturing manager, engineering manager, director of manufacturing -- NOT IT or technology titles. Return only a JSON array of short keyword phrases, no other text.\n\nJob Title: ' + lead.jobTitle + '\nCompany: ' + lead.company + '\n\nJob Description:\n' + description;
 
   var titlesText = await callGemini(titlesPrompt);
   var personTitles = parseGeminiJson(titlesText);
