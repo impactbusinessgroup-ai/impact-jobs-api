@@ -212,6 +212,7 @@ async function processLeadApollo(lead, cat, descSnippet) {
 
   var apolloData = await apolloRes.json();
   var people = apolloData.people || [];
+  console.log('Apollo people search result:', lead.company, '- total_entries:', apolloData.pagination && apolloData.pagination.total_entries, '- first person:', people[0] ? JSON.stringify({ id: people[0].id, first_name: people[0].first_name, last_name: people[0].last_name, title: people[0].title, city: people[0].city, state: people[0].state, country: people[0].country, has_country: people[0].has_country, org: people[0].organization && people[0].organization.name }) : 'none');
   if (!people.length) {
     console.log('No Apollo people found for', lead.company);
     return null;
@@ -227,6 +228,7 @@ async function processLeadApollo(lead, cat, descSnippet) {
     filtered.push(p);
   }
 
+  console.log('Apollo filter passed:', lead.company, '-', filtered.length, 'of', people.length, 'people');
   if (!filtered.length) {
     console.log('No Apollo people passed org/country filter for', lead.company);
     return null;
@@ -256,6 +258,7 @@ async function processLeadApollo(lead, cat, descSnippet) {
 
   var rankText = await callGemini(generateValidationPrompt(lead, cat, descSnippet, contactList));
   var selectedIndexes = parseGeminiJson(rankText);
+  console.log('Gemini approved:', lead.company, '-', selectedIndexes, 'from', candidates.length, 'candidates');
   if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
     console.log('Gemini approved zero Apollo contacts for', lead.company);
     return null;
