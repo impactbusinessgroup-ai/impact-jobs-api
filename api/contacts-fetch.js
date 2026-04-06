@@ -258,6 +258,7 @@ async function processLeadApollo(lead, cat, descSnippet) {
   }).join('\n');
 
   var rankText = await callGemini(generateValidationPrompt(lead, cat, descSnippet, contactList));
+  console.log('Gemini raw response:', rankText);
   var selectedIndexes = parseGeminiJson(rankText);
   if (!Array.isArray(selectedIndexes)) {
     console.log('Gemini parse error:', rankText);
