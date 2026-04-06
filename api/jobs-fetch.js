@@ -146,6 +146,33 @@ Answer only YES or NO.`;
   }
 }
 
+const TRUSTED_DOMAINS = [
+  'indeed.com','linkedin.com','glassdoor.com','ziprecruiter.com','monster.com',
+  'careerbuilder.com','simplyhired.com','dice.com','jobvite.com','greenhouse.io',
+  'lever.co','workday.com','myworkdayjobs.com','icims.com','taleo.net',
+  'smartrecruiters.com','successfactors.com','brassring.com','recruiterbox.com',
+  'bamboohr.com','paylocity.com','adp.com'
+];
+
+function isAggregatorSource(applyLink, employerName) {
+  if (!applyLink) return false;
+  try {
+    const hostname = new URL(applyLink).hostname.toLowerCase();
+    // Check if hostname contains any employer name word 5+ chars
+    const words = employerName.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+    for (const word of words) {
+      if (word.length >= 5 && hostname.includes(word)) return false;
+    }
+    // Check trusted domains
+    for (const domain of TRUSTED_DOMAINS) {
+      if (hostname === domain || hostname.endsWith('.' + domain)) return false;
+    }
+    return hostname;
+  } catch (e) {
+    return false;
+  }
+}
+
 // --- Filter checks ---
 function isStaffingCompany(employerName) {
   const name = employerName.toLowerCase();
@@ -254,7 +281,8 @@ module.exports = async function handler(req, res) {
       const title = job.job_title || '';
       const employer = job.employer_name || '';
       const description = job.job_description || '';
-      console.log('Job URL fields:', employer, '- apply_link:', job.job_apply_link || '(none)', '- posting_url:', job.job_posting_url || '(none)', '- job_url:', job.job_url || '(none)');
+      const aggregatorHost = isAggregatorSource(job.job_apply_link, employer);
+      if (aggregatorHost) { console.log('Filtered aggregator source:', employer, '-', aggregatorHost); totalFiltered++; continue; }
 
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isStaffingCompany(employer)) { totalFiltered++; continue; }
@@ -294,7 +322,6 @@ module.exports = async function handler(req, res) {
         createdAt: Date.now(),
       };
 
-      console.log('JSearch employer_website:', employer, '-', job.employer_website || '(none)');
       await redisSet(leadId, lead, 60 * 60 * 24 * 7);
       qualifiedLeads.push(leadId);
     }
