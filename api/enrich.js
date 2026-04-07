@@ -41,12 +41,38 @@ module.exports = async function handler(req, res) {
   console.log('Enrich incoming body:', JSON.stringify(req.body));
 
   var body = req.body;
+  var apiKey = process.env.APOLLO_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'APOLLO_API_KEY not configured' });
+
+  // action=match: people/match without email reveal, returns full name + LinkedIn
+  if (body && body.action === 'match' && body.apollo_id) {
+    try {
+      var matchRes = await fetch('https://api.apollo.io/api/v1/people/match', {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: body.apollo_id })
+      });
+      if (!matchRes.ok) return res.status(200).json({ error: 'Match failed' });
+      var matchData = await matchRes.json();
+      var p = matchData.person || matchData;
+      return res.status(200).json({
+        full_name: ((p.first_name || '') + ' ' + (p.last_name || '')).trim(),
+        first_name: p.first_name || '',
+        last_name: p.last_name || '',
+        title: p.title || '',
+        city: p.city || '',
+        state: p.state || '',
+        linkedin: p.linkedin_url || ''
+      });
+    } catch (e) {
+      console.error('Match error:', e.message);
+      return res.status(200).json({ error: e.message });
+    }
+  }
+
   if (!body || !body.contactName || !body.companyName) {
     return res.status(400).json({ error: 'Missing contactName or companyName' });
   }
-
-  var apiKey = process.env.APOLLO_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'APOLLO_API_KEY not configured' });
 
   try {
     var apolloId = body.prospect_id || body.apollo_id || null;

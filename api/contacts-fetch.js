@@ -299,10 +299,24 @@ async function processLead(lead, leadKey) {
     }
   });
 
-  // Step 7: Extract company-level data
+  // Step 7: Build allContacts from full Apollo search results (free data, no credits)
+  var allContacts = [];
+  people.forEach(function(p) {
+    var pid = p.id || '';
+    if (pid && !apolloIds[pid]) {
+      allContacts.push({
+        apollo_id: pid,
+        first_name: p.first_name || '',
+        last_name_obfuscated: (p.last_name || '').charAt(0) + '.',
+        title: p.title || ''
+      });
+    }
+  });
+
+  // Step 8: Extract company-level data
   var companyData = { apollo_org_id: orgId };
 
-  return contacts.length > 0 ? { contacts: contacts, companyData: companyData } : null;
+  return contacts.length > 0 ? { contacts: contacts, allContacts: allContacts, companyData: companyData } : null;
 }
 
 module.exports = async function handler(req, res) {
@@ -345,14 +359,16 @@ module.exports = async function handler(req, res) {
 
         if (result && result.contacts && result.contacts.length > 0) {
           lead.contacts = result.contacts;
+          lead.allContacts = result.allContacts || [];
           if (result.companyData.apollo_org_id) lead.apollo_org_id = result.companyData.apollo_org_id;
           lead.contactsEnrichedAt = Date.now();
           await redisSet(keys[i], lead, 604800);
           contactsFound += result.contacts.length;
-          console.log('Found', result.contacts.length, 'contacts for', lead.company);
+          console.log('Found', result.contacts.length, 'contacts for', lead.company, '+', lead.allContacts.length, 'additional');
         } else {
           lead.contactsEnrichedAt = Date.now();
           lead.contacts = [];
+          lead.allContacts = [];
           await redisSet(keys[i], lead, 604800);
           console.log('No contacts found for', lead.company);
         }
