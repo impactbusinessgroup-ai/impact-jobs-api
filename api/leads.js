@@ -67,10 +67,13 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Sort by createdAt descending
-    leads.sort((a, b) => b.createdAt - a.createdAt);
+    // Exclude leads with no contacts
+    const ready = leads.filter(lead => lead.contacts && lead.contacts.length > 0);
 
-    return res.status(200).json({ ok: true, leads });
+    // Sort by createdAt descending
+    ready.sort((a, b) => b.createdAt - a.createdAt);
+
+    return res.status(200).json({ ok: true, leads: ready });
   }
 
   // PATCH -- update a lead (skip, update status, add contact)
