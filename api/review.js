@@ -296,7 +296,7 @@ module.exports = async function handler(req, res) {
 '  var hasJD=lead.description&&lead.description.length>0;\n' +
 '  var ini=companyInitials(lead.company);\n' +
 '  var safeId=getSafeId(lead.id);\n' +
-'  var companyEsc=lead.company.replace(/\'/g,"\\\\\\'").replace(/"/g,"&quot;");\n' +
+'  var companyEsc=lead.company.replace(/\x27/g,"\x5c\x5c\x27").replace(/"/g,\x27&quot;\x27);\n' +
 '  var jobTitle=lead.jobTitle||"";\n' +
 '  var subj1="Question about your "+jobTitle+" position search";\n' +
 '  var subj2="Your "+jobTitle+" position at "+lead.company;\n' +
@@ -304,7 +304,6 @@ module.exports = async function handler(req, res) {
 '  var subj4="Following up on your "+jobTitle+" position";\n' +
 '  var hasAllContacts=lead.allContacts&&lead.allContacts.length>0;\n' +
 '\n' +
-'  // Build links bar
 '  var linksLeft="";\n' +
 '  if(lead.company_domain){\n' +
 '    linksLeft+=\'<a class="link-icon" href="https://\'+lead.company_domain+\'" target="_blank" title="Website">\'+SVG_GLOBE+\'</a>\';\n' +
