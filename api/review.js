@@ -291,15 +291,12 @@ module.exports = async function handler(req, res) {
 '    if (lead.contacts && lead.contacts.length > 0) {\n' +
 '      var safeId = getSafeId(lead.id);\n' +
 '      lead.contacts.forEach(function(c) {\n' +
-'        addContact(safeId, c.full_name || c.name || \'\', c.job_title || c.title || \'\', lead.company, lead.location || \'\', c.prospect_id || \'\', {\n' +
+'        addContact(safeId, c.full_name || c.name || \'\', c.job_title || c.title || \'\', lead.company, lead.location || \'\', c.apollo_id || c.prospect_id || \'\', {\n' +
 '          suggested: true,\n' +
 '          locationMatch: c.locationMatch || \'\',\n' +
 '          city: c.city || \'\',\n' +
 '          region: c.region_name || c.region || \'\',\n' +
-'          linkedin: c.linkedin || \'\',\n' +
-'          email: c.email || \'\',\n' +
-'          inferredEmail: c.inferredEmail || \'\',\n' +
-'          emailInferred: c.emailInferred || false\n' +
+'          linkedin: c.linkedin || \'\'\n' +
 '        });\n' +
 '      });\n' +
 '    }\n' +
@@ -384,7 +381,7 @@ module.exports = async function handler(req, res) {
 '      (hasJD ? \'<button class="btn-glass" onclick="openJD(\\\'\' + safeId + \'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Job description</button>\' : \'\') +\n' +
 '      (lead.jobUrl ? \'<a class="btn-glass" href="\' + lead.jobUrl + \'" target="_blank"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> View posting</a>\' : \'\') +\n' +
 '    \'</div>\' +\n' +
-'  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadJobTitles["\' + safeId + \'"]=\' + JSON.stringify(lead.jobTitle || \'\') + \';window._leadCategories["\' + safeId + \'"]=\' + JSON.stringify(lead.category || \'engineering\') + \';<\\/script>\' +\n' +
+'  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadRedisIds=window._leadRedisIds||{};window._leadJobTitles["\' + safeId + \'"]=\' + JSON.stringify(lead.jobTitle || \'\') + \';window._leadCategories["\' + safeId + \'"]=\' + JSON.stringify(lead.category || \'engineering\') + \';window._leadRedisIds["\' + safeId + \'"]=\' + JSON.stringify(lead.id || \'\') + \';<\\/script>\' +\n' +
 '  \'</div>\';\n' +
 '}\n' +
 '\n' +
@@ -448,19 +445,8 @@ module.exports = async function handler(req, res) {
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
 '  if (linkedinUrl && linkedinUrl.indexOf(\'http\') !== 0) linkedinUrl = \'https://\' + linkedinUrl;\n' +
 '  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
-'  var hasEmail = opts.email && opts.email.length > 0;\n' +
-'  var hasInferred = !hasEmail && opts.inferredEmail && opts.emailInferred;\n' +
-'  var emailRowHtml = \'\';\n' +
-'  if (hasEmail) {\n' +
-'    emailRowHtml = \'<span class="email-value" id="ev-\' + cid + \'">\' + opts.email + \'</span>\';\n' +
-'  } else if (hasInferred) {\n' +
-'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'" style="display:none;">No email found</span>\' +\n' +
-'      \'<span class="email-value" id="ev-\' + cid + \'" style="color:#E65100;">\' + opts.inferredEmail + \'</span>\' +\n' +
-'      \' <span class="badge" id="inferred-badge-\' + cid + \'" style="background:#FEF3C7;color:#92400E;">Inferred</span>\';\n' +
-'  } else {\n' +
-'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'">No email found</span>\' +\n' +
-'      \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
-'  }\n' +
+'  var emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'"></span>\' +\n' +
+'    \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
 '\n' +
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
@@ -479,12 +465,12 @@ module.exports = async function handler(req, res) {
 '        \'<div class="email-row">\' +\n' +
 '          emailRowHtml +\n' +
 '        \'</div>\' +\n' +
-'        (hasEmail ? \'\' : \'<div class="credit-note" id="cn-\' + cid + \'">\' + (hasInferred ? \'Verify to confirm this email\' : \'\') + \'</div>\') +\n' +
+'        \'<div class="credit-note" id="cn-\' + cid + \'">Fetching email uses 1 credit</div>\' +\n' +
 '      \'</div>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      (hasEmail ? \'\' : \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">\' + (hasInferred ? \'Verify email (2 credits)\' : \'Fetch email (2 credits)\') + \'</button>\') +\n' +
+'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (1 credit)</button>\' +\n' +
 '      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -510,20 +496,6 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  document.getElementById(\'contacts-\' + safeId).appendChild(block);\n' +
 '  document.getElementById(\'ss-\' + safeId).style.display = \'none\';\n' +
-'  if (hasEmail) {\n' +
-'    var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeId]) || \'\';\n' +
-'    var category = (window._leadCategories && window._leadCategories[safeId]) || \'engineering\';\n' +
-'    fetch(\'/api/draft\', {\n' +
-'      method: \'POST\',\n' +
-'      headers: { \'Content-Type\': \'application/json\' },\n' +
-'      body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
-'    }).then(function(r) { return r.json(); }).then(function(draftData) {\n' +
-'      if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
-'      if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
-'      if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
-'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
-'    }).catch(function() {});\n' +
-'  }\n' +
 '}\n' +
 '\n' +
 'function removeContact(cid) {\n' +
@@ -542,7 +514,7 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  try {\n' +
 '    var enrichPayload = { contactName: name, contactTitle: title, companyName: companyName, location: location };\n' +
-'    if (prospectId) enrichPayload.prospect_id = prospectId;\n' +
+'    if (prospectId) enrichPayload.apollo_id = prospectId;\n' +
 '    var enrichRes = await fetch(\'/api/enrich\', {\n' +
 '      method: \'POST\',\n' +
 '      headers: { \'Content-Type\': \'application/json\' },\n' +
@@ -556,12 +528,25 @@ module.exports = async function handler(req, res) {
 '      evEl.style.display = \'inline\';\n' +
 '      evEl.textContent = email;\n' +
 '      evEl.style.color = \'#1A4EA2\';\n' +
-'      var inferBadge = document.getElementById(\'inferred-badge-\' + cid);\n' +
-'      if (inferBadge) inferBadge.remove();\n' +
-'      document.getElementById(\'cn-\' + cid).textContent = \'2 credits used\';\n' +
+'      document.getElementById(\'cn-\' + cid).textContent = \'1 credit used\';\n' +
 '      btn.textContent = \'Email fetched\';\n' +
 '      btn.className = \'btn btn-sent\';\n' +
 '      btn.disabled = true;\n' +
+'      // Persist email to Redis on the lead contact\n' +
+'      var leadRedisId = (window._leadRedisIds && window._leadRedisIds[safeBase]) || \'\';\n' +
+'      if (leadRedisId) {\n' +
+'        var leadObj = leads.find(function(l) { return l.id === leadRedisId; });\n' +
+'        if (leadObj && leadObj.contacts) {\n' +
+'          var contactIdx = leadObj.contacts.findIndex(function(c) { return (c.apollo_id || \'\') === prospectId; });\n' +
+'          if (contactIdx >= 0) leadObj.contacts[contactIdx].email = email;\n' +
+'          fetch(\'/api/leads\', {\n' +
+'            method: \'PATCH\',\n' +
+'            headers: { \'Content-Type\': \'application/json\' },\n' +
+'            body: JSON.stringify({ id: leadRedisId, updates: { contacts: leadObj.contacts } })\n' +
+'          }).catch(function() {});\n' +
+'        }\n' +
+'      }\n' +
+'      // Generate drafts\n' +
 '      var firstName = name.split(\' \')[0];\n' +
 '      var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeBase]) || \'\';\n' +
 '      var category = (window._leadCategories && window._leadCategories[safeBase]) || \'engineering\';\n' +

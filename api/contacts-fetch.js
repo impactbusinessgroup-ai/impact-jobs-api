@@ -210,8 +210,7 @@ async function processLead(lead, leadKey) {
 
     var person = people[idx];
     var matchBody = {
-      id: person.id,
-      reveal_personal_emails: true
+      id: person.id
     };
 
     try {
