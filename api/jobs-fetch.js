@@ -99,12 +99,56 @@ function normalizeCompany(name) {
     .trim();
 }
 
-// --- Detect job category ---
-function detectCategory(title, description) {
+// --- Keyword-based category fallback ---
+function detectCategoryKeyword(title, description) {
   const text = (title + ' ' + (description || '')).toLowerCase();
   if (/accountant|accounting|controller|cfo|finance|financial|bookkeeper|audit|tax/.test(text)) return 'accounting';
   if (/\bit\b|information technology|network|software|developer|systems admin|helpdesk|help desk|cyber|devops/.test(text)) return 'it';
+  if (/\bhr\b|human resources|marketing|administrative|customer service|sales|legal/.test(text)) return 'other';
   return 'engineering';
+}
+
+// --- Detect job category via Gemini ---
+async function detectCategory(title, description) {
+  const VALID_CATEGORIES = ['engineering', 'it', 'accounting', 'other'];
+  const prompt = `Classify this job into exactly one category. Return only one word: engineering, it, accounting, or other.
+
+Rules:
+- engineering: any manufacturing, production, or industrial role including engineers, technicians, machinists, quality roles, plant operations, automation, CNC, welding, assembly, maintenance, and all other hands-on or supervisory manufacturing roles
+- it: software developers, network engineers, systems administrators, cybersecurity, cloud, devops, database, helpdesk, and all other pure technology roles
+- accounting: accountants, controllers, CFOs, finance analysts, bookkeepers, auditors, tax, and all other finance/accounting roles
+- other: HR, marketing, administrative, customer service, business professional, sales, legal, and any role that does not fit the above three categories
+
+Job title: ${title}
+Full job description: ${(description || '').slice(0, 3000)}
+
+Return only one word.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 10, temperature: 0 },
+        }),
+      }
+    );
+    const data = await res.json();
+    const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
+    if (VALID_CATEGORIES.includes(answer)) {
+      console.log(`Gemini category: ${title} - ${answer}`);
+      return answer;
+    }
+    console.log(`Gemini category unexpected value: "${answer}", falling back to keyword logic`);
+  } catch (e) {
+    console.error('Gemini category error:', e.message);
+  }
+  const fallback = detectCategoryKeyword(title, description);
+  console.log(`Gemini category fallback: ${title} - ${fallback}`);
+  return fallback;
 }
 
 // --- Check if title contains a primary keyword ---
@@ -302,7 +346,7 @@ module.exports = async function handler(req, res) {
       if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
       seenCompanies.add(normalized);
 
-      const category = detectCategory(title, description);
+      const category = await detectCategory(title, description);
       const leadId = `lead:${today}:${normalized.replace(/\s/g, '-').slice(0, 50)}`;
 
       let company_domain = null;

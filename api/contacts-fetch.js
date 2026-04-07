@@ -92,6 +92,8 @@ function getDefaultTitles(cat) {
     return ['CFO', 'VP of Finance', 'Controller', 'Director of Finance', 'Director of Accounting', 'Accounting Manager'];
   } else if (cat === 'it') {
     return ['CTO', 'VP of Technology', 'IT Director', 'Director of IT', 'Director of Engineering', 'IT Manager'];
+  } else if (cat === 'other') {
+    return ['HR Director', 'VP of Human Resources', 'Director of Operations', 'Chief of Staff', 'Office Manager'];
   }
   return ['Director of Engineering', 'VP of Engineering', 'Plant Manager', 'Director of Manufacturing', 'Director of Operations', 'Engineering Manager'];
 }
