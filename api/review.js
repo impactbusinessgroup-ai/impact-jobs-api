@@ -10,118 +10,147 @@ module.exports = async function handler(req, res) {
 '<meta charset="UTF-8">\n' +
 '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
 '<title>iMPact Lead Review</title>\n' +
+'<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+'<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
 '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-'body { font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', sans-serif; background: #ECEEF2; color: #1a1a1a; }\n' +
-'.header { background: #0F1E3D; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }\n' +
+'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, \'Segoe UI\', sans-serif; background: #0F1E3D; color: #e0e4ec; min-height: 100vh; }\n' +
+'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
+'.header { background: rgba(10,18,38,0.92); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(26,78,162,0.2); }\n' +
 '.header-logo { height: 34px; }\n' +
-'.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }\n' +
-'.header-meta { color: rgba(255,255,255,0.55); font-size: 12px; text-align: right; }\n' +
-'.container { max-width: 880px; margin: 0 auto; padding: 28px 16px 60px; }\n' +
+'.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
+'.header-meta { color: rgba(255,255,255,0.45); font-size: 12px; text-align: right; font-family: Raleway, sans-serif; }\n' +
+'.container { max-width: 920px; margin: 0 auto; padding: 28px 16px 60px; }\n' +
 '.queue-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }\n' +
-'.queue-bar h2 { font-size: 24px; font-weight: 700; color: #0F1E3D; }\n' +
-'.queue-bar .sub { font-size: 13px; color: #888; margin-top: 3px; }\n' +
-'.lead-count-badge { background: #FFA000; color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,160,0,0.35); }\n' +
-'.card { background: white; border-radius: 18px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.07); transition: box-shadow 0.2s, transform 0.2s; }\n' +
-'.card:hover { }\n' +
-'.card-top { background: linear-gradient(135deg, #0B1729 0%, #1A3A6E 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
+'.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
+'.queue-bar .sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 3px; font-family: Raleway, sans-serif; }\n' +
+'.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); font-family: Raleway, sans-serif; }\n' +
+'.card { background: #1a2744; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3); border: 1px solid rgba(26,78,162,0.15); }\n' +
+'.card-top { background: linear-gradient(135deg, #0B1729 0%, #162d54 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
-'.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }\n' +
-'.company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: 0.5px; }\n' +
-'.company-name { font-size: 18px; font-weight: 700; color: white; line-height: 1.2; }\n' +
-'.company-location { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 3px; }\n' +
+'.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
+'.company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: 0.5px; font-family: Oswald, sans-serif; }\n' +
+'.company-name { font-size: 18px; font-weight: 700; color: white; line-height: 1.2; font-family: Oswald, sans-serif; letter-spacing: 0.3px; }\n' +
+'.company-location { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }\n' +
 '.card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }\n' +
-'.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.4px; text-transform: uppercase; }\n' +
-'.pill-eng { background: rgba(29,158,117,0.3); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.3); }\n' +
-'.pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.3); }\n' +
-'.pill-it { background: rgba(255,160,0,0.25); color: #FCD34D; border: 1px solid rgba(252,211,77,0.3); }\n' +
-'.card-top-job-title { font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.3; }\n' +
-'.company-links { background: #F8F9FC; padding: 10px 24px; border-bottom: 1px solid #F0F2F5; display: none; gap: 16px; align-items: center; }\n' +
-'.company-link { font-size: 12px; color: #1A4EA2; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }\n' +
-'.company-link:hover { text-decoration: underline; }\n' +
+'.pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.8px; text-transform: uppercase; }\n' +
+'.pill-eng { background: rgba(29,158,117,0.25); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.25); }\n' +
+'.pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.25); }\n' +
+'.pill-it { background: rgba(255,160,0,0.2); color: #FCD34D; border: 1px solid rgba(252,211,77,0.25); }\n' +
+'.pill-other { background: rgba(168,130,255,0.2); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.25); }\n' +
+'.card-top-job-title { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; line-height: 1.3; }\n' +
+'.company-links { background: rgba(26,78,162,0.08); padding: 10px 24px; border-bottom: 1px solid rgba(26,78,162,0.12); display: none; gap: 16px; align-items: center; }\n' +
+'.company-link { font-size: 12px; color: #63a4ff; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }\n' +
+'.company-link:hover { text-decoration: underline; color: #93c5fd; }\n' +
 '.card-body { padding: 20px 24px; }\n' +
-'.cal-block { background: rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; width: 62px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.15); }\n' +
-'.cal-month { background: rgba(26,78,162,0.7); color: white; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; width: 100%; text-align: center; padding: 4px 0; }\n' +
-'.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; }\n' +
-'.cal-year { font-size: 9px; color: rgba(255,255,255,0.5); padding-bottom: 5px; font-weight: 500; }\n' +
-'.jd-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #1A4EA2; cursor: pointer; font-weight: 600; background: #EEF3FF; padding: 5px 12px; border-radius: 6px; border: none; transition: background 0.15s; }\n' +
-'.jd-btn:hover { background: #DBEAFE; }\n' +
-'.jd-popup-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(3px); }\n' +
-'.jd-popup-overlay.open { display: flex; }\n' +
-'.jd-popup { background: white; border-radius: 18px; max-width: 660px; width: 92%; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }\n' +
-'.jd-popup-header { padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }\n' +
-'.jd-popup-header h3 { font-size: 16px; font-weight: 700; color: #0F1E3D; }\n' +
-'.jd-popup-close { width: 28px; height: 28px; border-radius: 50%; background: #f0f2f5; border: none; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center; }\n' +
-'.jd-popup-close:hover { background: #e0e3ea; }\n' +
-'.jd-popup-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; line-height: 1.75; color: #444; white-space: pre-wrap; }\n' +
-'.divider { border: none; border-top: 1px solid #F0F2F5; margin: 16px 0; }\n' +
-'.section-label { font-size: 10px; font-weight: 700; color: #AAB0BE; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }\n' +
-'.contact-block { border: 1.5px solid #EEF0F5; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; transition: all 0.2s; background: #FAFBFD; }\n' +
-'.contact-block.sent { border-color: #5DCAA5; background: #F0FDF8; }\n' +
-'.contact-header { display: flex; align-items: center; gap: 12px; }\n' +
-'.avatar { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; }\n' +
-'.avatar-am { background: linear-gradient(135deg, #1D9E75, #085041); }\n' +
-'.contact-info { flex: 1; }\n' +
-'.contact-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }\n' +
-'.contact-name { font-size: 14px; font-weight: 700; color: #0F1E3D; }\n' +
-'.contact-title-sub { font-size: 12px; color: #777; }\n' +
-'.email-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }\n' +
-'.email-placeholder { font-size: 12px; color: #C0C5D0; font-style: italic; }\n' +
-'.email-value { font-size: 12px; color: #1A4EA2; font-weight: 600; }\n' +
-'.credit-note { font-size: 11px; color: #C0C5D0; margin-top: 2px; }\n' +
-'.badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
-'.badge-suggested { background: #FEF3C7; color: #92400E; }\n' +
-'.badge-added { background: #DBEAFE; color: #1E40AF; }\n' +
-'.badge-sent { background: #D1FAE5; color: #065F46; }\n' +
-'.contact-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; align-items: center; }\n' +
-'.btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #E0E3EA; background: white; color: #333; transition: all 0.15s; }\n' +
-'.btn:hover { background: #F5F7FA; border-color: #C8CDD8; }\n' +
-'.btn-primary { background: #0F1E3D; color: white; border-color: #0F1E3D; }\n' +
-'.btn-primary:hover { background: #1a2f5a; }\n' +
-'.btn-li { background: #0A66C2; color: white; border-color: #0A66C2; }\n' +
-'.btn-li:hover { background: #0958a8; }\n' +
-'.btn-fetch { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }\n' +
-'.btn-fetch:hover { background: #FDE68A; }\n' +
-'.btn-sent { background: #D1FAE5; color: #065F46; border-color: #5DCAA5; cursor: default; }\n' +
-'.btn-ghost { color: #B0B8C8; font-size: 12px; border: none; background: none; cursor: pointer; padding: 4px 6px; font-weight: 500; }\n' +
-'.btn-ghost:hover { color: #e24b4a; }\n' +
-'.tab-row { display: flex; gap: 6px; margin: 12px 0 8px; }\n' +
-'.tab { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1.5px solid #E0E3EA; cursor: pointer; color: #666; background: white; font-weight: 500; transition: all 0.15s; }\n' +
-'.tab.active { background: #0F1E3D; color: white; border-color: #0F1E3D; }\n' +
-'.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; margin-bottom: 6px; }\n' +
+'.cal-block { background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; width: 62px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1); }\n' +
+'.cal-month { background: rgba(26,78,162,0.5); color: white; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: center; padding: 4px 0; }\n' +
+'.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; font-family: Oswald, sans-serif; }\n' +
+'.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; font-weight: 500; }\n' +
+'.divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 16px 0; }\n' +
+'.section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }\n' +
+
+// Contact cards - side by side
+'.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: all 0.2s; }\n' +
+'.contact-card:hover { border-color: rgba(26,78,162,0.3); background: rgba(255,255,255,0.06); }\n' +
+'.contact-card.sent { border-color: rgba(93,202,165,0.4); background: rgba(93,202,165,0.06); }\n' +
+'.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
+'.avatar { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
+'.contact-info { flex: 1; min-width: 0; }\n' +
+'.contact-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap; }\n' +
+'.contact-name { font-size: 13px; font-weight: 700; color: #fff; }\n' +
+'.contact-title-sub { font-size: 11px; color: rgba(255,255,255,0.5); }\n' +
+'.contact-loc { font-size: 11px; color: rgba(255,255,255,0.35); }\n' +
+'.email-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }\n' +
+'.email-placeholder { font-size: 11px; color: rgba(255,255,255,0.25); font-style: italic; }\n' +
+'.email-value { font-size: 11px; color: #63a4ff; font-weight: 600; }\n' +
+'.credit-note { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 2px; }\n' +
+'.contact-actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; align-items: center; }\n' +
+'.badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
+'.badge-added { background: rgba(30,64,175,0.2); color: #93C5FD; }\n' +
+
+// Buttons
+'.btn { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #cdd; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
+'.btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
+'.btn-li { background: rgba(10,102,194,0.2); color: #63a4ff; border-color: rgba(10,102,194,0.3); font-size: 11px; padding: 5px 10px; }\n' +
+'.btn-li:hover { background: rgba(10,102,194,0.3); }\n' +
+'.btn-fetch { background: rgba(255,160,0,0.15); color: #FCD34D; border-color: rgba(255,160,0,0.3); }\n' +
+'.btn-fetch:hover { background: rgba(255,160,0,0.25); }\n' +
+'.btn-sent { background: rgba(93,202,165,0.15); color: #6EE7C7; border-color: rgba(93,202,165,0.3); cursor: default; }\n' +
+'.btn-outlook { background: rgba(0,120,215,0.15); color: #63a4ff; border-color: rgba(0,120,215,0.25); display: inline-flex; align-items: center; gap: 4px; }\n' +
+'.btn-outlook:hover { background: rgba(0,120,215,0.25); }\n' +
+'.btn-ghost { color: rgba(255,255,255,0.3); font-size: 11px; border: none; background: none; cursor: pointer; padding: 3px 5px; font-weight: 500; }\n' +
+'.btn-ghost:hover { color: #ef6961; }\n' +
+'.btn-primary { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
+'.btn-primary:hover { background: #2060c0; }\n' +
+
+// Send to all button
+'.send-all-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }\n' +
+'.btn-send-all { background: rgba(0,120,215,0.15); color: #63a4ff; border: 1px solid rgba(0,120,215,0.25); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: Raleway, sans-serif; transition: all 0.15s; }\n' +
+'.btn-send-all:hover { background: rgba(0,120,215,0.25); }\n' +
+
+// Composer
+'.composer { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
+'.composer-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: Oswald, sans-serif; }\n' +
+'.subject-select { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 4px; appearance: auto; cursor: pointer; }\n' +
+'.subject-select:focus { outline: none; border-color: #1A4EA2; }\n' +
+'.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 6px; }\n' +
 '.subject-input:focus { outline: none; border-color: #1A4EA2; }\n' +
-'textarea { width: 100%; font-size: 12px; line-height: 1.7; padding: 10px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; resize: vertical; font-family: inherit; min-height: 95px; }\n' +
+'textarea { width: 100%; font-size: 12px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; resize: vertical; font-family: Raleway, sans-serif; min-height: 140px; }\n' +
 'textarea:focus { outline: none; border-color: #1A4EA2; }\n' +
-'.search-panel { border: 1.5px solid #EEF0F5; border-radius: 12px; padding: 14px; background: #F8F9FC; margin-bottom: 12px; }\n' +
-'.search-panel-label { font-size: 12px; color: #777; margin-bottom: 8px; font-weight: 600; }\n' +
-'.search-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1.5px solid #E0E3EA; border-radius: 8px; background: white; color: #1a1a1a; font-family: inherit; }\n' +
+'.tab-row { display: flex; gap: 6px; margin-bottom: 8px; }\n' +
+'.tab { font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: rgba(255,255,255,0.5); background: transparent; font-weight: 600; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
+'.tab.active { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
+
+// SmartSearch
+'.search-panel { border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; background: rgba(255,255,255,0.02); margin-bottom: 12px; }\n' +
+'.search-panel-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 600; }\n' +
+'.search-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; font-family: Raleway, sans-serif; }\n' +
 '.search-input:focus { outline: none; border-color: #1A4EA2; }\n' +
-'.search-results { margin-top: 8px; border: 1.5px solid #E0E3EA; border-radius: 10px; overflow: hidden; background: white; }\n' +
-'.search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #F5F5F5; display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }\n' +
+'.search-results { margin-top: 8px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.03); }\n' +
+'.search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }\n' +
 '.search-result-item:last-child { border-bottom: none; }\n' +
-'.search-result-item:hover { background: #F5F7FA; }\n' +
-'.search-add-btn { font-size: 11px; font-weight: 700; color: #1A4EA2; background: #EEF3FF; padding: 3px 10px; border-radius: 6px; }\n' +
-'.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid #F0F2F5; background: #F8F9FC; }\n' +
-'.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; position: relative; transition: all 0.2s; background: radial-gradient(61.35% 50.07% at 48.58% 50%, rgb(255,255,255) 0%, rgba(0,0,0,0.04) 100%); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15), inset 1px 1px 0 -0.5px rgba(0,0,0,0.1), inset -1px -1px 0 -0.5px rgba(0,0,0,0.1); text-decoration: none; color: #333; }\n' +
-'.btn-glass:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, rgb(235,235,235) 0%, rgba(0,0,0,0.06) 100%); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.22), inset 1px 1px 0 -0.5px rgba(0,0,0,0.18), inset -1px -1px 0 -0.5px rgba(0,0,0,0.18); }\n' +
-'.btn-glass-skip { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFF3E0 0%, #FFE0B2 100%); color: #E65100; box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.25), inset 1px 1px 0 -0.5px rgba(230,81,0,0.2), inset -1px -1px 0 -0.5px rgba(230,81,0,0.2); }\n' +
-'.btn-glass-skip:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFE0B2 0%, #FFCC80 100%); box-shadow: inset 0 0 0 0.5px rgba(230,81,0,0.35), inset 1px 1px 0 -0.5px rgba(230,81,0,0.25), inset -1px -1px 0 -0.5px rgba(230,81,0,0.25); }\n' +
-'.btn-glass-block { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FEECEB 0%, #FFCDD2 100%); color: #C62828; box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.25), inset 1px 1px 0 -0.5px rgba(198,40,40,0.2), inset -1px -1px 0 -0.5px rgba(198,40,40,0.2); }\n' +
-'.btn-glass-block:hover { background: radial-gradient(61.35% 50.07% at 48.58% 50%, #FFCDD2 0%, #EF9A9A 100%); box-shadow: inset 0 0 0 0.5px rgba(198,40,40,0.35), inset 1px 1px 0 -0.5px rgba(198,40,40,0.25), inset -1px -1px 0 -0.5px rgba(198,40,40,0.25); }\n' +
+'.search-result-item:hover { background: rgba(255,255,255,0.04); }\n' +
+'.search-add-btn { font-size: 11px; font-weight: 700; color: #63a4ff; background: rgba(26,78,162,0.15); padding: 3px 10px; border-radius: 6px; }\n' +
+
+// Footer
+'.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.04); background: rgba(0,0,0,0.1); }\n' +
+'.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; }\n' +
+'.btn-glass:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
+'.btn-glass-skip { background: rgba(232,98,10,0.15); color: #FFA000; border-color: rgba(232,98,10,0.3); }\n' +
+'.btn-glass-skip:hover { background: rgba(232,98,10,0.25); }\n' +
+'.btn-glass-block { background: rgba(198,40,40,0.12); color: #ef6961; border-color: rgba(198,40,40,0.25); }\n' +
+'.btn-glass-block:hover { background: rgba(198,40,40,0.2); }\n' +
+'.jd-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #63a4ff; cursor: pointer; font-weight: 600; background: rgba(26,78,162,0.12); padding: 5px 12px; border-radius: 6px; border: none; transition: background 0.15s; }\n' +
+'.jd-btn:hover { background: rgba(26,78,162,0.2); }\n' +
+
+// Popups & toasts
+'.jd-popup-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.75); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
+'.jd-popup-overlay.open { display: flex; }\n' +
+'.jd-popup { background: #1a2744; border: 1px solid rgba(26,78,162,0.2); border-radius: 18px; max-width: 660px; width: 92%; max-height: 82vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }\n' +
+'.jd-popup-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }\n' +
+'.jd-popup-header h3 { font-size: 16px; font-weight: 600; color: #fff; font-family: Oswald, sans-serif; }\n' +
+'.jd-popup-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); border: none; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; }\n' +
+'.jd-popup-close:hover { background: rgba(255,255,255,0.1); }\n' +
+'.jd-popup-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; line-height: 1.75; color: rgba(255,255,255,0.7); white-space: pre-wrap; }\n' +
 '.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 300; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }\n' +
 '.toast-container.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }\n' +
-'.toast { background: #E65100; color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(230,81,0,0.35); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
+'.toast { background: linear-gradient(135deg, #E8620A, #d4560a); color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(232,98,10,0.4); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
 '.toast-undo { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 4px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }\n' +
 '.toast-undo:hover { background: rgba(255,255,255,0.25); }\n' +
-'.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,50,0.6); z-index: 250; align-items: center; justify-content: center; backdrop-filter: blur(3px); }\n' +
+'.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.75); z-index: 250; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.confirm-overlay.open { display: flex; }\n' +
-'.confirm-card { background: white; border-radius: 18px; max-width: 400px; width: 90%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); text-align: center; }\n' +
-'.confirm-card h3 { font-size: 18px; font-weight: 700; color: #0F1E3D; margin-bottom: 8px; }\n' +
-'.confirm-card p { font-size: 13px; color: #888; margin-bottom: 24px; }\n' +
+'.confirm-card { background: #1a2744; border: 1px solid rgba(26,78,162,0.2); border-radius: 18px; max-width: 400px; width: 90%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); text-align: center; }\n' +
+'.confirm-card h3 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; font-family: Oswald, sans-serif; }\n' +
+'.confirm-card p { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }\n' +
 '.confirm-actions { display: flex; gap: 10px; justify-content: center; }\n' +
-'.loading { text-align: center; padding: 80px; color: #888; font-size: 15px; }\n' +
+'.loading { text-align: center; padding: 80px; color: rgba(255,255,255,0.4); font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
-'.empty h3 { font-size: 18px; margin-bottom: 8px; color: #444; }\n' +
+'.empty h3 { font-size: 18px; margin-bottom: 8px; color: rgba(255,255,255,0.6); font-family: Oswald, sans-serif; }\n' +
+
+// Outlook SVG icon inline
+'.outlook-icon { width: 14px; height: 14px; vertical-align: middle; }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -167,6 +196,7 @@ module.exports = async function handler(req, res) {
 '</div>\n' +
 '\n' +
 '<script>\n' +
+'var OUTLOOK_SVG = \'<svg class="outlook-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>\';\n' +
 'var AM = { name: \'Mark Sapoznikov\', email: \'msapoznikov@impactbusinessgroup.com\' };\n' +
 'var leads = [];\n' +
 'var blocklist = { companies: [], titles: [] };\n' +
@@ -254,6 +284,7 @@ module.exports = async function handler(req, res) {
 'function categoryPill(cat) {\n' +
 '  if (cat === \'accounting\') return \'<span class="pill pill-acc">Accounting</span>\';\n' +
 '  if (cat === \'it\') return \'<span class="pill pill-it">IT</span>\';\n' +
+'  if (cat === \'other\') return \'<span class="pill pill-other">Other</span>\';\n' +
 '  return \'<span class="pill pill-eng">Engineering</span>\';\n' +
 '}\n' +
 '\n' +
@@ -280,10 +311,12 @@ module.exports = async function handler(req, res) {
 '  };\n' +
 '}\n' +
 '\n' +
+'function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\'/g,"&#39;"); }\n' +
+'\n' +
 'function renderLeads() {\n' +
 '  var container = document.getElementById(\'leads-container\');\n' +
 '  if (!leads.length) {\n' +
-'    container.innerHTML = \'<div class="empty"><h3>No pending leads</h3><p style="color:#aaa;font-size:13px;">Check back after the morning fetch runs.</p></div>\';\n' +
+'    container.innerHTML = \'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';\n' +
 '    return;\n' +
 '  }\n' +
 '  container.innerHTML = leads.map(function(lead) { return renderCard(lead); }).join(\'\');\n' +
@@ -295,15 +328,39 @@ module.exports = async function handler(req, res) {
 '          suggested: true,\n' +
 '          locationMatch: c.locationMatch || \'\',\n' +
 '          city: c.city || \'\',\n' +
-'          region: c.region_name || c.region || \'\',\n' +
+'          region: c.region_name || c.region || c.state || \'\',\n' +
 '          linkedin: c.linkedin || \'\',\n' +
 '          fromCache: c.fromCache || false,\n' +
 '          email: c.email || \'\',\n' +
 '          previousJobs: c.previousJobs || []\n' +
 '        });\n' +
 '      });\n' +
+'      populateComposer(safeId);\n' +
 '    }\n' +
 '  });\n' +
+'}\n' +
+'\n' +
+'function populateComposer(safeId) {\n' +
+'  var lead = leads.find(function(l) { return getSafeId(l.id) === safeId; });\n' +
+'  if (!lead) return;\n' +
+'  var subjSelect = document.getElementById(\'subj-select-\' + safeId);\n' +
+'  var subjInput = document.getElementById(\'subj-\' + safeId);\n' +
+'  var bodyEl = document.getElementById(\'ebody-\' + safeId);\n' +
+'  if (subjSelect) subjSelect.value = subjSelect.options[0].value;\n' +
+'  if (subjInput) subjInput.value = subjSelect ? subjSelect.options[0].value : \'\';\n' +
+'  if (bodyEl) {\n' +
+'    var firstName = \'there\';\n' +
+'    if (lead.contacts && lead.contacts.length > 0) {\n' +
+'      firstName = (lead.contacts[0].full_name || lead.contacts[0].name || \'\').split(\' \')[0] || \'there\';\n' +
+'    }\n' +
+'    bodyEl.value = \'Hi \' + firstName + \',\\n\\nI noticed \' + lead.company + \' is looking for a \' + lead.jobTitle + \' and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.\\n\\nWe have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: https://impactbusinessgroup.com/case-studies/?cid=*|UNIQID|*\\n\\nIf you are open to it, I would love to connect and learn more about what you are looking for in this role.\';\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'function onSubjectSelect(safeId) {\n' +
+'  var sel = document.getElementById(\'subj-select-\' + safeId);\n' +
+'  var inp = document.getElementById(\'subj-\' + safeId);\n' +
+'  if (sel && inp) inp.value = sel.value;\n' +
 '}\n' +
 '\n' +
 'function renderCard(lead) {\n' +
@@ -314,6 +371,12 @@ module.exports = async function handler(req, res) {
 '  var ini = companyInitials(lead.company);\n' +
 '  var safeId = getSafeId(lead.id);\n' +
 '  var companyEsc = lead.company.replace(/\x27/g, "\x5c\x5c\x27").replace(/"/g, \x27&quot;\x27);\n' +
+'  var jobTitle = lead.jobTitle || \'\';\n' +
+'\n' +
+'  var subj1 = \'Question about your \' + jobTitle + \' search\';\n' +
+'  var subj2 = \'Your \' + jobTitle + \' opening at \' + lead.company;\n' +
+'  var subj3 = jobTitle + \' candidates - iMPact Business Group\';\n' +
+'  var subj4 = \'Following up on your \' + jobTitle + \' position\';\n' +
 '\n' +
 '  return \'<div class="card" id="card-\' + safeId + \'">\' +\n' +
 '    \'<div class="card-top">\' +\n' +
@@ -321,7 +384,7 @@ module.exports = async function handler(req, res) {
 '        \'<div class="company-logo-wrap" id="logo-\' + safeId + \'" style="display:none;"></div>\' +\n' +
 '        \'<div class="company-initials" id="ini-\' + safeId + \'">\' + ini + \'</div>\' +\n' +
 '        \'<div>\' +\n' +
-'          \'<div class="card-top-job-title">\' + lead.jobTitle + \'</div>\' +\n' +
+'          \'<div class="card-top-job-title">\' + jobTitle + \'</div>\' +\n' +
 '          \'<div class="company-name">\' + lead.company + \'</div>\' +\n' +
 '          \'<div class="company-location">\' + (lead.location || \'\') + \'</div>\' +\n' +
 '        \'</div>\' +\n' +
@@ -347,7 +410,7 @@ module.exports = async function handler(req, res) {
 '      if (lead.company_linkedin) {\n' +
 '        var liUrl = lead.company_linkedin;\n' +
 '        if (liUrl.indexOf(\'http\') !== 0) liUrl = \'https://\' + liUrl;\n' +
-'        lhtml += \'<a class="company-link" href="\' + liUrl + \'" target="_blank" style="color:#0A66C2;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
+'        lhtml += \'<a class="company-link" href="\' + liUrl + \'" target="_blank" style="color:#63a4ff;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>\';\n' +
 '      }\n' +
 '      if (lead.company_domain) {\n' +
 '        lhtml += \'<a class="company-link" href="https://\' + lead.company_domain + \'" target="_blank"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> Website</a>\';\n' +
@@ -357,21 +420,43 @@ module.exports = async function handler(req, res) {
 '    \'<div class="card-body">\' +\n' +
 '      \'<div class="divider"></div>\' +\n' +
 '      \'<div class="section-label">Contacts</div>\' +\n' +
-'      \'<div id="contacts-\' + safeId + \'"></div>\' +\n' +
+'      \'<div class="send-all-bar" id="send-all-bar-\' + safeId + \'" style="display:none;"><button class="btn-send-all" onclick="sendToAll(\\\'\' + safeId + \'\\\')">\' + OUTLOOK_SVG + \' Send to All in Outlook</button></div>\' +\n' +
+'      \'<div class="contacts-row" id="contacts-\' + safeId + \'"></div>\' +\n' +
+'      \'<div class="composer" id="composer-\' + safeId + \'">\' +\n' +
+'        \'<div class="composer-label">Email Composer</div>\' +\n' +
+'        \'<div class="tab-row">\' +\n' +
+'          \'<button class="tab active" onclick="switchCardTab(\\\'\' + safeId + \'\\\',\\\'email\\\',this)">Email</button>\' +\n' +
+'          \'<button class="tab" onclick="switchCardTab(\\\'\' + safeId + \'\\\',\\\'linkedin\\\',this)">LinkedIn</button>\' +\n' +
+'        \'</div>\' +\n' +
+'        \'<div id="email-pane-\' + safeId + \'">\' +\n' +
+'          \'<select class="subject-select" id="subj-select-\' + safeId + \'" onchange="onSubjectSelect(\\\'\' + safeId + \'\\\')">\' +\n' +
+'            \'<option value="\' + escHtml(subj1) + \'">\' + escHtml(subj1) + \'</option>\' +\n' +
+'            \'<option value="\' + escHtml(subj2) + \'">\' + escHtml(subj2) + \'</option>\' +\n' +
+'            \'<option value="\' + escHtml(subj3) + \'">\' + escHtml(subj3) + \'</option>\' +\n' +
+'            \'<option value="\' + escHtml(subj4) + \'">\' + escHtml(subj4) + \'</option>\' +\n' +
+'          \'</select>\' +\n' +
+'          \'<input class="subject-input" type="text" id="subj-\' + safeId + \'" placeholder="Subject line (editable)">\' +\n' +
+'          \'<textarea id="ebody-\' + safeId + \'"></textarea>\' +\n' +
+'        \'</div>\' +\n' +
+'        \'<div id="li-pane-\' + safeId + \'" style="display:none;">\' +\n' +
+'          \'<textarea id="libody-\' + safeId + \'" placeholder="LinkedIn message..."></textarea>\' +\n' +
+'          \'<div style="margin-top:6px;"><button class="btn btn-li" onclick="copyLICard(\\\'\' + safeId + \'\\\',this)">Copy for LinkedIn</button></div>\' +\n' +
+'        \'</div>\' +\n' +
+'      \'</div>\' +\n' +
 '      \'<div class="search-panel">\' +\n' +
-'        \'<div class="search-panel-label">Add contact from SmartSearch &middot; \' + lead.company + \'</div>\' +\n' +
-'        \'<input class="search-input" type="text" placeholder="Search contacts or type to filter..." oninput="filterSS(this,\\\'\' + safeId + \'\\\')" onfocus="showSS(\\\'\' + safeId + \'\\\')">\' +\n' +
+'        \'<div class="search-panel-label">Add contact from SmartSearch</div>\' +\n' +
+'        \'<input class="search-input" type="text" placeholder="Search contacts..." oninput="filterSS(this,\\\'\' + safeId + \'\\\')" onfocus="showSS(\\\'\' + safeId + \'\\\')">\' +\n' +
 '        \'<div class="search-results" id="ss-\' + safeId + \'" style="display:none;">\' +\n' +
 '          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Sarah Johnson\\\',\\\'HR Director\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
-'            \'<div><div style="font-size:13px;font-weight:600;">Sarah Johnson</div><div style="font-size:11px;color:#888;">HR Director</div></div>\' +\n' +
+'            \'<div><div style="font-size:13px;font-weight:600;color:#fff;">Sarah Johnson</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">HR Director</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
 '          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Mike Williams\\\',\\\'Engineering Manager\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
-'            \'<div><div style="font-size:13px;font-weight:600;">Mike Williams</div><div style="font-size:11px;color:#888;">Engineering Manager</div></div>\' +\n' +
+'            \'<div><div style="font-size:13px;font-weight:600;color:#fff;">Mike Williams</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">Engineering Manager</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
 '          \'<div class="search-result-item" onclick="addContact(\\\'\' + safeId + \'\\\',\\\'Tom Baker\\\',\\\'Plant Manager\\\',\\\'\' + companyEsc + \'\\\',\\\'\' + (lead.location||\'\').replace(/\x27/g,\'\') + \'\\\')">\' +\n' +
-'            \'<div><div style="font-size:13px;font-weight:600;">Tom Baker</div><div style="font-size:11px;color:#888;">Plant Manager</div></div>\' +\n' +
+'            \'<div><div style="font-size:13px;font-weight:600;color:#fff;">Tom Baker</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">Plant Manager</div></div>\' +\n' +
 '            \'<span class="search-add-btn">+ Add</span>\' +\n' +
 '          \'</div>\' +\n' +
 '        \'</div>\' +\n' +
@@ -391,7 +476,7 @@ module.exports = async function handler(req, res) {
 'function openJD(safeId) {\n' +
 '  var lead = leads.find(function(l) { return getSafeId(l.id) === safeId; });\n' +
 '  if (!lead) return;\n' +
-'  document.getElementById(\'jd-popup-title\').textContent = lead.company + \' \\u2013 \' + lead.jobTitle;\n' +
+'  document.getElementById(\'jd-popup-title\').textContent = lead.company + \' - \' + lead.jobTitle;\n' +
 '  document.getElementById(\'jd-popup-body\').textContent = lead.description || \'No description available.\';\n' +
 '  document.getElementById(\'jd-overlay\').classList.add(\'open\');\n' +
 '}\n' +
@@ -430,20 +515,36 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
+'function switchCardTab(safeId, tab, btn) {\n' +
+'  var card = document.getElementById(\'card-\' + safeId);\n' +
+'  if (!card) return;\n' +
+'  card.querySelectorAll(\'.composer .tab\').forEach(function(t) { t.classList.remove(\'active\'); });\n' +
+'  btn.classList.add(\'active\');\n' +
+'  document.getElementById(\'email-pane-\' + safeId).style.display = tab === \'email\' ? \'block\' : \'none\';\n' +
+'  document.getElementById(\'li-pane-\' + safeId).style.display = tab === \'linkedin\' ? \'block\' : \'none\';\n' +
+'}\n' +
+'\n' +
+'function copyLICard(safeId, btn) {\n' +
+'  var text = document.getElementById(\'libody-\' + safeId).value;\n' +
+'  navigator.clipboard.writeText(text).then(function() {\n' +
+'    btn.textContent = \'Copied!\';\n' +
+'    setTimeout(function() { btn.textContent = \'Copy for LinkedIn\'; }, 2000);\n' +
+'  });\n' +
+'}\n' +
+'\n' +
 'function addContact(safeId, name, title, companyName, location, prospectId, opts) {\n' +
 '  opts = opts || {};\n' +
 '  if (!contactCounters[safeId]) contactCounters[safeId] = 0;\n' +
 '  contactCounters[safeId]++;\n' +
 '  var cid = safeId + \'_c\' + contactCounters[safeId];\n' +
 '  var ini = initials(name);\n' +
-'  var firstName = name.split(\' \')[0];\n' +
 '  var badgeHtml = \'\';\n' +
 '  if (!opts.suggested) {\n' +
-'    badgeHtml = \'<span class="badge badge-added">Added from SS</span>\';\n' +
+'    badgeHtml = \'<span class="badge badge-added">Added</span>\';\n' +
 '  }\n' +
 '  var cityStateHtml = \'\';\n' +
 '  if (opts.city || opts.region) {\n' +
-'    cityStateHtml = \'<div style="font-size:13px;color:#666;">\' + (opts.city || \'\') + (opts.city && opts.region ? \', \' : \'\') + (opts.region || \'\') + \'</div>\';\n' +
+'    cityStateHtml = \'<div class="contact-loc">\' + (opts.city || \'\') + (opts.city && opts.region ? \', \' : \'\') + (opts.region || \'\') + \'</div>\';\n' +
 '  }\n' +
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
 '  if (linkedinUrl && linkedinUrl.indexOf(\'http\') !== 0) linkedinUrl = \'https://\' + linkedinUrl;\n' +
@@ -459,73 +560,73 @@ module.exports = async function handler(req, res) {
 '  var prevJobHtml = \'\';\n' +
 '  if (isFromCache && opts.previousJobs && opts.previousJobs.length > 0) {\n' +
 '    var pj = opts.previousJobs[opts.previousJobs.length - 1];\n' +
-'    prevJobHtml = \'<div style="font-size:11px;color:#999;font-style:italic;margin-top:2px;">Previously seen: \' + (pj.jobTitle || \'\') + (pj.date ? \' (\' + pj.date + \')\' : \'\') + \'</div>\';\n' +
+'    prevJobHtml = \'<div style="font-size:10px;color:rgba(255,255,255,0.3);font-style:italic;margin-top:1px;">Previously: \' + (pj.jobTitle || \'\') + (pj.date ? \' (\' + pj.date + \')\' : \'\') + \'</div>\';\n' +
 '  }\n' +
 '\n' +
-'  var block = document.createElement(\'div\');\n' +
-'  block.className = \'contact-block\';\n' +
-'  block.id = \'cb-\' + cid;\n' +
-'  if (prospectId) block.setAttribute(\'data-prospect-id\', prospectId);\n' +
-'  block.innerHTML =\n' +
+'  var card = document.createElement(\'div\');\n' +
+'  card.className = \'contact-card\';\n' +
+'  card.id = \'cb-\' + cid;\n' +
+'  if (prospectId) card.setAttribute(\'data-prospect-id\', prospectId);\n' +
+'  card.innerHTML =\n' +
 '    \'<div class="contact-header">\' +\n' +
-'      \'<div class="avatar avatar-am">\' + ini + \'</div>\' +\n' +
+'      \'<div class="avatar">\' + ini + \'</div>\' +\n' +
 '      \'<div class="contact-info">\' +\n' +
 '        \'<div class="contact-name-row">\' +\n' +
 '          \'<span class="contact-name">\' + name + \'</span>\' +\n' +
 '          badgeHtml +\n' +
-'          (isFromCache ? \' <span class="badge" style="background:#E8F5E9;color:#2E7D32;">Cached</span>\' : \'\') +\n' +
+'          (isFromCache ? \' <span class="badge" style="background:rgba(46,125,50,0.15);color:#6EE7C7;">Cached</span>\' : \'\') +\n' +
 '        \'</div>\' +\n' +
 '        \'<div class="contact-title-sub">\' + title + \'</div>\' +\n' +
 '        prevJobHtml +\n' +
 '        cityStateHtml +\n' +
-'        \'<div class="email-row">\' +\n' +
-'          emailRowHtml +\n' +
-'        \'</div>\' +\n' +
-'        (isFromCache ? \'\' : \'<div class="credit-note" id="cn-\' + cid + \'">Fetching email uses 1 credit</div>\') +\n' +
+'        \'<div class="email-row">\' + emailRowHtml + \'</div>\' +\n' +
+'        (isFromCache ? \'\' : \'<div class="credit-note" id="cn-\' + cid + \'">1 credit to reveal email</div>\') +\n' +
 '      \'</div>\' +\n' +
-'      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      (isFromCache ? \'\' : \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (1 credit)</button>\') +\n' +
-'      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
+'      (isFromCache ? \'\' : \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + safeId + \'\\\',\\\'\' + name.replace(/\'/g,"") + \'\\\',\\\'\' + title.replace(/\'/g,"") + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email</button>\') +\n' +
+'      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn</a>\' +\n' +
+'      (isFromCache ? \'<button class="btn btn-outlook" onclick="openOutlookContact(\\\'\' + cid + \'\\\',\\\'\' + safeId + \'\\\')">\' + OUTLOOK_SVG + \'</button>\' : \'\') +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
-'    \'</div>\' +\n' +
-'    \'<div id="draft-\' + cid + \'" style="display:none;">\' +\n' +
-'      \'<div class="tab-row">\' +\n' +
-'        \'<button class="tab active" onclick="switchTab(\\\'\' + cid + \'\\\',\\\'email\\\',this)">Email</button>\' +\n' +
-'        \'<button class="tab" onclick="switchTab(\\\'\' + cid + \'\\\',\\\'linkedin\\\',this)">LinkedIn</button>\' +\n' +
-'      \'</div>\' +\n' +
-'      \'<div id="email-pane-\' + cid + \'">\' +\n' +
-'        \'<input class="subject-input" type="text" id="subj-\' + cid + \'" placeholder="Subject line">\' +\n' +
-'        \'<textarea id="edraft-\' + cid + \'"></textarea>\' +\n' +
-'        \'<div class="contact-actions">\' +\n' +
-'          \'<button class="btn btn-primary" id="send-\' + cid + \'" onclick="openOutlook(\\\'\' + cid + \'\\\')">Open in Outlook</button>\' +\n' +
-'        \'</div>\' +\n' +
-'      \'</div>\' +\n' +
-'      \'<div id="li-pane-\' + cid + \'" style="display:none;">\' +\n' +
-'        \'<textarea id="lidraft-\' + cid + \'"></textarea>\' +\n' +
-'        \'<div class="contact-actions">\' +\n' +
-'          \'<button class="btn btn-li" onclick="copyLI(\\\'\' + cid + \'\\\',this)">Copy for LinkedIn</button>\' +\n' +
-'        \'</div>\' +\n' +
-'      \'</div>\' +\n' +
 '    \'</div>\';\n' +
 '\n' +
-'  document.getElementById(\'contacts-\' + safeId).appendChild(block);\n' +
+'  document.getElementById(\'contacts-\' + safeId).appendChild(card);\n' +
 '  document.getElementById(\'ss-\' + safeId).style.display = \'none\';\n' +
-'  if (isFromCache) {\n' +
-'    var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeId]) || \'\';\n' +
-'    var category = (window._leadCategories && window._leadCategories[safeId]) || \'engineering\';\n' +
-'    fetch(\'/api/draft\', {\n' +
-'      method: \'POST\',\n' +
-'      headers: { \'Content-Type\': \'application/json\' },\n' +
-'      body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
-'    }).then(function(r) { return r.json(); }).then(function(draftData) {\n' +
-'      if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
-'      if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
-'      if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
-'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
-'    }).catch(function() {});\n' +
-'  }\n' +
+'  // Show Send to All bar if any contact has email\n' +
+'  updateSendAllBar(safeId);\n' +
+'}\n' +
+'\n' +
+'function updateSendAllBar(safeId) {\n' +
+'  var row = document.getElementById(\'contacts-\' + safeId);\n' +
+'  var bar = document.getElementById(\'send-all-bar-\' + safeId);\n' +
+'  if (!row || !bar) return;\n' +
+'  var hasAnyEmail = false;\n' +
+'  row.querySelectorAll(\'.email-value\').forEach(function(el) {\n' +
+'    if (el.textContent && el.style.display !== \'none\') hasAnyEmail = true;\n' +
+'  });\n' +
+'  bar.style.display = hasAnyEmail ? \'flex\' : \'none\';\n' +
+'}\n' +
+'\n' +
+'function openOutlookContact(cid, safeId) {\n' +
+'  var email = document.getElementById(\'ev-\' + cid).textContent;\n' +
+'  if (!email) return;\n' +
+'  var subject = encodeURIComponent(document.getElementById(\'subj-\' + safeId).value);\n' +
+'  var body = encodeURIComponent(document.getElementById(\'ebody-\' + safeId).value);\n' +
+'  window.location.href = \'mailto:\' + email + \'?subject=\' + subject + \'&body=\' + body;\n' +
+'  document.getElementById(\'cb-\' + cid).classList.add(\'sent\');\n' +
+'}\n' +
+'\n' +
+'function sendToAll(safeId) {\n' +
+'  var row = document.getElementById(\'contacts-\' + safeId);\n' +
+'  if (!row) return;\n' +
+'  var emails = [];\n' +
+'  row.querySelectorAll(\'.email-value\').forEach(function(el) {\n' +
+'    if (el.textContent && el.style.display !== \'none\') emails.push(el.textContent);\n' +
+'  });\n' +
+'  if (!emails.length) return;\n' +
+'  var subject = encodeURIComponent(document.getElementById(\'subj-\' + safeId).value);\n' +
+'  var body = encodeURIComponent(document.getElementById(\'ebody-\' + safeId).value);\n' +
+'  window.location.href = \'mailto:\' + emails.join(\',\') + \'?subject=\' + subject + \'&body=\' + body;\n' +
 '}\n' +
 '\n' +
 'function removeContact(cid) {\n' +
@@ -533,17 +634,16 @@ module.exports = async function handler(req, res) {
 '  if (el) { el.style.opacity = \'0\'; el.style.transition = \'opacity 0.2s\'; setTimeout(function() { el.remove(); }, 200); }\n' +
 '}\n' +
 '\n' +
-'async function fetchEmail(cid, name, title, companyName, location, prospectId) {\n' +
+'async function fetchEmail(cid, safeId, name, title, companyName, location, prospectId) {\n' +
 '  var btn = document.getElementById(\'fb-\' + cid);\n' +
 '  btn.textContent = \'Fetching...\';\n' +
 '  btn.disabled = true;\n' +
-'  var safeBase = cid.split(\'_c\')[0];\n' +
 '  if (!prospectId) {\n' +
 '    var block = document.getElementById(\'cb-\' + cid);\n' +
 '    if (block) prospectId = block.getAttribute(\'data-prospect-id\') || \'\';\n' +
 '  }\n' +
 '  try {\n' +
-'    var leadRedisId = (window._leadRedisIds && window._leadRedisIds[safeBase]) || \'\';\n' +
+'    var leadRedisId = (window._leadRedisIds && window._leadRedisIds[safeId]) || \'\';\n' +
 '    var enrichPayload = { contactName: name, contactTitle: title, companyName: companyName, location: location, leadId: leadRedisId };\n' +
 '    if (prospectId) enrichPayload.apollo_id = prospectId;\n' +
 '    var enrichRes = await fetch(\'/api/enrich\', {\n' +
@@ -554,17 +654,23 @@ module.exports = async function handler(req, res) {
 '    var enrichData = await enrichRes.json();\n' +
 '    var email = enrichData.email || null;\n' +
 '    if (email) {\n' +
-'      document.getElementById(\'ep-\' + cid).style.display = \'none\';\n' +
+'      var epEl = document.getElementById(\'ep-\' + cid);\n' +
+'      if (epEl) epEl.style.display = \'none\';\n' +
 '      var evEl = document.getElementById(\'ev-\' + cid);\n' +
 '      evEl.style.display = \'inline\';\n' +
 '      evEl.textContent = email;\n' +
-'      evEl.style.color = \'#1A4EA2\';\n' +
-'      document.getElementById(\'cn-\' + cid).textContent = \'1 credit used\';\n' +
+'      var cnEl = document.getElementById(\'cn-\' + cid);\n' +
+'      if (cnEl) cnEl.textContent = \'1 credit used\';\n' +
 '      btn.textContent = \'Email fetched\';\n' +
 '      btn.className = \'btn btn-sent\';\n' +
 '      btn.disabled = true;\n' +
+'      // Add Outlook button\n' +
+'      var outlookBtn = document.createElement(\'button\');\n' +
+'      outlookBtn.className = \'btn btn-outlook\';\n' +
+'      outlookBtn.innerHTML = OUTLOOK_SVG;\n' +
+'      outlookBtn.onclick = function() { openOutlookContact(cid, safeId); };\n' +
+'      btn.parentNode.insertBefore(outlookBtn, btn.nextSibling);\n' +
 '      // Persist email to Redis on the lead contact\n' +
-'      var leadRedisId = (window._leadRedisIds && window._leadRedisIds[safeBase]) || \'\';\n' +
 '      if (leadRedisId) {\n' +
 '        var leadObj = leads.find(function(l) { return l.id === leadRedisId; });\n' +
 '        if (leadObj && leadObj.contacts) {\n' +
@@ -577,59 +683,17 @@ module.exports = async function handler(req, res) {
 '          }).catch(function() {});\n' +
 '        }\n' +
 '      }\n' +
-'      // Generate drafts\n' +
-'      var firstName = name.split(\' \')[0];\n' +
-'      var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeBase]) || \'\';\n' +
-'      var category = (window._leadCategories && window._leadCategories[safeBase]) || \'engineering\';\n' +
-'      try {\n' +
-'        var draftRes = await fetch(\'/api/draft\', {\n' +
-'          method: \'POST\',\n' +
-'          headers: { \'Content-Type\': \'application/json\' },\n' +
-'          body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
-'        });\n' +
-'        var draftData = await draftRes.json();\n' +
-'        if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
-'        if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
-'        if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
-'      } catch(de) {\n' +
-'        document.getElementById(\'subj-\' + cid).value = \'Partnering on your search\';\n' +
-'        document.getElementById(\'edraft-\' + cid).value = \'Hi \' + firstName + \',\\n\\nI noticed \' + companyName + \' is actively hiring and wanted to reach out. At iMPact Business Group we specialize in placing top talent in Engineering, Manufacturing, Accounting, and IT roles nationally.\\n\\nWould you be open to a quick call?\\n\\nMark Sapoznikov\\niMPact Business Group\\nmsapoznikov@impactbusinessgroup.com\';\n' +
-'        document.getElementById(\'lidraft-\' + cid).value = \'Hi \' + firstName + \', I noticed your company is actively hiring and wanted to connect. At iMPact we place top talent in Engineering, Accounting, and IT. Would you be open to a quick chat?\';\n' +
-'      }\n' +
-'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
+'      updateSendAllBar(safeId);\n' +
 '    } else {\n' +
 '      btn.textContent = \'Not found\';\n' +
 '      btn.disabled = true;\n' +
-'      document.getElementById(\'ep-\' + cid).textContent = \'Email not found\';\n' +
+'      var epEl2 = document.getElementById(\'ep-\' + cid);\n' +
+'      if (epEl2) epEl2.textContent = \'Email not found\';\n' +
 '    }\n' +
 '  } catch(e) {\n' +
 '    btn.textContent = \'Lookup failed\';\n' +
 '    btn.disabled = false;\n' +
 '  }\n' +
-'}\n' +
-'\n' +
-'function switchTab(cid, tab, btn) {\n' +
-'  document.querySelectorAll(\'#cb-\' + cid + \' .tab\').forEach(function(t) { t.classList.remove(\'active\'); });\n' +
-'  btn.classList.add(\'active\');\n' +
-'  document.getElementById(\'email-pane-\' + cid).style.display = tab === \'email\' ? \'block\' : \'none\';\n' +
-'  document.getElementById(\'li-pane-\' + cid).style.display = tab === \'linkedin\' ? \'block\' : \'none\';\n' +
-'}\n' +
-'\n' +
-'function openOutlook(cid) {\n' +
-'  var email = document.getElementById(\'ev-\' + cid).textContent;\n' +
-'  var subject = encodeURIComponent(document.getElementById(\'subj-\' + cid).value);\n' +
-'  var body = encodeURIComponent(document.getElementById(\'edraft-\' + cid).value);\n' +
-'  window.location.href = \'mailto:\' + email + \'?subject=\' + subject + \'&body=\' + body;\n' +
-'  document.getElementById(\'send-\' + cid).textContent = \'Sent\';\n' +
-'  document.getElementById(\'send-\' + cid).className = \'btn btn-sent\';\n' +
-'  document.getElementById(\'cb-\' + cid).classList.add(\'sent\');\n' +
-'}\n' +
-'\n' +
-'function copyLI(cid, btn) {\n' +
-'  navigator.clipboard.writeText(document.getElementById(\'lidraft-\' + cid).value).then(function() {\n' +
-'    btn.textContent = \'Copied!\';\n' +
-'    setTimeout(function() { btn.textContent = \'Copy for LinkedIn\'; }, 2000);\n' +
-'  });\n' +
 '}\n' +
 '\n' +
 'var _skipTimer = null;\n' +
@@ -705,8 +769,8 @@ module.exports = async function handler(req, res) {
 '  if (card) { card.style.opacity = \'0\'; card.style.transition = \'opacity 0.2s\'; setTimeout(function() { if (!_skipUndone) card.remove(); }, 200); }\n' +
 '  leads = leads.filter(function(l) { return l.id !== realId; });\n' +
 '  document.getElementById(\'lead-count\').textContent = leads.length + \' pending leads\';\n' +
-'  var toastHTML = \'Lead skipped \\u00b7 \' + companyName + \'. \' +\n' +
-'    \'<button class="toast-undo" onclick="undoSkip()\">Undo</button>\';\n' +
+'  var toastHTML = \'Lead skipped: \' + companyName + \' \' +\n' +
+'    \'<button class="toast-undo" onclick="undoSkip()">Undo</button>\';\n' +
 '  _skipTimer = showToast(toastHTML, 5000);\n' +
 '  var pendingRealId = realId;\n' +
 '  var pendingLead = lead;\n' +
