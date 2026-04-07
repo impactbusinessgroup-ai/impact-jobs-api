@@ -60,6 +60,26 @@ async function redisKeys(pattern) {
   return data.result || [];
 }
 
+async function redisSetNoTTL(key, value) {
+  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(value),
+  });
+}
+
+async function redisAppend(key, text) {
+  const url = `${process.env.KV_REST_API_URL}/append/${encodeURIComponent(key)}/${encodeURIComponent(text)}`;
+  await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+  });
+}
+
 // --- Load dynamic blocklists from Redis ---
 async function loadBlocklists() {
   const companies = await redisGet('blocklist:companies') || [];
@@ -330,6 +350,43 @@ module.exports = async function handler(req, res) {
           company_domain = new URL(job.employer_website).hostname.replace(/^www\./, '');
         }
       } catch (e) {}
+
+      // Infer domain via Gemini if missing
+      if (!company_domain) {
+        const locationStr = `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, '');
+        try {
+          geminiCalls++;
+          const domainPrompt = `What is the primary website domain for this company?\n\nCompany name: ${employer}\nLocation: ${locationStr}\n\nReturn only the domain (e.g. acmecorp.com) with no explanation, no punctuation, no http or www prefix. Return the single word null if you are not confident.`;
+          const domainRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: domainPrompt }] }],
+                generationConfig: { maxOutputTokens: 30, temperature: 0 },
+              }),
+            }
+          );
+          const domainData = await domainRes.json();
+          const domainAnswer = (domainData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().toLowerCase();
+          console.log(`Gemini domain inference: ${employer} -> ${domainAnswer}`);
+          if (domainAnswer && domainAnswer !== 'null' && domainAnswer.includes('.')) {
+            company_domain = domainAnswer;
+          } else {
+            // Log to Redis and skip this lead
+            await redisAppend('domain_inference_log', `${employer}, ${locationStr}\n`);
+            console.log(`Skipping ${employer}: Gemini could not infer domain`);
+            totalFiltered++;
+            continue;
+          }
+        } catch (e) {
+          console.error('Gemini domain inference error:', e.message);
+          await redisAppend('domain_inference_log', `${employer}, ${job.job_city || ''}, ${job.job_state || ''}\n`);
+          totalFiltered++;
+          continue;
+        }
+      }
 
       const lead = {
         id: leadId,
