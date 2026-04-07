@@ -1,27 +1,5 @@
 // api/jobs-fetch.js
 
-const STAFFING_KEYWORDS = [
-  // staffing / recruiting firms only
-  'staffing','recruiting','recruiter','placement','personnel',
-  'manpower','adecco','robert half','kelly services','randstad',
-  'insight global','aerotek','apex systems','teksystems',
-  'express employment','search group','headhunter',
-  'exec search','executive search','ajilon','modis','experis',
-  'pontoon','allegis','creative financial staffing','orion talent',
-  'actalent','interim staffing','kforce','spherion','volt ',
-  'staffmark','on assignment','hired','hirequest',
-  // military branches
-  'us navy','u.s. navy','united states navy',
-  'us army','us air force','us marine','us coast guard',
-  'national guard',
-];
-
-const AGENCY_PHRASES = [
-  'our client','on behalf of our client','confidential client',
-  'we are recruiting','we are seeking on behalf','our client is seeking',
-  'representing a client','placed with our client'
-];
-
 const EXCLUDE_TITLES = [
   'civil engineer','pe ','professional engineer','architect','architectural',
   'structural engineer','geotechnical','environmental engineer'
@@ -157,14 +135,23 @@ function hasPrimaryKeyword(title) {
   return PRIMARY_KEYWORDS.some(kw => t.includes(kw));
 }
 
-// --- Gemini classification for ambiguous titles ---
+// --- Gemini validation: relevance + staffing/agency detection ---
 async function isRelevantViaGemini(title, description) {
   const prompt = `You are a filter for a staffing agency that places candidates in Engineering, Manufacturing, Accounting, Finance, and IT roles in the United States.
 
-Based on this job posting, would this company potentially need a staffing partner to fill this type of role?
+Evaluate this job posting and answer only YES or NO to this question: Is this a direct employer job posting that a staffing agency could potentially pitch their services to?
+
+Answer NO if any of these are true:
+- The posting is from a staffing, recruiting, or consulting firm posting on behalf of a client (look for language like 'we are recruiting for', 'our client is looking for', 'on behalf of our client', '[company] is recruiting for', 'contract position', 'we are seeking on behalf of')
+- The company is itself a staffing, recruiting, temp, or workforce solutions firm
+- The job is outside the United States
+- The role is military, government, or public sector
+- The role is unrelated to Engineering, Manufacturing, Accounting, Finance, or IT
+
+Answer YES only if this appears to be a direct employer in a relevant industry hiring for a relevant role.
 
 Job title: ${title}
-Job description: ${description || 'Not available'}
+Job description: ${(description || 'Not available').slice(0, 3000)}
 
 Answer only YES or NO.`;
 
@@ -182,10 +169,10 @@ Answer only YES or NO.`;
     );
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
-    console.log(`Gemini classified "${title}": ${answer}`);
+    console.log(`Gemini filter "${title}": ${answer}`);
     return answer === 'YES';
   } catch (e) {
-    console.error('Gemini classification error:', e.message);
+    console.error('Gemini filter error:', e.message);
     return true;
   }
 }
@@ -218,11 +205,6 @@ function isAggregatorSource(applyLink, employerName) {
 }
 
 // --- Filter checks ---
-function isStaffingCompany(employerName) {
-  const name = employerName.toLowerCase();
-  return STAFFING_KEYWORDS.some(kw => name.includes(kw));
-}
-
 function isJobBoard(employerName) {
   const name = employerName.toLowerCase();
   const patterns = [
@@ -238,12 +220,6 @@ function isContractRole(job) {
   const types = (job.job_employment_types || []).map(t => t.toLowerCase());
   const allTypes = [type, ...types].join(' ');
   return /contractor|contract to hire|contract-to-hire|temp to hire|temp-to-hire|temporary/.test(allTypes);
-}
-
-function isAgencyPosting(description) {
-  if (!description) return false;
-  const text = description.toLowerCase();
-  return AGENCY_PHRASES.some(phrase => text.includes(phrase));
 }
 
 function isExcludedTitle(title, dynamicTitles) {
@@ -329,17 +305,16 @@ module.exports = async function handler(req, res) {
       if (aggregatorHost) { console.log('Filtered aggregator source:', employer, '-', aggregatorHost); totalFiltered++; continue; }
 
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
-      if (isStaffingCompany(employer)) { totalFiltered++; continue; }
       if (isJobBoard(employer)) { totalFiltered++; continue; }
       if (isContractRole(job)) { totalFiltered++; continue; }
-      if (isAgencyPosting(description)) { totalFiltered++; continue; }
       if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
-      let isRelevant = hasPrimaryKeyword(title);
-      if (!isRelevant) {
-        geminiCalls++;
-        isRelevant = await isRelevantViaGemini(title, description);
-      }
+      // Fast pre-filter: skip obviously irrelevant titles without a Gemini call
+      if (!hasPrimaryKeyword(title)) { totalFiltered++; continue; }
+
+      // All keyword-matching jobs go through Gemini for staffing/agency + relevance validation
+      geminiCalls++;
+      const isRelevant = await isRelevantViaGemini(title, description);
       if (!isRelevant) { totalFiltered++; continue; }
 
       const normalized = normalizeCompany(employer);
