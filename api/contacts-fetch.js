@@ -87,15 +87,8 @@ function extractState(location) {
   return (parts[1] || '').trim();
 }
 
-function getDefaultTitles(cat) {
-  if (cat === 'accounting') {
-    return ['CFO', 'VP of Finance', 'Controller', 'Director of Finance', 'Director of Accounting', 'Accounting Manager'];
-  } else if (cat === 'it') {
-    return ['CTO', 'VP of Technology', 'IT Director', 'Director of IT', 'Director of Engineering', 'IT Manager'];
-  } else if (cat === 'other') {
-    return ['HR Director', 'VP of Human Resources', 'Director of Operations', 'Chief of Staff', 'Office Manager'];
-  }
-  return ['Director of Engineering', 'VP of Engineering', 'Plant Manager', 'Director of Manufacturing', 'Director of Operations', 'Engineering Manager'];
+function getDefaultTitles() {
+  return ['Director', 'VP', 'Manager', 'President', 'General Manager'];
 }
 
 async function processLead(lead, leadKey) {
@@ -137,7 +130,7 @@ async function processLead(lead, leadKey) {
   }
 
   // Step 2: Gemini generates broad title keywords
-  var titlesPrompt = 'You are helping a staffing agency find the hiring manager for this job posting. The job category is ' + cat + '. Analyze the full job description and identify what department and discipline this role belongs to (e.g. manufacturing engineering, software development, finance, etc.). Then generate 8-12 broad title keywords that would match the hiring manager or decision maker for someone in THAT specific discipline at this type of company. For a manufacturing engineering role, generate titles like plant manager, manufacturing manager, engineering manager, director of manufacturing -- NOT IT or technology titles. Return only a JSON array of short keyword phrases, no other text.\n\nJob Title: ' + lead.jobTitle + '\nCompany: ' + lead.company + '\n\nJob Description:\n' + description;
+  var titlesPrompt = 'You are helping a staffing agency find hiring decision makers for this job posting. Read the full job description carefully and determine what type of role this is and who within the company would likely be involved in hiring for it.\n\nGenerate 8-12 search keywords representing the titles of people who would be hiring decision makers for this role. Think broadly -- a manufacturing engineer might report to a Plant Manager, Engineering Manager, Director of Manufacturing, or VP of Operations depending on the company. Cast a wide net with varied title keywords so we can find whoever holds that responsibility at this specific type of company.\n\nJob title: ' + lead.jobTitle + '\nCompany: ' + lead.company + '\nFull job description: ' + description + '\n\nReturn only a JSON array of title keyword phrases, no other text.';
 
   console.log('Gemini title prompt length:', lead.company, '-', titlesPrompt.length, 'chars');
   var titlesText = await callGemini(titlesPrompt, 1000);
@@ -149,8 +142,8 @@ async function processLead(lead, leadKey) {
   console.log('Gemini titles raw:', lead.company, '-', titlesText);
   var personTitles = parseGeminiJson(titlesText);
   if (!Array.isArray(personTitles) || !personTitles.length) {
-    console.log('Gemini title generation failed for', lead.company, ', category=' + cat + ', using defaults:', JSON.stringify(getDefaultTitles(cat)));
-    personTitles = getDefaultTitles(cat);
+    console.log('Gemini title generation failed for', lead.company, ', using defaults:', JSON.stringify(getDefaultTitles()));
+    personTitles = getDefaultTitles();
   }
 
   console.log('Gemini titles:', lead.company, '-', JSON.stringify(personTitles));

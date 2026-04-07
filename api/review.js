@@ -297,6 +297,7 @@ module.exports = async function handler(req, res) {
 '          city: c.city || \'\',\n' +
 '          region: c.region_name || c.region || \'\',\n' +
 '          linkedin: c.linkedin || \'\',\n' +
+'          email: c.email || \'\',\n' +
 '          inferredEmail: c.inferredEmail || \'\',\n' +
 '          emailInferred: c.emailInferred || false\n' +
 '        });\n' +
@@ -447,17 +448,19 @@ module.exports = async function handler(req, res) {
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
 '  if (linkedinUrl && linkedinUrl.indexOf(\'http\') !== 0) linkedinUrl = \'https://\' + linkedinUrl;\n' +
 '  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
-'  var hasInferred = opts.inferredEmail && opts.emailInferred;\n' +
+'  var hasEmail = opts.email && opts.email.length > 0;\n' +
+'  var hasInferred = !hasEmail && opts.inferredEmail && opts.emailInferred;\n' +
 '  var emailRowHtml = \'\';\n' +
-'  if (hasInferred) {\n' +
-'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'" style="display:none;">No email fetched yet</span>\' +\n' +
+'  if (hasEmail) {\n' +
+'    emailRowHtml = \'<span class="email-value" id="ev-\' + cid + \'">\' + opts.email + \'</span>\';\n' +
+'  } else if (hasInferred) {\n' +
+'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'" style="display:none;">No email found</span>\' +\n' +
 '      \'<span class="email-value" id="ev-\' + cid + \'" style="color:#E65100;">\' + opts.inferredEmail + \'</span>\' +\n' +
 '      \' <span class="badge" id="inferred-badge-\' + cid + \'" style="background:#FEF3C7;color:#92400E;">Inferred</span>\';\n' +
 '  } else {\n' +
-'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'">No email fetched yet</span>\' +\n' +
+'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'">No email found</span>\' +\n' +
 '      \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
 '  }\n' +
-'  var fetchBtnLabel = hasInferred ? \'Verify email (2 credits)\' : \'Fetch email (2 credits)\';\n' +
 '\n' +
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
@@ -476,12 +479,12 @@ module.exports = async function handler(req, res) {
 '        \'<div class="email-row">\' +\n' +
 '          emailRowHtml +\n' +
 '        \'</div>\' +\n' +
-'        \'<div class="credit-note" id="cn-\' + cid + \'">\' + (hasInferred ? \'Verify to confirm this email\' : \'Fetching email uses 2 credits\') + \'</div>\' +\n' +
+'        (hasEmail ? \'\' : \'<div class="credit-note" id="cn-\' + cid + \'">\' + (hasInferred ? \'Verify to confirm this email\' : \'\') + \'</div>\') +\n' +
 '      \'</div>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">\' + fetchBtnLabel + \'</button>\' +\n' +
+'      (hasEmail ? \'\' : \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">\' + (hasInferred ? \'Verify email (2 credits)\' : \'Fetch email (2 credits)\') + \'</button>\') +\n' +
 '      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -507,6 +510,20 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  document.getElementById(\'contacts-\' + safeId).appendChild(block);\n' +
 '  document.getElementById(\'ss-\' + safeId).style.display = \'none\';\n' +
+'  if (hasEmail) {\n' +
+'    var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeId]) || \'\';\n' +
+'    var category = (window._leadCategories && window._leadCategories[safeId]) || \'engineering\';\n' +
+'    fetch(\'/api/draft\', {\n' +
+'      method: \'POST\',\n' +
+'      headers: { \'Content-Type\': \'application/json\' },\n' +
+'      body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
+'    }).then(function(r) { return r.json(); }).then(function(draftData) {\n' +
+'      if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
+'      if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
+'      if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
+'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
+'    }).catch(function() {});\n' +
+'  }\n' +
 '}\n' +
 '\n' +
 'function removeContact(cid) {\n' +
