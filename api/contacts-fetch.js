@@ -98,6 +98,37 @@ async function processLead(lead, leadKey) {
     return null;
   }
 
+  // Check contacts cache for this domain
+  var cachedContacts = [];
+  try {
+    var cache = await redisGet('contacts_cache:' + domain);
+    if (cache && cache.contacts && cache.contacts.length > 0) {
+      cachedContacts = cache.contacts.map(function(c) {
+        return {
+          apollo_id: c.apollo_id || '',
+          first_name: (c.full_name || '').split(' ')[0] || '',
+          last_name: (c.full_name || '').split(' ').slice(1).join(' ') || '',
+          full_name: c.full_name || '',
+          name: c.full_name || '',
+          job_title: c.job_title || '',
+          title: c.job_title || '',
+          city: c.city || '',
+          state: c.state || '',
+          country: '',
+          linkedin: c.linkedin || '',
+          email: c.email || null,
+          emailInferred: false,
+          source: 'apollo',
+          fromCache: true,
+          previousJobs: c.previousJobs || []
+        };
+      });
+      console.log('Cache hit for', lead.company, '(' + domain + '):', cachedContacts.length, 'contacts');
+    }
+  } catch (e) {
+    console.log('Cache check error for', domain, ':', e.message);
+  }
+
   var cat = lead.category || 'engineering';
   var description = lead.description || '';
 
@@ -258,7 +289,17 @@ async function processLead(lead, leadKey) {
     }
   }
 
-  // Step 6: Extract company-level data
+  // Step 6: Merge cached contacts (avoid duplicates by apollo_id)
+  var apolloIds = {};
+  contacts.forEach(function(c) { if (c.apollo_id) apolloIds[c.apollo_id] = true; });
+  cachedContacts.forEach(function(c) {
+    if (c.apollo_id && !apolloIds[c.apollo_id]) {
+      contacts.push(c);
+      apolloIds[c.apollo_id] = true;
+    }
+  });
+
+  // Step 7: Extract company-level data
   var companyData = { apollo_org_id: orgId };
 
   return contacts.length > 0 ? { contacts: contacts, companyData: companyData } : null;

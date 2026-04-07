@@ -296,7 +296,10 @@ module.exports = async function handler(req, res) {
 '          locationMatch: c.locationMatch || \'\',\n' +
 '          city: c.city || \'\',\n' +
 '          region: c.region_name || c.region || \'\',\n' +
-'          linkedin: c.linkedin || \'\'\n' +
+'          linkedin: c.linkedin || \'\',\n' +
+'          fromCache: c.fromCache || false,\n' +
+'          email: c.email || \'\',\n' +
+'          previousJobs: c.previousJobs || []\n' +
 '        });\n' +
 '      });\n' +
 '    }\n' +
@@ -445,8 +448,19 @@ module.exports = async function handler(req, res) {
 '  var linkedinUrl = opts.linkedin || \'\';\n' +
 '  if (linkedinUrl && linkedinUrl.indexOf(\'http\') !== 0) linkedinUrl = \'https://\' + linkedinUrl;\n' +
 '  var linkedinHref = linkedinUrl ? linkedinUrl : \'https://www.google.com/search?q=\' + encodeURIComponent(name + \' \' + title + \' LinkedIn\');\n' +
-'  var emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'"></span>\' +\n' +
-'    \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
+'  var isFromCache = opts.fromCache && opts.email;\n' +
+'  var emailRowHtml = \'\';\n' +
+'  if (isFromCache) {\n' +
+'    emailRowHtml = \'<span class="email-value" id="ev-\' + cid + \'">\' + opts.email + \'</span>\';\n' +
+'  } else {\n' +
+'    emailRowHtml = \'<span class="email-placeholder" id="ep-\' + cid + \'"></span>\' +\n' +
+'      \'<span class="email-value" id="ev-\' + cid + \'" style="display:none;"></span>\';\n' +
+'  }\n' +
+'  var prevJobHtml = \'\';\n' +
+'  if (isFromCache && opts.previousJobs && opts.previousJobs.length > 0) {\n' +
+'    var pj = opts.previousJobs[opts.previousJobs.length - 1];\n' +
+'    prevJobHtml = \'<div style="font-size:11px;color:#999;font-style:italic;margin-top:2px;">Previously seen: \' + (pj.jobTitle || \'\') + (pj.date ? \' (\' + pj.date + \')\' : \'\') + \'</div>\';\n' +
+'  }\n' +
 '\n' +
 '  var block = document.createElement(\'div\');\n' +
 '  block.className = \'contact-block\';\n' +
@@ -459,18 +473,20 @@ module.exports = async function handler(req, res) {
 '        \'<div class="contact-name-row">\' +\n' +
 '          \'<span class="contact-name">\' + name + \'</span>\' +\n' +
 '          badgeHtml +\n' +
+'          (isFromCache ? \' <span class="badge" style="background:#E8F5E9;color:#2E7D32;">Cached</span>\' : \'\') +\n' +
 '        \'</div>\' +\n' +
 '        \'<div class="contact-title-sub">\' + title + \'</div>\' +\n' +
+'        prevJobHtml +\n' +
 '        cityStateHtml +\n' +
 '        \'<div class="email-row">\' +\n' +
 '          emailRowHtml +\n' +
 '        \'</div>\' +\n' +
-'        \'<div class="credit-note" id="cn-\' + cid + \'">Fetching email uses 1 credit</div>\' +\n' +
+'        (isFromCache ? \'\' : \'<div class="credit-note" id="cn-\' + cid + \'">Fetching email uses 1 credit</div>\') +\n' +
 '      \'</div>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">&times;</button>\' +\n' +
 '    \'</div>\' +\n' +
 '    \'<div class="contact-actions">\' +\n' +
-'      \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (1 credit)</button>\' +\n' +
+'      (isFromCache ? \'\' : \'<button class="btn btn-fetch" id="fb-\' + cid + \'" onclick="fetchEmail(\\\'\' + cid + \'\\\',\\\'\' + name + \'\\\',\\\'\' + title + \'\\\',\\\'\' + (companyName||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (location||"").replace(/\\\'/g,"") + \'\\\',\\\'\' + (prospectId||"") + \'\\\')">Fetch email (1 credit)</button>\') +\n' +
 '      \'<a href="\' + linkedinHref + \'" target="_blank" class="btn btn-li">LinkedIn &#8599;</a>\' +\n' +
 '      \'<button class="btn-ghost" onclick="removeContact(\\\'\' + cid + \'\\\')">Remove</button>\' +\n' +
 '    \'</div>\' +\n' +
@@ -496,6 +512,20 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  document.getElementById(\'contacts-\' + safeId).appendChild(block);\n' +
 '  document.getElementById(\'ss-\' + safeId).style.display = \'none\';\n' +
+'  if (isFromCache) {\n' +
+'    var jobTitle = (window._leadJobTitles && window._leadJobTitles[safeId]) || \'\';\n' +
+'    var category = (window._leadCategories && window._leadCategories[safeId]) || \'engineering\';\n' +
+'    fetch(\'/api/draft\', {\n' +
+'      method: \'POST\',\n' +
+'      headers: { \'Content-Type\': \'application/json\' },\n' +
+'      body: JSON.stringify({ jobTitle: jobTitle, companyName: companyName, category: category, contactTitle: title, contactFirstName: firstName })\n' +
+'    }).then(function(r) { return r.json(); }).then(function(draftData) {\n' +
+'      if (draftData.emailSubject) document.getElementById(\'subj-\' + cid).value = draftData.emailSubject;\n' +
+'      if (draftData.emailBody) document.getElementById(\'edraft-\' + cid).value = draftData.emailBody;\n' +
+'      if (draftData.linkedinMessage) document.getElementById(\'lidraft-\' + cid).value = draftData.linkedinMessage;\n' +
+'      document.getElementById(\'draft-\' + cid).style.display = \'block\';\n' +
+'    }).catch(function() {});\n' +
+'  }\n' +
 '}\n' +
 '\n' +
 'function removeContact(cid) {\n' +
@@ -513,7 +543,8 @@ module.exports = async function handler(req, res) {
 '    if (block) prospectId = block.getAttribute(\'data-prospect-id\') || \'\';\n' +
 '  }\n' +
 '  try {\n' +
-'    var enrichPayload = { contactName: name, contactTitle: title, companyName: companyName, location: location };\n' +
+'    var leadRedisId = (window._leadRedisIds && window._leadRedisIds[safeBase]) || \'\';\n' +
+'    var enrichPayload = { contactName: name, contactTitle: title, companyName: companyName, location: location, leadId: leadRedisId };\n' +
 '    if (prospectId) enrichPayload.apollo_id = prospectId;\n' +
 '    var enrichRes = await fetch(\'/api/enrich\', {\n' +
 '      method: \'POST\',\n' +
