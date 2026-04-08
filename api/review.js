@@ -126,7 +126,7 @@ module.exports = async function handler(req, res) {
 // Modal
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
-'.modal { background: #1a2744; border: 1px solid rgba(26,78,162,0.2); border-radius: 18px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }\n' +
+'.modal { background: linear-gradient(180deg, #1e2e48 0%, #1a2744 100%); border: 1px solid rgba(26,78,162,0.25); border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }\n' +
 '.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }\n' +
 '.modal-header h3 { font-size: 16px; font-weight: 600; color: #fff; font-family: Oswald, sans-serif; }\n' +
 '.modal-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); border: none; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; }\n' +
@@ -158,9 +158,11 @@ module.exports = async function handler(req, res) {
 '.btn-glass-complete:hover { background: rgba(29,158,117,0.25); }\n' +
 '.btn-glass-reassign { background: rgba(99,164,255,0.12); color: #93C5FD; border-color: rgba(99,164,255,0.25); }\n' +
 '.btn-glass-reassign:hover { background: rgba(99,164,255,0.2); }\n' +
-'.reassign-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: background 0.15s; }\n' +
+'.reassign-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: all 0.15s; border-radius: 8px; margin: 2px 0; }\n' +
 '.reassign-item:last-child { border-bottom: none; }\n' +
-'.reassign-item:hover { background: rgba(255,255,255,0.06); color: #fff; }\n' +
+'.reassign-item:hover { background: rgba(26,78,162,0.12); color: #fff; }\n' +
+'.reassign-btn { font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(29,158,117,0.3); background: rgba(29,158,117,0.12); color: #6EE7C7; cursor: pointer; transition: all 0.15s; }\n' +
+'.reassign-btn:hover { background: rgba(29,158,117,0.25); box-shadow: 0 0 8px rgba(29,158,117,0.2); }\n' +
 '.remove-wrap { position: relative; display: inline-block; }\n' +
 '.remove-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #1a2744; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; min-width: 190px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
 '.remove-dd.open { display: block; }\n' +
@@ -524,7 +526,7 @@ module.exports = async function handler(req, res) {
 '      \'</div></div>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
-'  if(hasEmail) card.style.cursor="pointer";\n' +
+'  card.style.cursor="pointer";\n' +
 '  card.addEventListener("click",function(e){\n' +
 '    if(e.target.closest(".contact-actions")) return;\n' +
 '    var em=card.getAttribute("data-email");\n' +
@@ -847,7 +849,7 @@ module.exports = async function handler(req, res) {
 '  document.getElementById("reassign-title").textContent="Reassign Lead"+(lead?" - "+lead.company:"");\n' +
 '  var body=document.getElementById("reassign-body");\n' +
 '  body.innerHTML=AM_NAMES.map(function(name){\n' +
-'    return \'<div class="reassign-item" onclick="reassignLead(\\\'\'+name.replace(/\x27/g,"\\\\\\x27")+\'\\\')">\'+ name +\'</div>\';\n' +
+'    return \'<div class="reassign-item"><span>\'+ name +\'</span><button class="reassign-btn" onclick="reassignLead(\\\'\'+name.replace(/\x27/g,"\\\\\\x27")+\'\\\')">Reassign</button></div>\';\n' +
 '  }).join("");\n' +
 '  document.getElementById("reassign-overlay").classList.add("open");\n' +
 '}\n' +
