@@ -152,8 +152,10 @@ async function processLead(lead, leadKey) {
       return null;
     }
 
-    // Store org ID on lead
+    // Store org ID and company LinkedIn on lead
     lead.apollo_org_id = orgId;
+    var orgLinkedin = orgData.organization && orgData.organization.linkedin_url;
+    if (orgLinkedin) lead.company_linkedin = orgLinkedin;
     await redisSet(leadKey, lead, 604800);
     console.log('Apollo org ID for', lead.company, ':', orgId);
   } else {

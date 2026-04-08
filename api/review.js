@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: #1a2744; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3); border: 1px solid rgba(26,78,162,0.15); }\n' +
+'.card { background: linear-gradient(180deg, #1d2d4a 0%, #1a2744 100%); border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid rgba(26,78,162,0.15); }\n' +
 '.card-top { background: linear-gradient(135deg, #0B1729 0%, #162d54 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
@@ -34,13 +34,13 @@ module.exports = async function handler(req, res) {
 '.company-location { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }\n' +
 '.card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }\n' +
 '.pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.8px; text-transform: uppercase; }\n' +
-'.pill-eng { background: rgba(29,158,117,0.25); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.25); }\n' +
-'.pill-acc { background: rgba(99,179,237,0.2); color: #93C5FD; border: 1px solid rgba(147,197,253,0.25); }\n' +
-'.pill-it { background: rgba(255,160,0,0.2); color: #FCD34D; border: 1px solid rgba(252,211,77,0.25); }\n' +
-'.pill-other { background: rgba(168,130,255,0.2); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.25); }\n' +
+'.pill-eng { background: rgba(29,158,117,0.07); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.35); }\n' +
+'.pill-acc { background: rgba(99,179,237,0.06); color: #93C5FD; border: 1px solid rgba(147,197,253,0.35); }\n' +
+'.pill-it { background: rgba(255,160,0,0.06); color: #FCD34D; border: 1px solid rgba(252,211,77,0.35); }\n' +
+'.pill-other { background: rgba(168,130,255,0.06); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.35); }\n' +
 '.card-top-job-title { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; line-height: 1.3; }\n' +
 // Links bar between header and body
-'.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(0,0,0,0.08); }\n' +
+'.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid transparent; border-image: linear-gradient(to right, transparent, rgba(26,78,162,0.2), transparent) 1; background: rgba(0,0,0,0.08); }\n' +
 '.links-bar-left, .links-bar-right { display: flex; gap: 12px; align-items: center; }\n' +
 '.link-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); cursor: pointer; text-decoration: none; transition: all 0.15s; }\n' +
 '.link-icon:hover { background: rgba(255,255,255,0.1); color: #63a4ff; border-color: rgba(26,78,162,0.3); }\n' +
@@ -54,9 +54,9 @@ module.exports = async function handler(req, res) {
 '.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }\n' +
 // Contact cards
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: all 0.2s; }\n' +
-'.contact-card:hover { border-color: rgba(26,78,162,0.3); background: rgba(255,255,255,0.06); }\n' +
-'.contact-card.active { border-color: rgba(93,202,165,0.5); background: rgba(93,202,165,0.04); }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.15); }\n' +
+'.contact-card:hover { border-color: rgba(26,78,162,0.3); background: rgba(255,255,255,0.06); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.2); }\n' +
+'.contact-card.active { border-color: rgba(93,202,165,0.5); background: rgba(93,202,165,0.04); box-shadow: 0 0 12px rgba(93,202,165,0.15), 0 4px 16px rgba(0,0,0,0.2); }\n' +
 '.contact-card.sent { border-color: rgba(93,202,165,0.4); background: rgba(93,202,165,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
 '.avatar { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
@@ -115,7 +115,7 @@ module.exports = async function handler(req, res) {
 '.search-result-item:hover { background: rgba(255,255,255,0.04); }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #63a4ff; background: rgba(26,78,162,0.15); padding: 3px 10px; border-radius: 6px; cursor: pointer; border: none; }\n' +
 // Footer
-'.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.04); background: rgba(0,0,0,0.1); }\n' +
+'.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid transparent; border-image: linear-gradient(to right, transparent, rgba(26,78,162,0.2), transparent) 1; background: rgba(0,0,0,0.1); }\n' +
 '.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; }\n' +
 '.btn-glass:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
 '.btn-glass-skip { background: rgba(232,98,10,0.15); color: #FFA000; border-color: rgba(232,98,10,0.3); }\n' +
@@ -167,6 +167,31 @@ module.exports = async function handler(req, res) {
 '.remove-dd-item:last-child { border-bottom: none; }\n' +
 '.remove-dd-btn { font-size: 10px; font-weight: 600; color: #ef6961; background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.2); border-radius: 5px; padding: 2px 8px; cursor: pointer; }\n' +
 '.remove-dd-btn:hover { background: rgba(198,40,40,0.25); }\n' +
+// Neon glow button animations
+'.btn-fetch:hover { box-shadow: 0 0 10px rgba(255,160,0,0.25), 0 0 20px rgba(255,160,0,0.1); transform: translateY(-2px); }\n' +
+'.btn-send-email:hover { box-shadow: 0 0 14px rgba(0,120,212,0.4), 0 0 28px rgba(0,120,212,0.15); transform: translateY(-2px); }\n' +
+'.btn-send-email.pulse { animation: sendPulse 2s ease-in-out infinite; }\n' +
+'@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(0,120,212,0.3); } 50% { box-shadow: 0 2px 20px rgba(0,120,212,0.5), 0 0 30px rgba(0,120,212,0.15); } }\n' +
+'.btn-glass-skip:hover { box-shadow: 0 0 10px rgba(232,98,10,0.25), 0 0 20px rgba(232,98,10,0.1); }\n' +
+'.btn-glass-block:hover { box-shadow: 0 0 10px rgba(198,40,40,0.25), 0 0 20px rgba(198,40,40,0.1); }\n' +
+'.btn-glass-complete:hover { box-shadow: 0 0 10px rgba(29,158,117,0.25), 0 0 20px rgba(29,158,117,0.1); }\n' +
+'.btn-glass-reassign:hover { box-shadow: 0 0 8px rgba(99,164,255,0.2), 0 0 16px rgba(99,164,255,0.08); }\n' +
+'.btn-glass:hover { box-shadow: 0 0 8px rgba(255,255,255,0.06); }\n' +
+'.link-icon:hover { box-shadow: 0 0 8px rgba(99,164,255,0.2); }\n' +
+'.btn-li:hover { box-shadow: 0 0 8px rgba(10,102,194,0.25); }\n' +
+// Gradient bottom line on hover for glass buttons
+'.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.25s ease; }\n' +
+'.btn-glass { position: relative; overflow: hidden; }\n' +
+'.btn-glass:hover::after { opacity: 0.3; }\n' +
+// Rich text editor
+'.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
+'.rich-editor:focus { border-color: #1A4EA2; }\n' +
+'.rich-editor a { color: #63a4ff; text-decoration: underline; }\n' +
+// Outlook toggle
+'.outlook-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(255,255,255,0.45); }\n' +
+'.outlook-toggle-btns { display: inline-flex; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }\n' +
+'.outlook-toggle-btn { padding: 2px 10px; font-size: 10px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.4); transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
+'.outlook-toggle-btn.active { background: rgba(26,78,162,0.4); color: white; }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -174,7 +199,10 @@ module.exports = async function handler(req, res) {
 '<div class="header">\n' +
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
 '  <div class="header-center">Lead Review</div>\n' +
-'  <div class="header-meta" id="header-date"></div>\n' +
+'  <div style="display:flex;align-items:center;gap:14px;">\n' +
+'    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(\\\'classic\\\')">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(\\\'new\\\')">New</button></div></div>\n' +
+'    <div class="header-meta" id="header-date"></div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="toast-container" id="toast-container"><div class="toast" id="toast-inner"></div></div>\n' +
@@ -266,10 +294,10 @@ module.exports = async function handler(req, res) {
 '\n' +
 'function getEmailTemplate(lead, firstName, uniqid) {\n' +
 '  var uid = uniqid || "*|UNIQID|*";\n' +
-'  return "Hi " + firstName + ",\\n\\n" +\n' +
-'    "I noticed " + lead.company + " is looking for a " + lead.jobTitle + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.\\n\\n" +\n' +
-'    "We have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: <a href=\\"https://impactbusinessgroup.com/case-studies/?cid=" + uid + "\\">View Case Studies</a>\\n\\n" +\n' +
-'    "If you are open to it, I would love to connect and learn more about what you are looking for in this role.\\n\\n" +\n' +
+'  return "Hi " + firstName + ",<br><br>" +\n' +
+'    "I noticed " + lead.company + " is looking for a " + lead.jobTitle + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.<br><br>" +\n' +
+'    "We have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: <a href=\\"https://impactbusinessgroup.com/case-studies/?cid=" + uid + "\\">View Case Studies</a><br><br>" +\n' +
+'    "If you are open to it, I would love to connect and learn more about what you are looking for in this role.<br><br>" +\n' +
 '    "<a href=\\"https://impactbusinessgroup.com/?cid=" + uid + "\\">Visit our website</a>";\n' +
 '}\n' +
 '\n' +
@@ -391,7 +419,7 @@ module.exports = async function handler(req, res) {
 '              \'<option value="\'+escHtml(subj4)+\'">\'+escHtml(subj4)+\'</option>\'+\n' +
 '            \'</select>\'+\n' +
 '            \'<input class="subject-input" type="text" id="subj-\'+safeId+\'" placeholder="Subject line (editable)">\'+\n' +
-'            \'<textarea id="ebody-\'+safeId+\'"></textarea>\'+\n' +
+'            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
 '            \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" title="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="li-pane-\'+safeId+\'" style="display:none;">\'+\n' +
@@ -573,7 +601,7 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  // Enable Send Email button\n' +
 '  var sendBtn=document.getElementById("send-btn-"+safeId);\n' +
-'  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("title");}\n' +
+'  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("title");sendBtn.classList.add("pulse");}\n' +
 '\n' +
 '  // Activate composer with merge fields\n' +
 '  document.getElementById("composer-prompt-"+safeId).style.display="none";\n' +
@@ -588,7 +616,7 @@ module.exports = async function handler(req, res) {
 '    composerState[safeId]={subj:"",body:"",li:"",lastFirstName:"",lastUniqid:""};\n' +
 '    var sel=document.getElementById("subj-select-"+safeId);\n' +
 '    if(sel) subjInput.value=sel.options[0].value;\n' +
-'    if(lead) ebodyEl.value=getEmailTemplate(lead,firstName,uniqid);\n' +
+'    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,firstName,uniqid);\n' +
 '    if(lead) libodyEl.value=getLITemplate(lead,firstName,uniqid);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=uniqid;\n' +
@@ -598,7 +626,7 @@ module.exports = async function handler(req, res) {
 '    var oldFirst=st.lastFirstName||"there";\n' +
 '    var oldUid=st.lastUniqid||"*|UNIQID|*";\n' +
 '    var newUid=uniqid||"*|UNIQID|*";\n' +
-'    var curBody=ebodyEl.value;\n' +
+'    var curBody=ebodyEl.innerHTML;\n' +
 '    var curLI=libodyEl.value;\n' +
 '    // Replace old first name greeting\n' +
 '    if(oldFirst!==firstName){\n' +
@@ -610,7 +638,7 @@ module.exports = async function handler(req, res) {
 '      curBody=curBody.split(oldUid).join(newUid);\n' +
 '      curLI=curLI.split(oldUid).join(newUid);\n' +
 '    }\n' +
-'    ebodyEl.value=curBody;\n' +
+'    ebodyEl.innerHTML=curBody;\n' +
 '    libodyEl.value=curLI;\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=newUid;\n' +
@@ -625,11 +653,13 @@ module.exports = async function handler(req, res) {
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
 '  var subject=encodeURIComponent(document.getElementById("subj-"+safeId).value);\n' +
-'  var htmlBody=document.getElementById("ebody-"+safeId).value;\n' +
+'  var htmlBody=document.getElementById("ebody-"+safeId).innerHTML;\n' +
 '  navigator.clipboard.writeText(htmlBody).then(function(){\n' +
 '    showToast("Email copied - paste into Outlook",3000);\n' +
 '  }).catch(function(){});\n' +
-'  window.location.href="ms-outlook://compose?to="+encodeURIComponent(email)+"&subject="+subject;\n' +
+'  var pref=localStorage.getItem("outlook_preference")||"classic";\n' +
+'  if(pref==="new") window.location.href="ms-outlook://compose?to="+encodeURIComponent(email)+"&subject="+subject;\n' +
+'  else window.location.href="mailto:"+email+"?subject="+subject;\n' +
 '  card.classList.add("sent");\n' +
 '}\n' +
 '\n' +
@@ -828,6 +858,16 @@ module.exports = async function handler(req, res) {
 '  document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
 '  showToast("Lead reassigned to "+amName,3000);\n' +
 '}\n' +
+'\n' +
+'function setOutlookPref(pref){\n' +
+'  localStorage.setItem("outlook_preference",pref);\n' +
+'  document.getElementById("ol-classic").classList.toggle("active",pref==="classic");\n' +
+'  document.getElementById("ol-new").classList.toggle("active",pref==="new");\n' +
+'}\n' +
+'(function(){\n' +
+'  var pref=localStorage.getItem("outlook_preference")||"classic";\n' +
+'  if(pref==="new") setOutlookPref("new");\n' +
+'})();\n' +
 '\n' +
 'init();\n' +
 '</script>\n' +
