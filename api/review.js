@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
 '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: #0F1E3D; color: #e0e4ec; min-height: 100vh; }\n' +
+'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: #080f1a; color: #e0e4ec; min-height: 100vh; }\n' +
 'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
 '.header { background: rgba(10,18,38,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(26,78,162,0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: linear-gradient(180deg, #22344e 0%, #1e2e48 100%); border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(26,78,162,0.18); }\n' +
+'.card { background: linear-gradient(180deg, #1e2e48 0%, #1a2744 100%); border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(26,78,162,0.18); }\n' +
 '.card-top { background: linear-gradient(135deg, #0e1d36 0%, #1a3358 80%, #1e3860 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
@@ -54,9 +54,9 @@ module.exports = async function handler(req, res) {
 '.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 // Contact cards
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); }\n' +
-'.contact-card:hover { border-color: rgba(26,78,162,0.35); background: rgba(255,255,255,0.09); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2); }\n' +
-'.contact-card.active { border-color: rgba(93,202,165,0.6); background: rgba(93,202,165,0.06); box-shadow: 0 0 16px rgba(93,202,165,0.25), 0 0 32px rgba(93,202,165,0.08), 0 4px 16px rgba(0,0,0,0.2); }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2a3a5c; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); }\n' +
+'.contact-card:hover { border-color: rgba(26,78,162,0.4); background: #2f4065; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2); }\n' +
+'.contact-card.active { border-color: rgba(93,202,165,0.7); background: #283d58; box-shadow: 0 0 16px rgba(93,202,165,0.25), 0 0 32px rgba(93,202,165,0.08), 0 4px 16px rgba(0,0,0,0.2); }\n' +
 '.contact-card.sent { border-color: rgba(93,202,165,0.4); background: rgba(93,202,165,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
 '.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; overflow: hidden; }\n' +
@@ -93,12 +93,12 @@ module.exports = async function handler(req, res) {
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #63a4ff; border-color: rgba(26,78,162,0.3); }\n' +
 // Composer
-'.composer { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
+'.composer { background: #1e2e4a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
-'.subject-select { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: rgba(255,255,255,0.07); color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 4px; appearance: auto; cursor: pointer; }\n' +
+'.subject-select { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 4px; appearance: auto; cursor: pointer; }\n' +
 '.subject-select:focus { outline: none; border-color: #1A4EA2; }\n' +
-'.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: rgba(255,255,255,0.07); color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 6px; }\n' +
+'.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 6px; }\n' +
 '.subject-input:focus { outline: none; border-color: #1A4EA2; }\n' +
 'textarea { width: 100%; font-size: 12px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; resize: vertical; font-family: monospace; min-height: 180px; }\n' +
 'textarea:focus { outline: none; border-color: #1A4EA2; }\n' +
@@ -151,8 +151,8 @@ module.exports = async function handler(req, res) {
 '.loading { text-align: center; padding: 80px; color: rgba(255,255,255,0.4); font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: rgba(255,255,255,0.6); font-family: Oswald, sans-serif; }\n' +
-'.btn-send-email { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; background: #0078D4; color: white; font-family: Raleway, sans-serif; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,120,212,0.3); margin-top: 10px; }\n' +
-'.btn-send-email:hover { background: #106EBE; box-shadow: 0 4px 16px rgba(0,120,212,0.4); }\n' +
+'.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 12px 32px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #0078D4, #005a9e); color: white; font-family: Raleway, sans-serif; transition: all 0.25s ease; box-shadow: 0 2px 12px rgba(0,120,212,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
+'.btn-send-email:hover { background: linear-gradient(135deg, #1a8ae6, #0078D4); box-shadow: 0 4px 20px rgba(0,120,212,0.5), 0 0 30px rgba(0,120,212,0.2); transform: translateY(-2px); }\n' +
 '.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
 '.btn-glass-complete { background: rgba(29,158,117,0.15); color: #6EE7C7; border-color: rgba(29,158,117,0.3); }\n' +
 '.btn-glass-complete:hover { background: rgba(29,158,117,0.25); }\n' +
@@ -169,23 +169,22 @@ module.exports = async function handler(req, res) {
 '.remove-dd-btn { font-size: 10px; font-weight: 600; color: #ef6961; background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.2); border-radius: 5px; padding: 2px 8px; cursor: pointer; }\n' +
 '.remove-dd-btn:hover { background: rgba(198,40,40,0.25); }\n' +
 // Neon glow button animations
-'.btn-fetch:hover { box-shadow: 0 0 10px rgba(255,160,0,0.25), 0 0 20px rgba(255,160,0,0.1); transform: translateY(-2px); }\n' +
-'.btn-send-email:hover { box-shadow: 0 0 14px rgba(0,120,212,0.4), 0 0 28px rgba(0,120,212,0.15); transform: translateY(-2px); }\n' +
+'.btn-fetch:hover { box-shadow: 0 0 14px rgba(255,160,0,0.4), 0 0 28px rgba(255,160,0,0.15); transform: translateY(-2px); }\n' +
 '.btn-send-email.pulse { animation: sendPulse 2s ease-in-out infinite; }\n' +
-'@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(0,120,212,0.3); } 50% { box-shadow: 0 2px 20px rgba(0,120,212,0.5), 0 0 30px rgba(0,120,212,0.15); } }\n' +
-'.btn-glass-skip:hover { box-shadow: 0 0 10px rgba(232,98,10,0.25), 0 0 20px rgba(232,98,10,0.1); }\n' +
-'.btn-glass-block:hover { box-shadow: 0 0 10px rgba(198,40,40,0.25), 0 0 20px rgba(198,40,40,0.1); }\n' +
-'.btn-glass-complete:hover { box-shadow: 0 0 10px rgba(29,158,117,0.25), 0 0 20px rgba(29,158,117,0.1); }\n' +
-'.btn-glass-reassign:hover { box-shadow: 0 0 8px rgba(99,164,255,0.2), 0 0 16px rgba(99,164,255,0.08); }\n' +
-'.btn-glass:hover { box-shadow: 0 0 8px rgba(255,255,255,0.06); }\n' +
-'.link-icon:hover { box-shadow: 0 0 8px rgba(99,164,255,0.2); }\n' +
-'.btn-li:hover { box-shadow: 0 0 8px rgba(10,102,194,0.25); }\n' +
+'@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(0,120,212,0.35); } 50% { box-shadow: 0 4px 24px rgba(0,120,212,0.6), 0 0 40px rgba(0,120,212,0.2); } }\n' +
+'.btn-glass-skip:hover { box-shadow: 0 0 14px rgba(232,98,10,0.4), 0 0 28px rgba(232,98,10,0.15); }\n' +
+'.btn-glass-block:hover { box-shadow: 0 0 14px rgba(239,105,97,0.35), 0 0 28px rgba(198,40,40,0.15); }\n' +
+'.btn-glass-complete:hover { box-shadow: 0 0 14px rgba(29,158,117,0.35), 0 0 28px rgba(29,158,117,0.15); }\n' +
+'.btn-glass-reassign:hover { box-shadow: 0 0 12px rgba(99,164,255,0.3), 0 0 24px rgba(99,164,255,0.12); }\n' +
+'.btn-glass:hover { box-shadow: 0 0 10px rgba(255,255,255,0.08); }\n' +
+'.link-icon:hover { box-shadow: 0 0 10px rgba(99,164,255,0.3); }\n' +
+'.btn-li:hover { box-shadow: 0 0 10px rgba(10,102,194,0.35); }\n' +
 // Gradient bottom line on hover for glass buttons
 '.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.25s ease; }\n' +
 '.btn-glass { position: relative; overflow: hidden; }\n' +
 '.btn-glass:hover::after { opacity: 0.3; }\n' +
 // Rich text editor
-'.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: rgba(255,255,255,0.07); color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
+'.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
 '.rich-editor:focus { border-color: #1A4EA2; }\n' +
 '.rich-editor a { color: #63a4ff; text-decoration: underline; }\n' +
 // Outlook toggle
@@ -466,6 +465,8 @@ module.exports = async function handler(req, res) {
 '  var cid=safeId+"_c"+contactCounters[safeId];\n' +
 '  var ini=initials(name);\n' +
 '  var photoUrl=opts.photo_url||"";\n' +
+'  console.log("Contact photo:",name,photoUrl||"(none)");\n' +
+'  if(photoUrl&&photoUrl.indexOf("static.licdn.com")!==-1) photoUrl="";\n' +
 '  var avatarInner=photoUrl?\'<img src="\'+photoUrl+\'" onerror="this.parentNode.innerHTML=\\\'\'+ini+\'\\\'">\':ini;\n' +
 '  var linkedinUrl=opts.linkedin||"";\n' +
 '  if(linkedinUrl&&linkedinUrl.indexOf("http")!==0) linkedinUrl="https://"+linkedinUrl;\n' +
