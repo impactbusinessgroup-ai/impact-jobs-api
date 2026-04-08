@@ -116,6 +116,7 @@ async function processLead(lead, leadKey) {
           state: c.state || '',
           country: '',
           linkedin: c.linkedin || '',
+          photo_url: c.photo_url || '',
           email: c.email || null,
           emailInferred: false,
           source: 'apollo',
@@ -311,6 +312,7 @@ async function processLead(lead, leadKey) {
         state: toTitleCase(enriched.state || ''),
         country: enriched.country || '',
         linkedin: ensureUrl(enriched.linkedin_url || ''),
+        photo_url: enriched.photo_url || '',
         email: enriched.email || null,
         emailInferred: false,
         source: 'apollo'
