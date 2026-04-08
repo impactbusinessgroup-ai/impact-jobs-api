@@ -1,4 +1,3 @@
-// api/review.js
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
@@ -39,7 +38,6 @@ module.exports = async function handler(req, res) {
 '.pill-it { background: rgba(255,160,0,0.06); color: #FCD34D; border: 1px solid rgba(252,211,77,0.35); }\n' +
 '.pill-other { background: rgba(168,130,255,0.06); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.35); }\n' +
 '.card-top-job-title { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; line-height: 1.3; }\n' +
-// Links bar between header and body
 '.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid transparent; border-image: linear-gradient(to right, transparent, rgba(26,78,162,0.2), transparent) 1; background: rgba(0,0,0,0.08); }\n' +
 '.links-bar-left, .links-bar-right { display: flex; gap: 12px; align-items: center; }\n' +
 '.link-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); cursor: pointer; text-decoration: none; transition: all 0.15s; }\n' +
@@ -50,9 +48,7 @@ module.exports = async function handler(req, res) {
 '.cal-month { background: rgba(26,78,162,0.5); color: white; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: center; padding: 4px 0; }\n' +
 '.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; font-family: Oswald, sans-serif; }\n' +
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
-'.divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 16px 0; }\n' +
 '.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
-// Contact cards
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
 '.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2a3a5c; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); }\n' +
 '.contact-card:hover { border-color: rgba(26,78,162,0.4); background: #2f4065; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2); }\n' +
@@ -72,7 +68,6 @@ module.exports = async function handler(req, res) {
 '.credit-note { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 2px; }\n' +
 '.contact-actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; align-items: center; }\n' +
 '.badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
-// Buttons
 '.btn { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #cdd; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
 '.btn-li { background: rgba(10,102,194,0.2); color: #63a4ff; border-color: rgba(10,102,194,0.3); padding: 5px 8px; }\n' +
@@ -80,19 +75,12 @@ module.exports = async function handler(req, res) {
 '.btn-fetch { background: rgba(255,160,0,0.15); color: #FCD34D; border-color: rgba(255,160,0,0.3); }\n' +
 '.btn-fetch:hover { background: rgba(255,160,0,0.25); }\n' +
 '.btn-sent { background: rgba(93,202,165,0.15); color: #6EE7C7; border-color: rgba(93,202,165,0.3); cursor: default; }\n' +
-'.btn-select { background: rgba(93,202,165,0.1); color: rgba(255,255,255,0.6); border-color: rgba(93,202,165,0.2); }\n' +
-'.btn-select:hover { background: rgba(93,202,165,0.2); color: #6EE7C7; }\n' +
-'.btn-select.active { background: rgba(93,202,165,0.2); color: #6EE7C7; border-color: rgba(93,202,165,0.4); }\n' +
-'.btn-outlook { background: rgba(0,120,215,0.15); color: #63a4ff; border-color: rgba(0,120,215,0.25); display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; }\n' +
-'.btn-outlook:hover { background: rgba(0,120,215,0.25); }\n' +
-'.btn-outlook.disabled { opacity: 0.3; cursor: default; pointer-events: none; }\n' +
 '.btn-ghost { color: rgba(255,255,255,0.3); font-size: 11px; border: none; background: none; cursor: pointer; padding: 3px 5px; font-weight: 500; }\n' +
 '.btn-ghost:hover { color: #ef6961; }\n' +
 '.btn-primary { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
 '.btn-primary:hover { background: #2060c0; }\n' +
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #63a4ff; border-color: rgba(26,78,162,0.3); }\n' +
-// Composer
 '.composer { background: #1e2e4a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
@@ -100,22 +88,10 @@ module.exports = async function handler(req, res) {
 '.subject-select:focus { outline: none; border-color: #1A4EA2; }\n' +
 '.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 6px; }\n' +
 '.subject-input:focus { outline: none; border-color: #1A4EA2; }\n' +
-'textarea { width: 100%; font-size: 12px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; resize: vertical; font-family: monospace; min-height: 180px; }\n' +
-'textarea:focus { outline: none; border-color: #1A4EA2; }\n' +
 '.tab-row { display: flex; gap: 6px; margin-bottom: 8px; }\n' +
 '.tab { font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: rgba(255,255,255,0.5); background: transparent; font-weight: 600; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.tab.active { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
-// Search panel
-'.search-panel { border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; background: rgba(255,255,255,0.02); margin-bottom: 12px; }\n' +
-'.search-panel-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 600; }\n' +
-'.search-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; font-family: Raleway, sans-serif; }\n' +
-'.search-input:focus { outline: none; border-color: #1A4EA2; }\n' +
-'.search-results { margin-top: 8px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.03); }\n' +
-'.search-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; transition: background 0.1s; }\n' +
-'.search-result-item:last-child { border-bottom: none; }\n' +
-'.search-result-item:hover { background: rgba(255,255,255,0.04); }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #63a4ff; background: rgba(26,78,162,0.15); padding: 3px 10px; border-radius: 6px; cursor: pointer; border: none; }\n' +
-// Footer
 '.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid transparent; border-image: linear-gradient(to right, transparent, rgba(26,78,162,0.2), transparent) 1; background: rgba(0,0,0,0.1); }\n' +
 '.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; }\n' +
 '.btn-glass:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
@@ -123,7 +99,6 @@ module.exports = async function handler(req, res) {
 '.btn-glass-skip:hover { background: rgba(232,98,10,0.25); }\n' +
 '.btn-glass-block { background: rgba(198,40,40,0.12); color: #ef6961; border-color: rgba(198,40,40,0.25); }\n' +
 '.btn-glass-block:hover { background: rgba(198,40,40,0.2); }\n' +
-// Modal
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
 '.modal { background: linear-gradient(180deg, #1e2e48 0%, #1a2744 100%); border: 1px solid rgba(26,78,162,0.25); border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }\n' +
@@ -136,7 +111,6 @@ module.exports = async function handler(req, res) {
 '.modal-row:last-child { border-bottom: none; }\n' +
 '.modal-row-name { font-size: 13px; font-weight: 600; color: #fff; }\n' +
 '.modal-row-title { font-size: 11px; color: rgba(255,255,255,0.45); }\n' +
-// Toast & confirm
 '.toast-container { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 300; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }\n' +
 '.toast-container.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }\n' +
 '.toast { background: linear-gradient(135deg, #E8620A, #d4560a); color: white; border-radius: 28px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(232,98,10,0.4); display: flex; align-items: center; gap: 12px; font-size: 13px; white-space: nowrap; }\n' +
@@ -170,7 +144,6 @@ module.exports = async function handler(req, res) {
 '.remove-dd-item:last-child { border-bottom: none; }\n' +
 '.remove-dd-btn { font-size: 10px; font-weight: 600; color: #ef6961; background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.2); border-radius: 5px; padding: 2px 8px; cursor: pointer; }\n' +
 '.remove-dd-btn:hover { background: rgba(198,40,40,0.25); }\n' +
-// Neon glow button animations
 '.btn-fetch:hover { box-shadow: 0 0 14px rgba(255,160,0,0.4), 0 0 28px rgba(255,160,0,0.15); transform: translateY(-2px); }\n' +
 '.btn-send-email.pulse { animation: sendPulse 2s ease-in-out infinite; }\n' +
 '@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(0,120,212,0.35); } 50% { box-shadow: 0 4px 24px rgba(0,120,212,0.6), 0 0 40px rgba(0,120,212,0.2); } }\n' +
@@ -181,15 +154,12 @@ module.exports = async function handler(req, res) {
 '.btn-glass:hover { box-shadow: 0 0 10px rgba(255,255,255,0.08); }\n' +
 '.link-icon:hover { box-shadow: 0 0 10px rgba(99,164,255,0.3); }\n' +
 '.btn-li:hover { box-shadow: 0 0 10px rgba(10,102,194,0.35); }\n' +
-// Gradient bottom line on hover for glass buttons
 '.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.25s ease; }\n' +
 '.btn-glass { position: relative; overflow: hidden; }\n' +
 '.btn-glass:hover::after { opacity: 0.3; }\n' +
-// Rich text editor
 '.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
 '.rich-editor:focus { border-color: #1A4EA2; }\n' +
 '.rich-editor a { color: #63a4ff; text-decoration: underline; }\n' +
-// Outlook toggle
 '.outlook-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(255,255,255,0.45); }\n' +
 '.outlook-toggle-btns { display: inline-flex; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }\n' +
 '.outlook-toggle-btn { padding: 2px 10px; font-size: 10px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.4); transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
@@ -308,7 +278,6 @@ module.exports = async function handler(req, res) {
 '  return "Hi " + firstName + ", I saw " + lead.company + " is hiring for a " + lead.jobTitle + " and thought I would reach out. We help companies find top talent fast. Happy to connect: https://impactbusinessgroup.com/?cid=" + uid;\n' +
 '}\n' +
 '\n' +
-// Logo functions
 'async function fetchLogo(company, website, location, safeId, apolloLogo) {\n' +
 '  var ck=company.toLowerCase(); if(logoCache[ck]!==undefined){applyLogo(safeId,logoCache[ck]);return;}\n' +
 '  var domain=""; if(website){var w=website;if(w.indexOf("http")!==0)w="https://"+w;try{domain=new URL(w).hostname.replace("www.","");}catch(e){}}\n' +
@@ -316,25 +285,25 @@ module.exports = async function handler(req, res) {
 '  try{var u="/api/logo?domain="+encodeURIComponent(domain);if(apolloLogo)u+="&apollo_logo="+encodeURIComponent(apolloLogo);var r=await fetch(u);var d=await r.json();var url=d.url||null;logoCache[ck]=url;applyLogo(safeId,url);}catch(e){logoCache[ck]=null;applyLogo(safeId,null);}\n' +
 '}\n' +
 'function applyLogo(safeId, url) {\n' +
-'  var wrap=document.getElementById("logo-"+safeId),ini=document.getElementById("ini-"+safeId);if(!wrap)return;\n' +
+'  var wrap=_g("logo-"+safeId),ini=_g("ini-"+safeId);if(!wrap)return;\n' +
 '  if(url){var img=document.createElement("img");img.src=url;img.style.cssText="width:100%;height:100%;object-fit:cover;";img.onerror=function(){wrap.style.display="none";if(ini)ini.style.display="flex";};wrap.innerHTML="";wrap.appendChild(img);wrap.style.display="flex";if(ini)ini.style.display="none";}else{wrap.style.display="none";if(ini)ini.style.display="flex";}\n' +
 '}\n' +
 '\n' +
 'async function init() {\n' +
 '  var today=new Date();\n' +
-'  document.getElementById("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
-'  document.getElementById("queue-sub").textContent="All pending leads";\n' +
+'  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
+'  _g("queue-sub").textContent="All pending leads";\n' +
 '  try{\n' +
 '    var results=await Promise.all([fetch("/api/leads").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
 '    leads=results[0].leads||[];blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
-'    document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||"");});\n' +
-'  }catch(e){console.error("Init error:",e);document.getElementById("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
+'  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
 'function renderLeads() {\n' +
-'  var container=document.getElementById("leads-container");\n' +
+'  var container=_g("leads-container");\n' +
 '  if(!leads.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
 '  container.innerHTML=leads.map(function(lead){return renderCard(lead);}).join("");\n' +
 '  leads.forEach(function(lead){\n' +
@@ -443,21 +412,21 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function onSubjectSelect(safeId) {\n' +
-'  var sel=document.getElementById("subj-select-"+safeId);\n' +
-'  var inp=document.getElementById("subj-"+safeId);\n' +
+'  var sel=_g("subj-select-"+safeId);\n' +
+'  var inp=_g("subj-"+safeId);\n' +
 '  if(sel&&inp) inp.value=sel.value;\n' +
 '}\n' +
 '\n' +
 'function switchCardTab(safeId, tab, btn) {\n' +
-'  var card=document.getElementById("card-"+safeId);if(!card)return;\n' +
+'  var card=_g("card-"+safeId);if(!card)return;\n' +
 '  card.querySelectorAll(".composer .tab").forEach(function(t){t.classList.remove("active");});\n' +
 '  btn.classList.add("active");\n' +
-'  document.getElementById("email-pane-"+safeId).style.display=tab==="email"?"block":"none";\n' +
-'  document.getElementById("li-pane-"+safeId).style.display=tab==="linkedin"?"block":"none";\n' +
+'  _g("email-pane-"+safeId).style.display=tab==="email"?"block":"none";\n' +
+'  _g("li-pane-"+safeId).style.display=tab==="linkedin"?"block":"none";\n' +
 '}\n' +
 '\n' +
 'function copyLICard(safeId,btn) {\n' +
-'  navigator.clipboard.writeText(document.getElementById("libody-"+safeId).value).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy for LinkedIn";},2000);});\n' +
+'  navigator.clipboard.writeText(_g("libody-"+safeId).value).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy for LinkedIn";},2000);});\n' +
 '}\n' +
 '\n' +
 'function addContact(safeId, name, title, companyName, location, prospectId, opts) {\n' +
@@ -467,7 +436,6 @@ module.exports = async function handler(req, res) {
 '  var cid=safeId+"_c"+contactCounters[safeId];\n' +
 '  var ini=initials(name);\n' +
 '  var photoUrl=opts.photo_url||"";\n' +
-'  console.log("Contact photo:",name,photoUrl||"(none)");\n' +
 '  if(photoUrl&&photoUrl.indexOf("static.licdn.com")!==-1) photoUrl="";\n' +
 '  var avatarInner=photoUrl?\'<img src="\'+photoUrl+\'" onerror="this.parentNode.innerHTML=\\\'\'+ini+\'\\\'">\':ini;\n' +
 '  var linkedinUrl=opts.linkedin||"";\n' +
@@ -533,22 +501,22 @@ module.exports = async function handler(req, res) {
 '    if(!em) return;\n' +
 '    activateContact(cid,safeId);\n' +
 '  });\n' +
-'  document.getElementById("contacts-"+safeId).appendChild(card);\n' +
+'  _g("contacts-"+safeId).appendChild(card);\n' +
 '}\n' +
 '\n' +
 'function logFeedback(title,category,signal){\n' +
 '  fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"log_feedback",title:title,category:category,signal:signal})}).catch(function(){});\n' +
 '}\n' +
 'function toggleRemoveDD(cid){\n' +
-'  var dd=document.getElementById("rdd-"+cid);\n' +
+'  var dd=_g("rdd-"+cid);\n' +
 '  if(dd) dd.classList.toggle("open");\n' +
 '}\n' +
 'function removeContact(cid) {\n' +
-'  var el=document.getElementById("cb-"+cid);\n' +
+'  var el=_g("cb-"+cid);\n' +
 '  if(el){el.style.opacity="0";el.style.transition="opacity 0.2s";setTimeout(function(){el.remove();},200);}\n' +
 '}\n' +
 'function removeWrongType(cid,safeId){\n' +
-'  var card=document.getElementById("cb-"+cid);\n' +
+'  var card=_g("cb-"+cid);\n' +
 '  if(card){\n' +
 '    var title=card.getAttribute("data-title")||"";\n' +
 '    var cat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
@@ -557,9 +525,8 @@ module.exports = async function handler(req, res) {
 '  removeContact(cid);\n' +
 '}\n' +
 '\n' +
-// Activate contact (tile click - requires email)
 'async function activateContact(cid, safeId) {\n' +
-'  var card=document.getElementById("cb-"+cid);\n' +
+'  var card=_g("cb-"+cid);\n' +
 '  if(!card) return;\n' +
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
@@ -599,28 +566,28 @@ module.exports = async function handler(req, res) {
 '  // Mark active\n' +
 '  var prevActive=activeContacts[safeId];\n' +
 '  if(prevActive){\n' +
-'    var prevCard=document.getElementById("cb-"+prevActive);\n' +
+'    var prevCard=_g("cb-"+prevActive);\n' +
 '    if(prevCard) prevCard.classList.remove("active");\n' +
 '  }\n' +
 '  activeContacts[safeId]=cid;\n' +
 '  card.classList.add("active");\n' +
 '\n' +
 '  // Enable Send Email button\n' +
-'  var sendBtn=document.getElementById("send-btn-"+safeId);\n' +
+'  var sendBtn=_g("send-btn-"+safeId);\n' +
 '  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("title");sendBtn.classList.add("pulse");}\n' +
 '\n' +
 '  // Activate composer with merge fields\n' +
-'  document.getElementById("composer-prompt-"+safeId).style.display="none";\n' +
-'  document.getElementById("composer-active-"+safeId).style.display="block";\n' +
+'  _g("composer-prompt-"+safeId).style.display="none";\n' +
+'  _g("composer-active-"+safeId).style.display="block";\n' +
 '\n' +
-'  var subjInput=document.getElementById("subj-"+safeId);\n' +
-'  var ebodyEl=document.getElementById("ebody-"+safeId);\n' +
-'  var libodyEl=document.getElementById("libody-"+safeId);\n' +
+'  var subjInput=_g("subj-"+safeId);\n' +
+'  var ebodyEl=_g("ebody-"+safeId);\n' +
+'  var libodyEl=_g("libody-"+safeId);\n' +
 '\n' +
 '  // If first time or no state, populate fresh\n' +
 '  if(!composerState[safeId]){\n' +
 '    composerState[safeId]={subj:"",body:"",li:"",lastFirstName:"",lastUniqid:""};\n' +
-'    var sel=document.getElementById("subj-select-"+safeId);\n' +
+'    var sel=_g("subj-select-"+safeId);\n' +
 '    if(sel) subjInput.value=sel.options[0].value;\n' +
 '    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,firstName,uniqid);\n' +
 '    if(lead) libodyEl.value=getLITemplate(lead,firstName,uniqid);\n' +
@@ -654,15 +621,14 @@ module.exports = async function handler(req, res) {
 'function sendEmail(safeId) {\n' +
 '  var activeCid=activeContacts[safeId];\n' +
 '  if(!activeCid) return;\n' +
-'  var card=document.getElementById("cb-"+activeCid);\n' +
+'  var card=_g("cb-"+activeCid);\n' +
 '  if(!card) return;\n' +
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
-'  var subject=encodeURIComponent(document.getElementById("subj-"+safeId).value);\n' +
-'  var htmlBody=document.getElementById("ebody-"+safeId).innerHTML;\n' +
-'  navigator.clipboard.writeText(htmlBody).then(function(){\n' +
-'    showToast("Email copied - paste into Outlook",3000);\n' +
-'  }).catch(function(){});\n' +
+'  var subject=encodeURIComponent(_g("subj-"+safeId).value);\n' +
+'  var htmlBody=_g("ebody-"+safeId).innerHTML;\n' +
+'  var plainText=_g("ebody-"+safeId).innerText;\n' +
+'  try{navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([htmlBody],{type:"text/html"}),"text/plain":new Blob([plainText],{type:"text/plain"})})]).then(function(){showToast("Email copied - paste into Outlook",3000);}).catch(function(){navigator.clipboard.writeText(htmlBody).then(function(){showToast("Email copied - paste into Outlook",3000);});});}catch(e){navigator.clipboard.writeText(htmlBody);showToast("Email copied - paste into Outlook",3000);}\n' +
 '  var pref=localStorage.getItem("outlook_preference")||"classic";\n' +
 '  if(pref==="new") window.location.href="ms-outlook://compose?to="+encodeURIComponent(email)+"&subject="+subject;\n' +
 '  else window.location.href="mailto:"+email+"?subject="+subject;\n' +
@@ -670,9 +636,9 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'async function getEmail(cid, safeId) {\n' +
-'  var btn=document.getElementById("ge-"+cid);\n' +
+'  var btn=_g("ge-"+cid);\n' +
 '  btn.textContent="Fetching...";btn.disabled=true;\n' +
-'  var card=document.getElementById("cb-"+cid);\n' +
+'  var card=_g("cb-"+cid);\n' +
 '  var name=card.getAttribute("data-name")||"";\n' +
 '  var title=card.getAttribute("data-title")||"";\n' +
 '  var companyName=card.getAttribute("data-company")||"";\n' +
@@ -687,9 +653,9 @@ module.exports = async function handler(req, res) {
 '    var email=d.email||null;\n' +
 '    if(email){\n' +
 '      card.setAttribute("data-email",email);\n' +
-'      var epEl=document.getElementById("ep-"+cid);if(epEl)epEl.style.display="none";\n' +
-'      var evEl=document.getElementById("ev-"+cid);if(evEl){evEl.style.display="inline";evEl.textContent=email;}\n' +
-'      var cnEl=document.getElementById("cn-"+cid);if(cnEl)cnEl.remove();\n' +
+'      var epEl=_g("ep-"+cid);if(epEl)epEl.style.display="none";\n' +
+'      var evEl=_g("ev-"+cid);if(evEl){evEl.style.display="inline";evEl.textContent=email;}\n' +
+'      var cnEl=_g("cn-"+cid);if(cnEl)cnEl.remove();\n' +
 '      btn.remove();\n' +
 '      card.style.cursor="pointer";\n' +
 '      var geCat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
@@ -704,34 +670,33 @@ module.exports = async function handler(req, res) {
 '      }\n' +
 '    } else {\n' +
 '      btn.textContent="Not found";btn.disabled=true;\n' +
-'      var epEl2=document.getElementById("ep-"+cid);if(epEl2)epEl2.textContent="Email not found";\n' +
+'      var epEl2=_g("ep-"+cid);if(epEl2)epEl2.textContent="Email not found";\n' +
 '    }\n' +
 '  }catch(e){btn.textContent="Failed";btn.disabled=false;}\n' +
 '}\n' +
 '\n' +
-// Additional Contacts modal
 'var _acSafeId="";\n' +
 'function openACModal(safeId) {\n' +
 '  _acSafeId=safeId;\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
 '  if(!lead||!lead.allContacts||!lead.allContacts.length){showToast("No additional contacts available.",2000);return;}\n' +
-'  document.getElementById("ac-title").textContent="Additional Contacts - "+lead.company;\n' +
-'  var body=document.getElementById("ac-body");\n' +
+'  _g("ac-title").textContent="Additional Contacts - "+lead.company;\n' +
+'  var body=_g("ac-body");\n' +
 '  body.innerHTML=lead.allContacts.map(function(c,i){\n' +
 '    return \'<div class="modal-row" id="ac-row-\'+safeId+\'-\'+i+\'">\'+\n' +
 '      \'<div><div class="modal-row-name">\'+c.first_name+" "+c.last_name_obfuscated+\'</div><div class="modal-row-title">\'+c.title+\'</div></div>\'+\n' +
 '      \'<button class="search-add-btn" onclick="addFromModal(\\\'\'+safeId+\'\\\',\'+i+\')">+ Add</button>\'+\n' +
 '    \'</div>\';\n' +
 '  }).join("");\n' +
-'  document.getElementById("ac-overlay").classList.add("open");\n' +
+'  _g("ac-overlay").classList.add("open");\n' +
 '}\n' +
-'function closeACModal(){document.getElementById("ac-overlay").classList.remove("open");}\n' +
+'function closeACModal(){_g("ac-overlay").classList.remove("open");}\n' +
 '\n' +
 'async function addFromModal(safeId, idx) {\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
 '  if(!lead||!lead.allContacts||!lead.allContacts[idx]) return;\n' +
 '  var ac=lead.allContacts[idx];\n' +
-'  var row=document.getElementById("ac-row-"+safeId+"-"+idx);\n' +
+'  var row=_g("ac-row-"+safeId+"-"+idx);\n' +
 '  var btn=row.querySelector(".search-add-btn");\n' +
 '  btn.textContent="Adding...";btn.disabled=true;\n' +
 '  // Call enrich action=match to get full name + LinkedIn (1 credit)\n' +
@@ -766,11 +731,11 @@ module.exports = async function handler(req, res) {
 'function openJD(safeId) {\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
 '  if(!lead)return;\n' +
-'  document.getElementById("jd-popup-title").textContent=lead.company+" - "+lead.jobTitle;\n' +
-'  document.getElementById("jd-popup-body").textContent=lead.description||"No description available.";\n' +
-'  document.getElementById("jd-overlay").classList.add("open");\n' +
+'  _g("jd-popup-title").textContent=lead.company+" - "+lead.jobTitle;\n' +
+'  _g("jd-popup-body").textContent=lead.description||"No description available.";\n' +
+'  _g("jd-overlay").classList.add("open");\n' +
 '}\n' +
-'function closeJDBtn(){document.getElementById("jd-overlay").classList.remove("open");}\n' +
+'function closeJDBtn(){_g("jd-overlay").classList.remove("open");}\n' +
 '\n' +
 'document.addEventListener("click",function(e){\n' +
 '  if(!e.target.classList.contains("search-input")){\n' +
@@ -780,15 +745,12 @@ module.exports = async function handler(req, res) {
 '    document.querySelectorAll(".remove-dd.open").forEach(function(el){el.classList.remove("open");});\n' +
 '  }\n' +
 '});\n' +
-'function showSS(safeId){var el=document.getElementById("ss-"+safeId);if(el)el.style.display="block";}\n' +
-'function filterSS(input,safeId){var val=input.value.toLowerCase();var r=document.getElementById("ss-"+safeId);if(!r)return;r.style.display="block";r.querySelectorAll(".search-result-item").forEach(function(item){var n=item.querySelector("div > div").textContent.toLowerCase();item.style.display=n.includes(val)?"flex":"none";});}\n' +
 '\n' +
-// Toast, confirm, skip, block
 'var _skipTimer=null,_skipUndone=false;\n' +
-'function showToast(html,dur){var c=document.getElementById("toast-container");document.getElementById("toast-inner").innerHTML=html;c.classList.add("show");return setTimeout(function(){c.classList.remove("show");},dur||5000);}\n' +
-'function hideToast(){document.getElementById("toast-container").classList.remove("show");}\n' +
-'function showConfirm(t,s,bl,fn,btnCls){document.getElementById("confirm-title").textContent=t;document.getElementById("confirm-sub").textContent=s;var b=document.getElementById("confirm-action-btn");b.textContent=bl;b.className="btn-glass "+(btnCls||"btn-glass-block");b.onclick=function(){closeConfirm();fn();};document.getElementById("confirm-overlay").classList.add("open");}\n' +
-'function closeConfirm(){document.getElementById("confirm-overlay").classList.remove("open");}\n' +
+'function showToast(html,dur){var c=_g("toast-container");_g("toast-inner").innerHTML=html;c.classList.add("show");return setTimeout(function(){c.classList.remove("show");},dur||5000);}\n' +
+'function hideToast(){_g("toast-container").classList.remove("show");}\n' +
+'function showConfirm(t,s,bl,fn,btnCls){_g("confirm-title").textContent=t;_g("confirm-sub").textContent=s;var b=_g("confirm-action-btn");b.textContent=bl;b.className="btn-glass "+(btnCls||"btn-glass-block");b.onclick=function(){closeConfirm();fn();};_g("confirm-overlay").classList.add("open");}\n' +
+'function closeConfirm(){_g("confirm-overlay").classList.remove("open");}\n' +
 '\n' +
 'function toggleBlockCompany(company,btn){\n' +
 '  var isBlocked=isCompanyBlocked(company);\n' +
@@ -803,8 +765,8 @@ module.exports = async function handler(req, res) {
 '    blocklist.companies.push(company);\n' +
 '    var rm=[];leads.forEach(function(l){if(l.company.toLowerCase()===company.toLowerCase())rm.push(getSafeId(l.id));});\n' +
 '    leads=leads.filter(function(l){return l.company.toLowerCase()!==company.toLowerCase();});\n' +
-'    rm.forEach(function(sid){var c=document.getElementById("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
-'    document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'    rm.forEach(function(sid){var c=_g("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
+'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '  });\n' +
 '}\n' +
 '\n' +
@@ -813,17 +775,17 @@ module.exports = async function handler(req, res) {
 '  _skipUndone=false;\n' +
 '  var lead=leads.find(function(l){return l.id===realId;});\n' +
 '  var cn=lead?lead.company:"";\n' +
-'  var card=document.getElementById("card-"+safeId);\n' +
+'  var card=_g("card-"+safeId);\n' +
 '  var cardHTML=card?card.outerHTML:null,cardParent=card?card.parentNode:null,cardNext=card?card.nextSibling:null;\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.2s";setTimeout(function(){if(!_skipUndone)card.remove();},200);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'  document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '  _skipTimer=showToast("Lead skipped: "+cn+" <button class=\\"toast-undo\\" onclick=\\"undoSkip()\\">Undo</button>",5000);\n' +
 '  var pRealId=realId,pLead=lead;\n' +
 '  window._skipUndo=function(){\n' +
 '    _skipUndone=true;clearTimeout(_skipTimer);hideToast();\n' +
 '    if(pLead)leads.push(pLead);\n' +
-'    document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '    if(cardHTML&&cardParent){var tmp=document.createElement("div");tmp.innerHTML=cardHTML;var r=tmp.firstChild;r.style.opacity="0";r.style.transition="opacity 0.3s";if(cardNext&&cardNext.parentNode===cardParent)cardParent.insertBefore(r,cardNext);else cardParent.appendChild(r);setTimeout(function(){r.style.opacity="1";},10);fetchLogo(pLead.company,pLead.employerWebsite||"",pLead.location||"",getSafeId(pLead.id));}\n' +
 '  };\n' +
 '  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped"}})});},5200);\n' +
@@ -835,10 +797,10 @@ module.exports = async function handler(req, res) {
 '  var cn=lead?lead.company:"";\n' +
 '  showConfirm("Mark this lead as complete?","A follow-up reminder will be scheduled for 3 business days.","Complete",function(){\n' +
 '    fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:realId,updates:{status:"completed",assignedAM:AM.name}})}).then(function(){showToast("Lead completed",3000);}).catch(function(){});\n' +
-'    var card=document.getElementById("card-"+safeId);\n' +
+'    var card=_g("card-"+safeId);\n' +
 '    if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '    leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'    document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '  },"btn-glass-complete");\n' +
 '}\n' +
 '\n' +
@@ -846,29 +808,29 @@ module.exports = async function handler(req, res) {
 'function openReassignModal(safeId, realId) {\n' +
 '  _reassignSafeId=safeId;_reassignRealId=realId;\n' +
 '  var lead=leads.find(function(l){return l.id===realId;});\n' +
-'  document.getElementById("reassign-title").textContent="Reassign Lead"+(lead?" - "+lead.company:"");\n' +
-'  var body=document.getElementById("reassign-body");\n' +
+'  _g("reassign-title").textContent="Reassign Lead"+(lead?" - "+lead.company:"");\n' +
+'  var body=_g("reassign-body");\n' +
 '  body.innerHTML=AM_NAMES.map(function(name){\n' +
 '    return \'<div class="reassign-item"><span>\'+ name +\'</span><button class="reassign-btn" onclick="reassignLead(\\\'\'+name.replace(/\x27/g,"\\\\\\x27")+\'\\\')">Reassign</button></div>\';\n' +
 '  }).join("");\n' +
-'  document.getElementById("reassign-overlay").classList.add("open");\n' +
+'  _g("reassign-overlay").classList.add("open");\n' +
 '}\n' +
-'function closeReassignModal(){document.getElementById("reassign-overlay").classList.remove("open");}\n' +
+'function closeReassignModal(){_g("reassign-overlay").classList.remove("open");}\n' +
 '\n' +
 'function reassignLead(amName) {\n' +
 '  closeReassignModal();\n' +
 '  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,updates:{assignedAM:amName}})}).catch(function(){});\n' +
-'  var card=document.getElementById("card-"+_reassignSafeId);\n' +
+'  var card=_g("card-"+_reassignSafeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==_reassignRealId;});\n' +
-'  document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
 '  showToast("Lead reassigned to "+amName,3000);\n' +
 '}\n' +
 '\n' +
 'function setOutlookPref(pref){\n' +
 '  localStorage.setItem("outlook_preference",pref);\n' +
-'  document.getElementById("ol-classic").classList.toggle("active",pref==="classic");\n' +
-'  document.getElementById("ol-new").classList.toggle("active",pref==="new");\n' +
+'  _g("ol-classic").classList.toggle("active",pref==="classic");\n' +
+'  _g("ol-new").classList.toggle("active",pref==="new");\n' +
 '}\n' +
 '(function(){\n' +
 '  var pref=localStorage.getItem("outlook_preference")||"classic";\n' +
