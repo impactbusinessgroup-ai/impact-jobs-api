@@ -160,6 +160,13 @@ module.exports = async function handler(req, res) {
 '.reassign-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: background 0.15s; }\n' +
 '.reassign-item:last-child { border-bottom: none; }\n' +
 '.reassign-item:hover { background: rgba(255,255,255,0.06); color: #fff; }\n' +
+'.remove-wrap { position: relative; display: inline-block; }\n' +
+'.remove-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #1a2744; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; min-width: 190px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
+'.remove-dd.open { display: block; }\n' +
+'.remove-dd-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 11px; color: rgba(255,255,255,0.6); }\n' +
+'.remove-dd-item:last-child { border-bottom: none; }\n' +
+'.remove-dd-btn { font-size: 10px; font-weight: 600; color: #ef6961; background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.2); border-radius: 5px; padding: 2px 8px; cursor: pointer; }\n' +
+'.remove-dd-btn:hover { background: rgba(198,40,40,0.25); }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -478,7 +485,11 @@ module.exports = async function handler(req, res) {
 '    \'<div class="contact-actions">\'+\n' +
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" title="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
-'      \'<button class="btn-ghost" onclick="event.stopPropagation();removeContact(\\\'\'+cid+\'\\\')">Remove</button>\'+\n' +
+'      \'<div class="remove-wrap"><button class="btn-ghost" onclick="event.stopPropagation();toggleRemoveDD(\\\'\'+cid+\'\\\')">Remove</button><div class="remove-dd" id="rdd-\'+cid+\'">\'+\n' +
+'        \'<div class="remove-dd-item"><span>Wrong contact type</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWrongType(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Remove</button></div>\'+\n' +
+'        \'<div class="remove-dd-item"><span>Existing contact</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeContact(\\\'\'+cid+\'\\\')">Remove</button></div>\'+\n' +
+'        \'<div class="remove-dd-item"><span>Other</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeContact(\\\'\'+cid+\'\\\')">Remove</button></div>\'+\n' +
+'      \'</div></div>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
 '  if(hasEmail) card.style.cursor="pointer";\n' +
@@ -491,9 +502,25 @@ module.exports = async function handler(req, res) {
 '  document.getElementById("contacts-"+safeId).appendChild(card);\n' +
 '}\n' +
 '\n' +
+'function logFeedback(title,category,signal){\n' +
+'  fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"log_feedback",title:title,category:category,signal:signal})}).catch(function(){});\n' +
+'}\n' +
+'function toggleRemoveDD(cid){\n' +
+'  var dd=document.getElementById("rdd-"+cid);\n' +
+'  if(dd) dd.classList.toggle("open");\n' +
+'}\n' +
 'function removeContact(cid) {\n' +
 '  var el=document.getElementById("cb-"+cid);\n' +
 '  if(el){el.style.opacity="0";el.style.transition="opacity 0.2s";setTimeout(function(){el.remove();},200);}\n' +
+'}\n' +
+'function removeWrongType(cid,safeId){\n' +
+'  var card=document.getElementById("cb-"+cid);\n' +
+'  if(card){\n' +
+'    var title=card.getAttribute("data-title")||"";\n' +
+'    var cat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
+'    logFeedback(title,cat,"mild_negative");\n' +
+'  }\n' +
+'  removeContact(cid);\n' +
 '}\n' +
 '\n' +
 // Activate contact (tile click - requires email)
@@ -629,6 +656,8 @@ module.exports = async function handler(req, res) {
 '      var cnEl=document.getElementById("cn-"+cid);if(cnEl)cnEl.remove();\n' +
 '      btn.remove();\n' +
 '      card.style.cursor="pointer";\n' +
+'      var geCat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
+'      logFeedback(title,geCat,"positive");\n' +
 '      if(leadRedisId){\n' +
 '        var lead=leads.find(function(l){return l.id===leadRedisId;});\n' +
 '        if(lead&&lead.contacts){\n' +
@@ -681,6 +710,8 @@ module.exports = async function handler(req, res) {
 '    addContact(safeId,fullName,d.title||ac.title,lead.company,lead.location||"",ac.apollo_id,{\n' +
 '      suggested:true,city:d.city||"",region:d.state||"",linkedin:linkedin\n' +
 '    });\n' +
+'    var addCat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
+'    logFeedback(d.title||ac.title,addCat,"positive");\n' +
 '    // Save to lead contacts in Redis\n' +
 '    var leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
 '    if(!lead.contacts) lead.contacts=[];\n' +
@@ -708,6 +739,9 @@ module.exports = async function handler(req, res) {
 'document.addEventListener("click",function(e){\n' +
 '  if(!e.target.classList.contains("search-input")){\n' +
 '    document.querySelectorAll(\'[id^="ss-"]\').forEach(function(el){if(!el.contains(e.target))el.style.display="none";});\n' +
+'  }\n' +
+'  if(!e.target.closest(".remove-wrap")){\n' +
+'    document.querySelectorAll(".remove-dd.open").forEach(function(el){el.classList.remove("open");});\n' +
 '  }\n' +
 '});\n' +
 'function showSS(safeId){var el=document.getElementById("ss-"+safeId);if(el)el.style.display="block";}\n' +
