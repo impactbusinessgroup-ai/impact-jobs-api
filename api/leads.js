@@ -20,13 +20,15 @@ async function redisGet(key) {
 
 async function redisSet(key, value, exSeconds) {
   const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  const body = { value: JSON.stringify(value) };
+  if (exSeconds) body.ex = exSeconds;
   await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -57,7 +59,7 @@ module.exports = async function handler(req, res) {
     for (const key of keys) {
       try {
         const lead = await redisGet(key);
-        if (lead && lead.status !== 'skipped' && lead.company) {
+        if (lead && lead.status !== 'skipped' && lead.status !== 'completed' && lead.company) {
           const norm = (lead.normalizedCompany || lead.company.toLowerCase()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
           const isBlocked = blockedCompanies.some(bc => norm.includes(bc) || bc.includes(norm));
           if (!isBlocked) leads.push(lead);
@@ -87,7 +89,41 @@ module.exports = async function handler(req, res) {
     const updated = { ...lead, ...updates };
     await redisSet(id, updated, 60 * 60 * 24 * 7);
 
+    if (updates.status === 'completed') {
+      const domain = lead.company_domain || '';
+      if (domain) {
+        const completedDomains = (await redisGet('completed_domains')) || [];
+        if (!completedDomains.includes(domain)) {
+          completedDomains.push(domain);
+          await redisSet('completed_domains', completedDomains);
+        }
+      }
+      const followupEntry = {
+        leadId: id,
+        companyName: lead.company || '',
+        jobTitle: lead.jobTitle || '',
+        assignedAM: updates.assignedAM || lead.assignedAM || '',
+        completedAt: new Date().toISOString(),
+      };
+      const queue = (await redisGet('followup_queue')) || [];
+      queue.push(followupEntry);
+      await redisSet('followup_queue', queue);
+    }
+
     return res.status(200).json({ ok: true, lead: updated });
+  }
+
+  // POST -- log contact feedback
+  if (method === 'POST') {
+    const { action, title, category, signal } = req.body;
+    if (action === 'log_feedback' && title && category && signal) {
+      const entry = { title, category, signal, date: new Date().toISOString().split('T')[0] };
+      const feedback = (await redisGet('contact_feedback')) || [];
+      feedback.push(entry);
+      await redisSet('contact_feedback', feedback);
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(400).json({ error: 'Invalid feedback payload' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

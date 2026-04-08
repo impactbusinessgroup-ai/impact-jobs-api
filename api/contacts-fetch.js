@@ -161,7 +161,38 @@ async function processLead(lead, leadKey) {
   }
 
   // Step 2: Gemini generates broad title keywords
+  var feedbackSummary = '';
+  try {
+    var feedback = await redisGet('contact_feedback');
+    if (Array.isArray(feedback) && feedback.length > 0) {
+      var catFeedback = feedback.filter(function(f) { return f.category === cat; });
+      var titleCounts = {};
+      catFeedback.forEach(function(f) {
+        var key = f.title + '|' + f.signal;
+        titleCounts[key] = (titleCounts[key] || 0) + 1;
+      });
+      var positives = [];
+      var negatives = [];
+      Object.keys(titleCounts).forEach(function(key) {
+        if (titleCounts[key] >= 3) {
+          var parts = key.split('|');
+          if (parts[1] === 'positive') positives.push(parts[0]);
+          else if (parts[1] === 'mild_negative') negatives.push(parts[0]);
+        }
+      });
+      if (positives.length > 0 || negatives.length > 0) {
+        var summaryParts = [];
+        if (positives.length) summaryParts.push('Titles that have performed well: ' + positives.join(', '));
+        if (negatives.length) summaryParts.push('Titles that have underperformed: ' + negatives.join(', '));
+        feedbackSummary = summaryParts.join('. ') + '.';
+      }
+    }
+  } catch (e) {
+    console.log('Feedback read error:', e.message);
+  }
+
   var titlesPrompt = 'You are helping a staffing agency find hiring decision makers for this job posting. Read the full job description carefully and determine what type of role this is and who within the company would likely be involved in hiring for it.\n\nGenerate 8-12 search keywords representing the titles of people who would be hiring decision makers for this role. Think broadly -- a manufacturing engineer might report to a Plant Manager, Engineering Manager, Director of Manufacturing, or VP of Operations depending on the company. Cast a wide net with varied title keywords so we can find whoever holds that responsibility at this specific type of company.\n\nJob title: ' + lead.jobTitle + '\nCompany: ' + lead.company + '\nFull job description: ' + description + '\n\nReturn only a JSON array of title keyword phrases, no other text.';
+  if (feedbackSummary) titlesPrompt += '\n\nNote from past outreach performance: ' + feedbackSummary;
 
   console.log('Gemini title prompt length:', lead.company, '-', titlesPrompt.length, 'chars');
   var titlesText = await callGemini(titlesPrompt, 1000);

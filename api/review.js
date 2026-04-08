@@ -51,7 +51,7 @@ module.exports = async function handler(req, res) {
 '.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; font-family: Oswald, sans-serif; }\n' +
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 16px 0; }\n' +
-'.section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }\n' +
+'.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }\n' +
 // Contact cards
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
 '.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: all 0.2s; }\n' +
@@ -93,7 +93,7 @@ module.exports = async function handler(req, res) {
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #63a4ff; border-color: rgba(26,78,162,0.3); }\n' +
 // Composer
 '.composer { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
-'.composer-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: Oswald, sans-serif; }\n' +
+'.composer-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: Oswald, sans-serif; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
 '.subject-select { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.04); color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 4px; appearance: auto; cursor: pointer; }\n' +
 '.subject-select:focus { outline: none; border-color: #1A4EA2; }\n' +
@@ -150,6 +150,16 @@ module.exports = async function handler(req, res) {
 '.loading { text-align: center; padding: 80px; color: rgba(255,255,255,0.4); font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: rgba(255,255,255,0.6); font-family: Oswald, sans-serif; }\n' +
+'.btn-send-email { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; background: #0078D4; color: white; font-family: Raleway, sans-serif; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,120,212,0.3); margin-top: 10px; }\n' +
+'.btn-send-email:hover { background: #106EBE; box-shadow: 0 4px 16px rgba(0,120,212,0.4); }\n' +
+'.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
+'.btn-glass-complete { background: rgba(29,158,117,0.15); color: #6EE7C7; border-color: rgba(29,158,117,0.3); }\n' +
+'.btn-glass-complete:hover { background: rgba(29,158,117,0.25); }\n' +
+'.btn-glass-reassign { background: rgba(99,164,255,0.12); color: #93C5FD; border-color: rgba(99,164,255,0.25); }\n' +
+'.btn-glass-reassign:hover { background: rgba(99,164,255,0.2); }\n' +
+'.reassign-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: background 0.15s; }\n' +
+'.reassign-item:last-child { border-bottom: none; }\n' +
+'.reassign-item:hover { background: rgba(255,255,255,0.06); color: #fff; }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -193,6 +203,16 @@ module.exports = async function handler(req, res) {
 '  </div>\n' +
 '</div>\n' +
 '\n' +
+'<div class="modal-overlay" id="reassign-overlay" onclick="if(event.target===this)closeReassignModal()">\n' +
+'  <div class="modal">\n' +
+'    <div class="modal-header">\n' +
+'      <h3 id="reassign-title">Reassign Lead</h3>\n' +
+'      <button class="modal-close" onclick="closeReassignModal()">&#x2715;</button>\n' +
+'    </div>\n' +
+'    <div class="modal-body" id="reassign-body"></div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
 '<div class="container">\n' +
 '  <div class="queue-bar">\n' +
 '    <div>\n' +
@@ -211,6 +231,10 @@ module.exports = async function handler(req, res) {
 'var SVG_LINK = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>\';\n' +
 'var SVG_MAIL = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>\';\n' +
 'var SVG_PLUS = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>\';\n' +
+'var SVG_OUTLOOK_LOGO = \'<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="1" y="3" width="22" height="18" rx="3" fill="#0078D4"/><path d="M2 6l10 7 10-7" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>\';\n' +
+'var SVG_CHECK = \'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>\';\n' +
+'var SVG_REASSIGN = \'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>\';\n' +
+'var AM_NAMES = ["Doug Koetsier","Paul Kujawski","Matt Peal","Lauren Sylvester","Dan Teliczan","Curt Willbrandt","Trish Wangler","Tyler Ray","Mark Herman","Jamie Drajka","Drew Bentsen","Steve Betteley"];\n' +
 '\n' +
 'var AM = { name: "Mark Sapoznikov", email: "msapoznikov@impactbusinessgroup.com" };\n' +
 'var leads = [];\n' +
@@ -361,6 +385,7 @@ module.exports = async function handler(req, res) {
 '            \'</select>\'+\n' +
 '            \'<input class="subject-input" type="text" id="subj-\'+safeId+\'" placeholder="Subject line (editable)">\'+\n' +
 '            \'<textarea id="ebody-\'+safeId+\'"></textarea>\'+\n' +
+'            \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" title="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="li-pane-\'+safeId+\'" style="display:none;">\'+\n' +
 '            \'<textarea id="libody-\'+safeId+\'" style="min-height:80px;font-family:Raleway,sans-serif;"></textarea>\'+\n' +
@@ -373,6 +398,8 @@ module.exports = async function handler(req, res) {
 '      \'<button class="btn-glass btn-glass-skip" onclick="skipLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Skip</button>\'+\n' +
 '      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\'+companyEsc+\'\\\',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> \'+(blocked?"Unblock":"Block company")+\'</button>\'+\n' +
 '      \'<div style="flex:1;"></div>\'+\n' +
+'      \'<button class="btn-glass btn-glass-reassign" onclick="openReassignModal(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_REASSIGN +\' Reassign</button>\'+\n' +
+'      \'<button class="btn-glass btn-glass-complete" onclick="completeLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button>\'+\n' +
 '    \'</div>\'+\n' +
 '  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadRedisIds=window._leadRedisIds||{};window._leadJobTitles["\'+safeId+\'"]=\'+JSON.stringify(lead.jobTitle||"")+\';window._leadCategories["\'+safeId+\'"]=\'+JSON.stringify(lead.category||"engineering")+\';window._leadRedisIds["\'+safeId+\'"]=\'+JSON.stringify(lead.id||"")+\';<\\/script>\'+\n' +
 '  \'</div>\';\n' +
@@ -449,13 +476,18 @@ module.exports = async function handler(req, res) {
 '      \'</div>\'+\n' +
 '    \'</div>\'+\n' +
 '    \'<div class="contact-actions">\'+\n' +
-'      (hasEmail?"":\'<button class="btn btn-fetch" id="fb-\'+cid+\'" onclick="fetchEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Fetch email</button>\')+\n' +
-'      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" title="LinkedIn">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
-'      \'<button class="btn btn-select" id="sel-\'+cid+\'" onclick="selectContact(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Select</button>\'+\n' +
-'      \'<button class="btn btn-outlook \'+(!hasEmail?"disabled":"")+\'" id="ol-\'+cid+\'" onclick="openOutlookContact(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')" \'+(hasEmail?"":\'title="Select this contact first"\')+\'>\'+SVG_MAIL.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</button>\'+\n' +
-'      \'<button class="btn-ghost" onclick="removeContact(\\\'\'+cid+\'\\\')">Remove</button>\'+\n' +
+'      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
+'      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" title="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
+'      \'<button class="btn-ghost" onclick="event.stopPropagation();removeContact(\\\'\'+cid+\'\\\')">Remove</button>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
+'  if(hasEmail) card.style.cursor="pointer";\n' +
+'  card.addEventListener("click",function(e){\n' +
+'    if(e.target.closest(".contact-actions")) return;\n' +
+'    var em=card.getAttribute("data-email");\n' +
+'    if(!em) return;\n' +
+'    activateContact(cid,safeId);\n' +
+'  });\n' +
 '  document.getElementById("contacts-"+safeId).appendChild(card);\n' +
 '}\n' +
 '\n' +
@@ -464,58 +496,22 @@ module.exports = async function handler(req, res) {
 '  if(el){el.style.opacity="0";el.style.transition="opacity 0.2s";setTimeout(function(){el.remove();},200);}\n' +
 '}\n' +
 '\n' +
-// Select contact
-'async function selectContact(cid, safeId) {\n' +
+// Activate contact (tile click - requires email)
+'async function activateContact(cid, safeId) {\n' +
 '  var card=document.getElementById("cb-"+cid);\n' +
 '  if(!card) return;\n' +
+'  var email=card.getAttribute("data-email")||"";\n' +
+'  if(!email) return;\n' +
 '  var name=card.getAttribute("data-name");\n' +
 '  var title=card.getAttribute("data-title");\n' +
 '  var companyName=card.getAttribute("data-company");\n' +
-'  var location=card.getAttribute("data-location");\n' +
 '  var prospectId=card.getAttribute("data-prospect-id")||"";\n' +
-'  var email=card.getAttribute("data-email")||"";\n' +
 '  var uniqid=card.getAttribute("data-uniqid")||"";\n' +
 '  var firstName=name.split(" ")[0];\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
 '  var leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
 '\n' +
-'  var selBtn=document.getElementById("sel-"+cid);\n' +
-'  selBtn.textContent="Working...";\n' +
-'  selBtn.disabled=true;\n' +
-'\n' +
-'  // Step 1: Fetch email if missing\n' +
-'  if(!email){\n' +
-'    try{\n' +
-'      var payload={contactName:name,contactTitle:title,companyName:companyName,location:location,leadId:leadRedisId};\n' +
-'      if(prospectId) payload.apollo_id=prospectId;\n' +
-'      var r=await fetch("/api/enrich",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
-'      var d=await r.json();\n' +
-'      email=d.email||"";\n' +
-'      if(email){\n' +
-'        card.setAttribute("data-email",email);\n' +
-'        var epEl=document.getElementById("ep-"+cid);if(epEl)epEl.style.display="none";\n' +
-'        var evEl=document.getElementById("ev-"+cid);if(evEl){evEl.style.display="inline";evEl.textContent=email;}\n' +
-'        var cnEl=document.getElementById("cn-"+cid);if(cnEl)cnEl.textContent="1 credit used";\n' +
-'        var fbEl=document.getElementById("fb-"+cid);if(fbEl){fbEl.textContent="Email fetched";fbEl.className="btn btn-sent";fbEl.disabled=true;}\n' +
-'        var olEl=document.getElementById("ol-"+cid);if(olEl)olEl.classList.remove("disabled");\n' +
-'        // Persist to lead\n' +
-'        if(leadRedisId&&lead&&lead.contacts){\n' +
-'          var ci=lead.contacts.findIndex(function(c){return(c.apollo_id||"")===prospectId;});\n' +
-'          if(ci>=0) lead.contacts[ci].email=email;\n' +
-'          fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadRedisId,updates:{contacts:lead.contacts}})}).catch(function(){});\n' +
-'        }\n' +
-'      }\n' +
-'    }catch(e){console.error("Email fetch error:",e);}\n' +
-'  }\n' +
-'\n' +
-'  if(!email){\n' +
-'    selBtn.textContent="Select";\n' +
-'    selBtn.disabled=false;\n' +
-'    showToast("Could not retrieve email for this contact.",3000);\n' +
-'    return;\n' +
-'  }\n' +
-'\n' +
-'  // Step 2: Mailchimp lookup/add\n' +
+'  // Mailchimp lookup/add\n' +
 '  if(!uniqid){\n' +
 '    try{\n' +
 '      var mcRes=await fetch("/api/mailchimp?email="+encodeURIComponent(email));\n' +
@@ -539,21 +535,20 @@ module.exports = async function handler(req, res) {
 '    }catch(e){console.error("Mailchimp error:",e);}\n' +
 '  }\n' +
 '\n' +
-'  // Step 3: Mark active\n' +
+'  // Mark active\n' +
 '  var prevActive=activeContacts[safeId];\n' +
 '  if(prevActive){\n' +
 '    var prevCard=document.getElementById("cb-"+prevActive);\n' +
 '    if(prevCard) prevCard.classList.remove("active");\n' +
-'    var prevSel=document.getElementById("sel-"+prevActive);\n' +
-'    if(prevSel){prevSel.textContent="Select";prevSel.classList.remove("active");}\n' +
 '  }\n' +
 '  activeContacts[safeId]=cid;\n' +
 '  card.classList.add("active");\n' +
-'  selBtn.textContent="Active";\n' +
-'  selBtn.className="btn btn-select active";\n' +
-'  selBtn.disabled=false;\n' +
 '\n' +
-'  // Step 4: Activate composer with merge fields\n' +
+'  // Enable Send Email button\n' +
+'  var sendBtn=document.getElementById("send-btn-"+safeId);\n' +
+'  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("title");}\n' +
+'\n' +
+'  // Activate composer with merge fields\n' +
 '  document.getElementById("composer-prompt-"+safeId).style.display="none";\n' +
 '  document.getElementById("composer-active-"+safeId).style.display="block";\n' +
 '\n' +
@@ -595,29 +590,24 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '}\n' +
 '\n' +
-'function openOutlookContact(cid, safeId) {\n' +
-'  var card=document.getElementById("cb-"+cid);\n' +
+'function sendEmail(safeId) {\n' +
+'  var activeCid=activeContacts[safeId];\n' +
+'  if(!activeCid) return;\n' +
+'  var card=document.getElementById("cb-"+activeCid);\n' +
 '  if(!card) return;\n' +
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
-'  // Check if this contact is active\n' +
-'  if(activeContacts[safeId]!==cid){\n' +
-'    showToast("Select this contact first.",2000);\n' +
-'    return;\n' +
-'  }\n' +
 '  var subject=encodeURIComponent(document.getElementById("subj-"+safeId).value);\n' +
 '  var htmlBody=document.getElementById("ebody-"+safeId).value;\n' +
-'  // Copy HTML body to clipboard\n' +
 '  navigator.clipboard.writeText(htmlBody).then(function(){\n' +
-'    showToast("Email copied to clipboard - paste into Outlook",3000);\n' +
+'    showToast("Email copied - paste into Outlook",3000);\n' +
 '  }).catch(function(){});\n' +
-'  // Open mailto with subject only\n' +
-'  window.location.href="mailto:"+email+"?subject="+subject;\n' +
+'  window.location.href="ms-outlook://compose?to="+encodeURIComponent(email)+"&subject="+subject;\n' +
 '  card.classList.add("sent");\n' +
 '}\n' +
 '\n' +
-'async function fetchEmail(cid, safeId) {\n' +
-'  var btn=document.getElementById("fb-"+cid);\n' +
+'async function getEmail(cid, safeId) {\n' +
+'  var btn=document.getElementById("ge-"+cid);\n' +
 '  btn.textContent="Fetching...";btn.disabled=true;\n' +
 '  var card=document.getElementById("cb-"+cid);\n' +
 '  var name=card.getAttribute("data-name")||"";\n' +
@@ -635,11 +625,10 @@ module.exports = async function handler(req, res) {
 '    if(email){\n' +
 '      card.setAttribute("data-email",email);\n' +
 '      var epEl=document.getElementById("ep-"+cid);if(epEl)epEl.style.display="none";\n' +
-'      var evEl=document.getElementById("ev-"+cid);evEl.style.display="inline";evEl.textContent=email;\n' +
-'      var cnEl=document.getElementById("cn-"+cid);if(cnEl)cnEl.textContent="1 credit used";\n' +
-'      btn.textContent="Email fetched";btn.className="btn btn-sent";btn.disabled=true;\n' +
-'      var olEl=document.getElementById("ol-"+cid);if(olEl)olEl.classList.remove("disabled");\n' +
-'      // Persist\n' +
+'      var evEl=document.getElementById("ev-"+cid);if(evEl){evEl.style.display="inline";evEl.textContent=email;}\n' +
+'      var cnEl=document.getElementById("cn-"+cid);if(cnEl)cnEl.remove();\n' +
+'      btn.remove();\n' +
+'      card.style.cursor="pointer";\n' +
 '      if(leadRedisId){\n' +
 '        var lead=leads.find(function(l){return l.id===leadRedisId;});\n' +
 '        if(lead&&lead.contacts){\n' +
@@ -728,7 +717,7 @@ module.exports = async function handler(req, res) {
 'var _skipTimer=null,_skipUndone=false;\n' +
 'function showToast(html,dur){var c=document.getElementById("toast-container");document.getElementById("toast-inner").innerHTML=html;c.classList.add("show");return setTimeout(function(){c.classList.remove("show");},dur||5000);}\n' +
 'function hideToast(){document.getElementById("toast-container").classList.remove("show");}\n' +
-'function showConfirm(t,s,bl,fn){document.getElementById("confirm-title").textContent=t;document.getElementById("confirm-sub").textContent=s;var b=document.getElementById("confirm-action-btn");b.textContent=bl;b.onclick=function(){closeConfirm();fn();};document.getElementById("confirm-overlay").classList.add("open");}\n' +
+'function showConfirm(t,s,bl,fn,btnCls){document.getElementById("confirm-title").textContent=t;document.getElementById("confirm-sub").textContent=s;var b=document.getElementById("confirm-action-btn");b.textContent=bl;b.className="btn-glass "+(btnCls||"btn-glass-block");b.onclick=function(){closeConfirm();fn();};document.getElementById("confirm-overlay").classList.add("open");}\n' +
 'function closeConfirm(){document.getElementById("confirm-overlay").classList.remove("open");}\n' +
 '\n' +
 'function toggleBlockCompany(company,btn){\n' +
@@ -770,6 +759,41 @@ module.exports = async function handler(req, res) {
 '  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped"}})});},5200);\n' +
 '}\n' +
 'function undoSkip(){if(window._skipUndo)window._skipUndo();}\n' +
+'\n' +
+'function completeLead(safeId, realId) {\n' +
+'  var lead=leads.find(function(l){return l.id===realId;});\n' +
+'  var cn=lead?lead.company:"";\n' +
+'  showConfirm("Mark this lead as complete?","A follow-up reminder will be scheduled for 3 business days.","Complete",function(){\n' +
+'    fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:realId,updates:{status:"completed",assignedAM:AM.name}})}).then(function(){showToast("Lead completed",3000);}).catch(function(){});\n' +
+'    var card=document.getElementById("card-"+safeId);\n' +
+'    if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
+'    leads=leads.filter(function(l){return l.id!==realId;});\n' +
+'    document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'  },"btn-glass-complete");\n' +
+'}\n' +
+'\n' +
+'var _reassignSafeId="",_reassignRealId="";\n' +
+'function openReassignModal(safeId, realId) {\n' +
+'  _reassignSafeId=safeId;_reassignRealId=realId;\n' +
+'  var lead=leads.find(function(l){return l.id===realId;});\n' +
+'  document.getElementById("reassign-title").textContent="Reassign Lead"+(lead?" - "+lead.company:"");\n' +
+'  var body=document.getElementById("reassign-body");\n' +
+'  body.innerHTML=AM_NAMES.map(function(name){\n' +
+'    return \'<div class="reassign-item" onclick="reassignLead(\\\'\'+name.replace(/\x27/g,"\\\\\\x27")+\'\\\')">\'+ name +\'</div>\';\n' +
+'  }).join("");\n' +
+'  document.getElementById("reassign-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeReassignModal(){document.getElementById("reassign-overlay").classList.remove("open");}\n' +
+'\n' +
+'function reassignLead(amName) {\n' +
+'  closeReassignModal();\n' +
+'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,updates:{assignedAM:amName}})}).catch(function(){});\n' +
+'  var card=document.getElementById("card-"+_reassignSafeId);\n' +
+'  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
+'  leads=leads.filter(function(l){return l.id!==_reassignRealId;});\n' +
+'  document.getElementById("lead-count").textContent=leads.length+" pending leads";\n' +
+'  showToast("Lead reassigned to "+amName,3000);\n' +
+'}\n' +
 '\n' +
 'init();\n' +
 '</script>\n' +
