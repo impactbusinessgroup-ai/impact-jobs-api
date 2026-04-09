@@ -47,6 +47,53 @@ module.exports = async function handler(req, res) {
 
   var greeting = contactFirstName ? 'Hi ' + contactFirstName + ',' : 'Hi,';
 
+  // LinkedIn message generation
+  if (body.action === 'linkedin') {
+    var liPrompt =
+      'Write a short LinkedIn message from an iMPact Business Group account manager to a hiring manager at ' + companyName + ' about their ' + jobTitle + ' opening.\n\n' +
+      'Requirements:\n' +
+      '- Under 280 characters total including the link below.\n' +
+      '- Direct and human, not generic. Reference the job title "' + jobTitle + '" and company "' + companyName + '" specifically.\n' +
+      '- Do not use phrases like "I noticed" or "I came across."\n' +
+      '- One sentence about what iMPact does for that type of role.\n' +
+      '- End with: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
+      '- Then on a new line: Happy to find a time to connect: ' + calendlyLink + '\n' +
+      '- No em dashes. No AI-sounding language. Keep it natural.\n' +
+      '- Start with "' + greeting + '"\n\n' +
+      'Return ONLY a JSON object: { "linkedinMessage": "the message as plain text" }';
+
+    try {
+      var liRes = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: liPrompt }] }],
+            generationConfig: { maxOutputTokens: 400, temperature: 0.7 }
+          })
+        }
+      );
+      if (!liRes.ok) return res.status(500).json({ error: 'LinkedIn draft failed' });
+      var liData = await liRes.json();
+      var liText = liData.candidates && liData.candidates[0] && liData.candidates[0].content &&
+                   liData.candidates[0].content.parts && liData.candidates[0].content.parts[0] &&
+                   liData.candidates[0].content.parts[0].text;
+      if (!liText) return res.status(500).json({ error: 'Empty LI response' });
+      var liClean = liText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+      var liParsed = JSON.parse(liClean);
+      // Convert the employers link to anchor tag for display
+      var liMsg = (liParsed.linkedinMessage || '').replace(
+        /(https:\/\/impactbusinessgroup\.com\/employers\/\?cid=[^\s)]+)/g,
+        '<a href="$1">Learn more about how we can help</a>'
+      );
+      return res.status(200).json({ linkedinMessage: liMsg });
+    } catch (e) {
+      console.error('LinkedIn draft error:', e.message);
+      return res.status(500).json({ error: 'LinkedIn draft failed' });
+    }
+  }
+
   var caseStudies =
     'Select the most relevant case study and include a one-sentence natural reference with the tracked link:\n' +
     '- Engineering/manufacturing/production/supply chain/operations roles: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- filled 3 specialized roles in under 2 weeks under urgent timeline\n' +
@@ -73,7 +120,7 @@ module.exports = async function handler(req, res) {
     '- Include this line: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
     '- Then include the Calendly link with natural language like "Happy to find a time to connect:" followed by: ' + calendlyLink + '\n' +
     '- Do NOT include a signature block.\n\n' +
-    'Generate a personalized subject line as well.\n\n' +
+    'Generate a personalized subject line that includes the job title "' + jobTitle + '".\n\n' +
     'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape:\n' +
     '{ "subject": "the subject line", "body": "HTML string with <p> tags for paragraphs and <a> tags for links" }';
 
