@@ -251,6 +251,7 @@ module.exports = async function handler(req, res) {
 'var activeContacts = {};\n' +
 'var composerState = {};\n' +
 '\n' +
+'function _g(id) { return document.getElementById(id); }\n' +
 'function getSafeId(id) { return id.replace(/[^a-zA-Z0-9]/g, "_"); }\n' +
 'function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\\\'/g,"&#39;"); }\n' +
 'function initials(name) { return name.split(" ").map(function(n){return n[0]||"";}).join("").toUpperCase().slice(0,2); }\n' +
