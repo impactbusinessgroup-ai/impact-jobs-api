@@ -103,11 +103,8 @@ module.exports = async function handler(req, res) {
       if (!liText) return res.status(500).json({ error: 'Empty LI response' });
       var liClean = liText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
       var liParsed = JSON.parse(liClean);
-      // Convert the employers link to anchor tag for display
-      var liMsg = (liParsed.linkedinMessage || '').replace(
-        /(https:\/\/impactbusinessgroup\.com\/employers\/\?cid=[^\s)]+)/g,
-        '<a href="$1">Learn more about how we can help</a>'
-      );
+      // Strip any anchor tags - LinkedIn must be plain text only
+      var liMsg = (liParsed.linkedinMessage || '').replace(/<a[^>]*>/gi, '').replace(/<\/a>/gi, '');
       return res.status(200).json({ linkedinMessage: liMsg });
     } catch (e) {
       console.error('LinkedIn draft error:', e.message);

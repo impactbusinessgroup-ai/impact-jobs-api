@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
 '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: #1a1a1a; color: #f0f0f0; min-height: 100vh; }\n' +
+'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #242424 0%, #1a1a1a 40%, #111111 100%); background-attachment: fixed; color: #f0f0f0; min-height: 100vh; }\n' +
 'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
 '.header { background: rgba(26,26,26,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
@@ -87,15 +87,17 @@ module.exports = async function handler(req, res) {
 '.composer { background: #1e1e1e; border: 1px solid #333333; border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
-'.subj-bar { display: flex; align-items: center; background: #2a2a2a; border: 1px solid #444444; border-radius: 10px; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
-'.subj-bar-chevron { width: 32px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #E8620A; flex-shrink: 0; border-right: 1px solid #444444; transition: background 0.2s; border-radius: 9px 0 0 9px; }\n' +
+'.subj-bar { display: flex; align-items: center; background: #2a2a2a; border: 1px solid #444444; border-radius: 10px; padding: 0; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
+'.subj-bar-input { flex: 1; font-size: 14px; padding: 8px 12px; border: none; background: transparent; color: #fff; font-family: Raleway, sans-serif; outline: none; min-width: 0; border-radius: 9px 0 0 9px; }\n' +
+'.subj-bar-input::placeholder { color: #666666; }\n' +
+'.subj-bar-chevron { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #E8620A; flex-shrink: 0; border-left: 1px solid #444444; transition: background 0.2s; padding: 8px 0; }\n' +
 '.subj-bar-chevron:hover { background: rgba(232,98,10,0.15); }\n' +
 '.subj-bar-chevron svg { width: 14px; height: 14px; transition: transform 0.2s; }\n' +
 '.subj-bar.open .subj-bar-chevron svg { transform: rotate(180deg); }\n' +
-'.subj-bar-input { flex: 1; font-size: 14px; padding: 9px 12px; border: none; background: transparent; color: #fff; font-family: Raleway, sans-serif; outline: none; min-width: 0; }\n' +
-'.subj-bar-input::placeholder { color: #666666; }\n' +
-'.subj-bar-ai { width: 32px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #E8620A; flex-shrink: 0; border-left: 1px solid #444444; transition: background 0.2s; border-radius: 0 9px 9px 0; font-size: 11px; font-weight: 800; font-family: Oswald, sans-serif; letter-spacing: 0.5px; }\n' +
+'.subj-bar-ai { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #E8620A; flex-shrink: 0; margin-left: 8px; border-left: 1px solid #444444; transition: all 0.2s; padding: 8px 0; border-radius: 0 9px 9px 0; }\n' +
 '.subj-bar-ai:hover { background: rgba(232,98,10,0.15); }\n' +
+'.subj-bar-ai:hover svg { transform: scale(1.15); filter: brightness(1.2); }\n' +
+'.subj-bar-ai svg { width: 18px; height: 18px; transition: transform 0.2s, filter 0.2s; }\n' +
 '.subj-bar-ai .spinner { width: 14px; height: 14px; border: 2px solid #444; border-top-color: #E8620A; border-radius: 50%; animation: spin 0.6s linear infinite; }\n' +
 '@keyframes spin { to { transform: rotate(360deg); } }\n' +
 '.subj-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #303030; border: 1px solid #484848; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 1000; opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; overflow: hidden; }\n' +
@@ -186,7 +188,6 @@ module.exports = async function handler(req, res) {
 '.rich-editor a { color: #FF7A2F; text-decoration: underline; }\n' +
 '.li-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid #3a3a3a; border-radius: 8px; background: #262626; color: #f0f0f0; min-height: 100px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
 '.li-editor:focus { border-color: #E8620A; box-shadow: 0 0 0 2px rgba(232,98,10,0.2); }\n' +
-'.li-editor a { color: #FF7A2F; text-decoration: underline; }\n' +
 '.li-counter { font-size: 11px; color: rgba(255,255,255,0.35); }\n' +
 '.li-counter.over { color: #ef6961; }\n' +
 '@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }\n' +
@@ -291,6 +292,7 @@ module.exports = async function handler(req, res) {
 '\n' +
 'function _g(id) { return document.getElementById(id); }\n' +
 'function getSafeId(id) { return id.replace(/[^a-zA-Z0-9]/g, "_"); }\n' +
+'function cleanJobTitle(t) { if(!t) return ""; return t.replace(/\\s*[-\u2013]\\s*(plant|plants|facility|facil|\\d).*/i,"").replace(/\\s*[-\u2013]\\s*[A-Z][a-z]+,?\\s*(MI|FL|OH|IN|IL|WI|MN|TX|CA|AZ|PA|NY|GA|NC|SC|TN|AL|KY|VA|WA|OR|CO|MO|IA|KS|NE|ND|SD|WV|CT|NJ|MD|MA|NH|VT|ME|RI|DE|DC|HI|AK|NM|NV|UT|ID|MT|WY|AR|MS|LA|OK|\\w{2})\\b.*/i,"").replace(/,\\s*$/,"").trim(); }\n' +
 'function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\\\'/g,"&#39;"); }\n' +
 'function initials(name) { return name.split(" ").map(function(n){return n[0]||"";}).join("").toUpperCase().slice(0,2); }\n' +
 'function companyInitials(name) { var w=name.trim().split(/\\s+/); return w.length===1?w[0].slice(0,2).toUpperCase():(w[0][0]+w[1][0]).toUpperCase(); }\n' +
@@ -328,9 +330,9 @@ module.exports = async function handler(req, res) {
 '  var cal = CALENDLY[AM.email] || "";\n' +
 '  var cat = lead.category || "engineering";\n' +
 '  var roleType = cat === "it" ? "tech" : cat === "accounting" ? "finance" : "engineering";\n' +
-'  var html = "Hi " + firstName + ", we help " + roleType + " companies find specialized talent quickly. <a href=\\"https://impactbusinessgroup.com/employers/?cid=" + uid + "\\">Learn more about how we can help</a>";\n' +
-'  if(cal) html += "<br><br>Happy to find a time to connect: " + cal;\n' +
-'  return html;\n' +
+'  var msg = "Hi " + firstName + ", we help " + roleType + " companies find specialized talent quickly. Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=" + uid;\n' +
+'  if(cal) msg += "\\n\\nHappy to find a time to connect: " + cal;\n' +
+'  return msg;\n' +
 '}\n' +
 '\n' +
 'async function fetchLogo(company, website, location, safeId, apolloLogo) {\n' +
@@ -382,7 +384,7 @@ module.exports = async function handler(req, res) {
 '  var ini=companyInitials(lead.company);\n' +
 '  var safeId=getSafeId(lead.id);\n' +
 '  var companyEsc=lead.company.replace(/\x27/g,"\x5c\x5c\x27").replace(/"/g,\x27&quot;\x27);\n' +
-'  var jobTitle=lead.jobTitle||"";\n' +
+'  var jobTitle=cleanJobTitle(lead.jobTitle||"");\n' +
 '  var subj1="Question about your "+jobTitle+" position search";\n' +
 '  var subj2="Your "+jobTitle+" position at "+lead.company;\n' +
 '  var subj3=jobTitle+" position - iMPact Business Group";\n' +
@@ -439,9 +441,9 @@ module.exports = async function handler(req, res) {
 '          \'</div>\'+\n' +
 '          \'<div id="email-pane-\'+safeId+\'">\'+\n' +
 '            \'<div class="subj-bar" id="subj-bar-\'+safeId+\'">\'+\n' +
+'              \'<input class="subj-bar-input" type="text" id="subj-\'+safeId+\'" placeholder="Enter subject line">\'+\n' +
 '              \'<div class="subj-bar-chevron" onclick="toggleSubjDD(\\\'\'+safeId+\'\\\')" title="Choose a subject line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>\'+\n' +
-'              \'<input class="subj-bar-input" type="text" id="subj-\'+safeId+\'" placeholder="Subject line...">\'+\n' +
-'              \'<div class="subj-bar-ai" id="subj-ai-\'+safeId+\'" onclick="generateSubjectAI(\\\'\'+safeId+\'\\\')" title="Generate subject line">AI</div>\'+\n' +
+'              \'<div class="subj-bar-ai" id="subj-ai-\'+safeId+\'" onclick="generateSubjectAI(\\\'\'+safeId+\'\\\')" title="Generate subject line with AI"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg></div>\'+\n' +
 '              \'<div class="subj-dd-panel" id="subj-dd-panel-\'+safeId+\'">\'+\n' +
 '                \'<div class="subj-dd-opt selected" data-value="\'+escHtml(subj1)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj1)+\'</div>\'+\n' +
 '                \'<div class="subj-dd-opt" data-value="\'+escHtml(subj2)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj2)+\'</div>\'+\n' +
@@ -498,12 +500,12 @@ module.exports = async function handler(req, res) {
 '  try{\n' +
 '    var contactFirstName=(card.getAttribute("data-name")||"").split(" ")[0];\n' +
 '    var uniqid=card.getAttribute("data-uniqid")||"*|UNIQID|*";\n' +
-'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:card.getAttribute("data-title")||"",contactFirstName:contactFirstName,uniqid:uniqid,amEmail:AM.email,action:"subject_only"};\n' +
+'    var payload={jobTitle:cleanJobTitle(lead.jobTitle||""),companyName:lead.company||"",category:lead.category||"engineering",contactTitle:card.getAttribute("data-title")||"",contactFirstName:contactFirstName,uniqid:uniqid,amEmail:AM.email,action:"subject_only"};\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
 '    var d=await r.json();\n' +
 '    if(d.subject) inp.value=d.subject;\n' +
 '  }catch(e){console.error("AI subject error:",e);}\n' +
-'  aiBtn.textContent="AI";\n' +
+'  aiBtn.innerHTML=\'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg>\';\n' +
 '}\n' +
 'document.addEventListener("click",function(e){\n' +
 '  document.querySelectorAll(".subj-bar.open").forEach(function(bar){\n' +
@@ -530,7 +532,7 @@ module.exports = async function handler(req, res) {
 '  ebodyEl.innerHTML=\'<div class="draft-loading"><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-text">Generating personalized email...</div></div>\';\n' +
 '  ebodyEl.setAttribute("contenteditable","false");\n' +
 '  try{\n' +
-'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,description:lead.description||"",uniqid:uniqid,amEmail:AM.email};\n' +
+'    var payload={jobTitle:cleanJobTitle(lead.jobTitle||""),companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,description:lead.description||"",uniqid:uniqid,amEmail:AM.email};\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
 '    var d=await r.json();\n' +
 '    if(!r.ok||!d.body) throw new Error(d.error||"Draft failed");\n' +
@@ -584,16 +586,16 @@ module.exports = async function handler(req, res) {
 '  btn.textContent="Generating...";btn.disabled=true;\n' +
 '  libodyEl.innerHTML=\'<div class="draft-loading"><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-text">Generating LinkedIn message...</div></div>\';\n' +
 '  try{\n' +
-'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,uniqid:uniqid,amEmail:AM.email,action:"linkedin"};\n' +
+'    var payload={jobTitle:cleanJobTitle(lead.jobTitle||""),companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,uniqid:uniqid,amEmail:AM.email,action:"linkedin"};\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
 '    var d=await r.json();\n' +
 '    if(!r.ok||!d.linkedinMessage) throw new Error(d.error||"LI draft failed");\n' +
-'    libodyEl.innerHTML=d.linkedinMessage;\n' +
+'    libodyEl.innerText=d.linkedinMessage;\n' +
 '    liDraftCache[cacheKey]=d.linkedinMessage;\n' +
 '  }catch(e){\n' +
 '    console.error("LI draft error:",e);\n' +
 '    showToast("Could not generate message - using default",3000);\n' +
-'    libodyEl.innerHTML=getLITemplateHtml(lead,contactFirstName,uniqid);\n' +
+'    libodyEl.innerText=getLITemplateHtml(lead,contactFirstName,uniqid);\n' +
 '  }\n' +
 '  btn.textContent="Generate Message";btn.disabled=false;\n' +
 '  updateLICount(safeId);\n' +
@@ -760,7 +762,7 @@ module.exports = async function handler(req, res) {
 '    var emailCK=safeId+"__"+(card.getAttribute("data-prospect-id")||cid);\n' +
 '    if(customDraftCache[emailCK]){ebodyEl.innerHTML=customDraftCache[emailCK].body;} else if(lead){ebodyEl.innerHTML=getEmailTemplate(lead,firstName,uniqid);}\n' +
 '    var liCK=safeId+"__li__"+(card.getAttribute("data-prospect-id")||cid);\n' +
-'    if(liDraftCache[liCK]){libodyEl.innerHTML=liDraftCache[liCK];} else if(lead){libodyEl.innerHTML=getLITemplateHtml(lead,firstName,uniqid);}\n' +
+'    if(liDraftCache[liCK]){libodyEl.innerText=liDraftCache[liCK];} else if(lead){libodyEl.innerText=getLITemplateHtml(lead,firstName,uniqid);}\n' +
 '    updateLICount(safeId);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=uniqid;\n' +
