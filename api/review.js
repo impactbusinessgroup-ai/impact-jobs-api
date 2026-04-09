@@ -24,8 +24,8 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: linear-gradient(180deg, #1e2e48 0%, #1a2744 100%); border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05); border: 1px solid rgba(26,78,162,0.18); }\n' +
-'.card-top { background: linear-gradient(135deg, #0e1d36 0%, #1a3358 80%, #1e3860 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
+'.card { background: #0f1e3d; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid rgba(26,78,162,0.4); }\n' +
+'.card-top { background: linear-gradient(135deg, #0a1628 0%, #0f1e3d 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
 '.company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
@@ -50,12 +50,12 @@ module.exports = async function handler(req, res) {
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2a3a5c; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
-'.contact-card:hover { border-color: rgba(26,78,162,0.4); background: #2f4065; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2); }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #1a2e4a; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
+'.contact-card:hover { border-color: rgba(26,78,162,0.4); background: #1e3555; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
 '.contact-header, .contact-info, .contact-name-row, .contact-name, .contact-title-sub, .contact-loc, .email-row, .credit-note, .badge { pointer-events: none; }\n' +
 '.contact-actions { pointer-events: auto; }\n' +
 '.contact-actions .btn-li, .contact-actions .remove-wrap, .contact-actions .btn-fetch { pointer-events: auto; }\n' +
-'.contact-card.active { border-color: rgba(93,202,165,0.7); background: #283d58; box-shadow: 0 0 16px rgba(93,202,165,0.25), 0 0 32px rgba(93,202,165,0.08), 0 4px 16px rgba(0,0,0,0.2); }\n' +
+'.contact-card.active { border: 2px solid #00d4aa; background: #1a2e4a; box-shadow: 0 0 16px rgba(0,212,170,0.3), 0 4px 16px rgba(0,0,0,0.2); }\n' +
 '.contact-card.sent { border-color: rgba(93,202,165,0.4); background: rgba(93,202,165,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
 '.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #1A4EA2, #0F1E3D); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; overflow: hidden; }\n' +
@@ -84,25 +84,30 @@ module.exports = async function handler(req, res) {
 '.btn-primary:hover { background: #2060c0; }\n' +
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #63a4ff; border-color: rgba(26,78,162,0.3); }\n' +
-'.composer { background: #1e2e4a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
+'.composer { background: #0a1628; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
 '.subj-dd { position: relative; margin-bottom: 4px; }\n' +
-'.subj-dd-trigger { width: 100%; font-size: 13px; padding: 9px 36px 9px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #1a2744; color: #e0e4ec; font-family: Raleway, sans-serif; cursor: pointer; display: flex; align-items: center; transition: border-color 0.15s, background 0.15s; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n' +
-'.subj-dd-trigger:hover { background: #1e2e48; border-color: rgba(26,78,162,0.4); }\n' +
+'.subj-dd-trigger { width: 100%; font-size: 13px; padding: 9px 36px 9px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; background: #111f35; color: rgba(255,255,255,0.9); font-family: Raleway, sans-serif; cursor: pointer; display: flex; align-items: center; transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background 0.2s cubic-bezier(0.4,0,0.2,1); user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n' +
+'.subj-dd-trigger:hover { background: #162236; border-color: rgba(26,78,162,0.6); }\n' +
 '.subj-dd-trigger .chevron { position: absolute; right: 12px; top: 50%; transform: translateY(-50%) rotate(0deg); transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); width: 14px; height: 14px; color: rgba(255,255,255,0.4); pointer-events: none; }\n' +
 '.subj-dd.open .chevron { transform: translateY(-50%) rotate(180deg); }\n' +
-'.subj-dd.open .subj-dd-trigger { border-color: #1A4EA2; background: #1e2e48; }\n' +
-'.subj-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1e2e48; border: 1px solid rgba(26,78,162,0.3); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2); z-index: 20; opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }\n' +
+'.subj-dd.open .subj-dd-trigger { border-color: #1A4EA2; background: #162236; }\n' +
+'.subj-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #111f35; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 20; opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; overflow: hidden; }\n' +
 '.subj-dd.open .subj-dd-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }\n' +
-'.subj-dd-opt { padding: 9px 14px; font-size: 13px; color: rgba(255,255,255,0.8); cursor: pointer; transition: background 0.12s, color 0.12s; font-family: Raleway, sans-serif; }\n' +
-'.subj-dd-opt:hover { background: rgba(26,78,162,0.2); color: #fff; }\n' +
-'.subj-dd-opt.selected { color: #63a4ff; }\n' +
-'.subj-dd-opt:first-child { border-radius: 9px 9px 0 0; }\n' +
-'.subj-dd-opt:last-child { border-radius: 0 0 9px 9px; }\n' +
-'.subj-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.35); margin-bottom: 4px; font-family: Oswald, sans-serif; }\n' +
-'.subject-input { width: 100%; font-size: 13px; padding: 9px 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: #2a3a5c; color: #fff; font-family: Raleway, sans-serif; margin-bottom: 6px; transition: border-color 0.15s, box-shadow 0.15s; }\n' +
-'.subject-input:focus { outline: none; border-color: #1A4EA2; box-shadow: 0 0 0 2px rgba(26,78,162,0.25); }\n' +
+'.subj-dd-opt { padding: 10px 16px; font-size: 13px; color: rgba(255,255,255,0.85); cursor: pointer; transition: background 0.12s, color 0.12s, opacity 0.2s; font-family: Raleway, sans-serif; border-radius: 8px; margin: 2px 4px; }\n' +
+'.subj-dd-opt:hover { background: rgba(26,78,162,0.25); color: #fff; }\n' +
+'.subj-dd-opt.selected { color: #1a4ea2; font-weight: 600; }\n' +
+'.subj-dd-opt { opacity: 0; transform: translateY(-4px); }\n' +
+'.subj-dd.open .subj-dd-opt { opacity: 1; transform: translateY(0); }\n' +
+'.subj-dd.open .subj-dd-opt:nth-child(1) { transition-delay: 0ms; }\n' +
+'.subj-dd.open .subj-dd-opt:nth-child(2) { transition-delay: 30ms; }\n' +
+'.subj-dd.open .subj-dd-opt:nth-child(3) { transition-delay: 60ms; }\n' +
+'.subj-dd.open .subj-dd-opt:nth-child(4) { transition-delay: 90ms; }\n' +
+'.subj-dd.open .subj-dd-opt:nth-child(5) { transition-delay: 120ms; }\n' +
+'.subj-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); margin-bottom: 4px; margin-top: 8px; font-family: Oswald, sans-serif; }\n' +
+'.subject-input { width: 100%; font-size: 13px; padding: 9px 12px 9px 14px; border: 1px solid rgba(255,255,255,0.15); border-left: 3px solid #1a4ea2; border-radius: 8px; background: #162236; color: #fff; font-family: Raleway, sans-serif; margin-bottom: 6px; transition: border-color 0.15s, box-shadow 0.15s; }\n' +
+'.subject-input:focus { outline: none; border-color: rgba(255,255,255,0.2); border-left-color: #1a4ea2; box-shadow: 0 0 0 2px rgba(26,78,162,0.25); }\n' +
 '.tab-row { display: flex; gap: 6px; margin-bottom: 8px; }\n' +
 '.tab { font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: rgba(255,255,255,0.5); background: transparent; font-weight: 600; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.tab.active { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
@@ -116,7 +121,7 @@ module.exports = async function handler(req, res) {
 '.btn-glass-block:hover { background: rgba(198,40,40,0.2); }\n' +
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
-'.modal { background: linear-gradient(180deg, #1e2e48 0%, #1a2744 100%); border: 1px solid rgba(26,78,162,0.25); border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }\n' +
+'.modal { background: #0f1e3d; border: 1px solid rgba(26,78,162,0.3); border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04); }\n' +
 '.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }\n' +
 '.modal-header h3 { font-size: 16px; font-weight: 600; color: #fff; font-family: Oswald, sans-serif; }\n' +
 '.modal-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); border: none; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; }\n' +
@@ -133,15 +138,15 @@ module.exports = async function handler(req, res) {
 '.toast-undo:hover { background: rgba(255,255,255,0.25); }\n' +
 '.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.75); z-index: 250; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.confirm-overlay.open { display: flex; }\n' +
-'.confirm-card { background: #1a2744; border: 1px solid rgba(26,78,162,0.2); border-radius: 18px; max-width: 400px; width: 90%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); text-align: center; }\n' +
+'.confirm-card { background: #0f1e3d; border: 1px solid rgba(26,78,162,0.3); border-radius: 18px; max-width: 400px; width: 90%; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); text-align: center; }\n' +
 '.confirm-card h3 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; font-family: Oswald, sans-serif; }\n' +
 '.confirm-card p { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }\n' +
 '.confirm-actions { display: flex; gap: 10px; justify-content: center; }\n' +
 '.loading { text-align: center; padding: 80px; color: rgba(255,255,255,0.4); font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: rgba(255,255,255,0.6); font-family: Oswald, sans-serif; }\n' +
-'.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 12px 32px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #0078D4, #005a9e); color: white; font-family: Raleway, sans-serif; transition: all 0.25s ease; box-shadow: 0 2px 12px rgba(0,120,212,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
-'.btn-send-email:hover { background: linear-gradient(135deg, #1a8ae6, #0078D4); box-shadow: 0 4px 20px rgba(0,120,212,0.5), 0 0 30px rgba(0,120,212,0.2); transform: translateY(-2px); }\n' +
+'.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #1a4ea2, #0f3d8c); color: white; font-family: Raleway, sans-serif; transition: all 0.2s ease; box-shadow: 0 2px 12px rgba(26,78,162,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
+'.btn-send-email:hover { background: linear-gradient(135deg, #2060c0, #1a4ea2); box-shadow: 0 4px 20px rgba(26,78,162,0.5), 0 0 30px rgba(26,78,162,0.25); transform: translateY(-2px); }\n' +
 '.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
 '.btn-glass-complete { background: rgba(29,158,117,0.15); color: #6EE7C7; border-color: rgba(29,158,117,0.3); }\n' +
 '.btn-glass-complete:hover { background: rgba(29,158,117,0.25); }\n' +
@@ -153,7 +158,7 @@ module.exports = async function handler(req, res) {
 '.reassign-btn { font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(29,158,117,0.3); background: rgba(29,158,117,0.12); color: #6EE7C7; cursor: pointer; transition: all 0.15s; }\n' +
 '.reassign-btn:hover { background: rgba(29,158,117,0.25); box-shadow: 0 0 8px rgba(29,158,117,0.2); }\n' +
 '.remove-wrap { position: relative; display: inline-block; }\n' +
-'.remove-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #1a2744; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; min-width: 190px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
+'.remove-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #0f1e3d; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; min-width: 190px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
 '.remove-dd.open { display: block; }\n' +
 '.remove-dd-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 11px; color: rgba(255,255,255,0.6); }\n' +
 '.remove-dd-item:last-child { border-bottom: none; }\n' +
@@ -161,20 +166,26 @@ module.exports = async function handler(req, res) {
 '.remove-dd-btn:hover { background: rgba(198,40,40,0.25); }\n' +
 '.btn-fetch:hover { box-shadow: 0 0 14px rgba(255,160,0,0.4), 0 0 28px rgba(255,160,0,0.15); transform: translateY(-2px); }\n' +
 '.btn-send-email.pulse { animation: sendPulse 2s ease-in-out infinite; }\n' +
-'@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(0,120,212,0.35); } 50% { box-shadow: 0 4px 24px rgba(0,120,212,0.6), 0 0 40px rgba(0,120,212,0.2); } }\n' +
-'.btn-glass-skip:hover { box-shadow: 0 0 14px rgba(232,98,10,0.4), 0 0 28px rgba(232,98,10,0.15); }\n' +
-'.btn-glass-block:hover { box-shadow: 0 0 14px rgba(239,105,97,0.35), 0 0 28px rgba(198,40,40,0.15); }\n' +
-'.btn-glass-complete:hover { box-shadow: 0 0 14px rgba(29,158,117,0.35), 0 0 28px rgba(29,158,117,0.15); }\n' +
-'.btn-glass-reassign:hover { box-shadow: 0 0 12px rgba(99,164,255,0.3), 0 0 24px rgba(99,164,255,0.12); }\n' +
+'@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(26,78,162,0.35); } 50% { box-shadow: 0 4px 24px rgba(26,78,162,0.6), 0 0 40px rgba(26,78,162,0.25); } }\n' +
+'.btn-glass-skip:hover { box-shadow: 0 0 14px rgba(232,98,10,0.4), 0 0 28px rgba(232,98,10,0.15); transform: translateY(-1px); }\n' +
+'.btn-glass-block:hover { box-shadow: 0 0 14px rgba(239,105,97,0.4), 0 0 28px rgba(198,40,40,0.2); transform: translateY(-1px); }\n' +
+'.btn-glass-complete:hover { box-shadow: 0 0 14px rgba(0,212,170,0.4), 0 0 28px rgba(0,212,170,0.15); transform: translateY(-1px); }\n' +
+'.btn-glass-reassign:hover { box-shadow: 0 0 14px rgba(99,164,255,0.4), 0 0 28px rgba(99,164,255,0.15); transform: translateY(-1px); }\n' +
 '.btn-glass:hover { box-shadow: 0 0 10px rgba(255,255,255,0.08); }\n' +
 '.link-icon:hover { box-shadow: 0 0 10px rgba(99,164,255,0.3); }\n' +
 '.btn-li:hover { box-shadow: 0 0 10px rgba(10,102,194,0.35); }\n' +
-'.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.25s ease; }\n' +
+'.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.2s ease; }\n' +
 '.btn-glass { position: relative; overflow: hidden; }\n' +
 '.btn-glass:hover::after { opacity: 0.3; }\n' +
-'.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
-'.rich-editor:focus { border-color: #1A4EA2; }\n' +
+'.rich-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: #111f35; color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; }\n' +
+'.rich-editor:focus { border-color: #1A4EA2; box-shadow: 0 0 0 2px rgba(26,78,162,0.2); }\n' +
+'.rich-editor p { margin-bottom: 16px; }\n' +
+'.rich-editor p:last-child { margin-bottom: 0; }\n' +
 '.rich-editor a { color: #63a4ff; text-decoration: underline; }\n' +
+'.li-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: #111f35; color: #e0e4ec; min-height: 100px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
+'.li-editor:focus { border-color: #1A4EA2; box-shadow: 0 0 0 2px rgba(26,78,162,0.2); }\n' +
+'.li-counter { font-size: 11px; color: rgba(255,255,255,0.35); }\n' +
+'.li-counter.over { color: #ef6961; }\n' +
 '@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }\n' +
 '.draft-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; gap: 12px; }\n' +
 '.draft-loading-bar { width: 80%; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(26,78,162,0.15) 25%, rgba(26,78,162,0.35) 50%, rgba(26,78,162,0.15) 75%); background-size: 200% 100%; animation: shimmer 1.5s ease infinite; }\n' +
@@ -271,6 +282,8 @@ module.exports = async function handler(req, res) {
 'var logoCache = {};\n' +
 'var activeContacts = {};\n' +
 'var composerState = {};\n' +
+'var customDraftCache = {};\n' +
+'var CALENDLY = {"cwillbrandt@impactbusinessgroup.com":"https://calendly.com/cwillbrandt/phone-call","dbentsen@impactbusinessgroup.com":"https://calendly.com/dbentsen","dkoetsier@impactbusinessgroup.com":"https://calendly.com/dkoetsier/","dkunkel@impactbusinessgroup.com":"https://calendly.com/drewkunkel/15min","dteliczan@impactbusinessgroup.com":"https://calendly.com/dteliczan-impactbusinessgroup","jdrajka@impactbusinessgroup.com":"https://calendly.com/jdrajka","lsylvester@impactbusinessgroup.com":"https://calendly.com/lsylvester","mherman@impactbusinessgroup.com":"https://calendly.com/markherman","mpeal@impactbusinessgroup.com":"https://calendly.com/mattpeal/15min","pkujawski@impactbusinessgroup.com":"https://calendly.com/pkujawski","sbetteley@impactbusinessgroup.com":"https://calendly.com/sbetteley","tray@impactbusinessgroup.com":"https://calendly.com/tray-impactbusinessgroup","twangler@impactbusinessgroup.com":"https://calendly.com/twangler-impactbusinessgroup/15min","msapoznikov@impactbusinessgroup.com":"https://calendly.com/msapoznikov"};\n' +
 '\n' +
 'function _g(id) { return document.getElementById(id); }\n' +
 'function getSafeId(id) { return id.replace(/[^a-zA-Z0-9]/g, "_"); }\n' +
@@ -288,16 +301,23 @@ module.exports = async function handler(req, res) {
 '\n' +
 'function getEmailTemplate(lead, firstName, uniqid) {\n' +
 '  var uid = uniqid || "*|UNIQID|*";\n' +
-'  return "Hi " + firstName + ",<br><br>" +\n' +
-'    "I noticed " + lead.company + " is looking for a " + lead.jobTitle + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.<br><br>" +\n' +
-'    "We have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: <a href=\\"https://impactbusinessgroup.com/case-studies/?cid=" + uid + "\\">View Case Studies</a><br><br>" +\n' +
-'    "If you are open to it, I would love to connect and learn more about what you are looking for in this role.<br><br>" +\n' +
-'    "<a href=\\"https://impactbusinessgroup.com/?cid=" + uid + "\\">Visit our website</a>";\n' +
+'  var cal = CALENDLY[AM.email] || "";\n' +
+'  return "<p>Hi " + firstName + ",</p>" +\n' +
+'    "<p>I noticed " + lead.company + " is looking for a " + lead.jobTitle + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.</p>" +\n' +
+'    "<p>We have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: <a href=\\"https://impactbusinessgroup.com/case-studies/?cid=" + uid + "\\">View Case Studies</a></p>" +\n' +
+'    "<p><a href=\\"https://impactbusinessgroup.com/employers/?cid=" + uid + "\\">Learn more about how we can help</a></p>" +\n' +
+'    (cal ? "<p>Happy to find a time to connect: <a href=\\"" + cal + "\\">" + cal + "</a></p>" : "");\n' +
 '}\n' +
 '\n' +
 'function getLITemplate(lead, firstName, uniqid) {\n' +
 '  var uid = uniqid || "*|UNIQID|*";\n' +
-'  return "Hi " + firstName + ", I saw " + lead.company + " is hiring for a " + lead.jobTitle + " and thought I would reach out. We help companies find top talent fast. Happy to connect: https://impactbusinessgroup.com/?cid=" + uid;\n' +
+'  var cal = CALENDLY[AM.email] || "";\n' +
+'  var cat = lead.category || "engineering";\n' +
+'  var roleType = cat === "it" ? "tech" : cat === "accounting" ? "finance" : "engineering";\n' +
+'  var msg = "Hi " + firstName + ", we help " + roleType + " companies find specialized talent quickly. Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=" + uid;\n' +
+'  if(cal) msg += "\\n\\nHappy to find a time to connect: " + cal;\n' +
+'  if(msg.length > 300) msg = "Hi " + firstName + ", we help companies find specialized talent quickly. Learn more: https://impactbusinessgroup.com/employers/?cid=" + uid + (cal ? "\\n\\n" + cal : "");\n' +
+'  return msg;\n' +
 '}\n' +
 '\n' +
 'async function fetchLogo(company, website, location, safeId, apolloLogo) {\n' +
@@ -415,14 +435,14 @@ module.exports = async function handler(req, res) {
 '                \'<div class="subj-dd-opt" data-value="__custom__" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">Custom Message</div>\'+\n' +
 '              \'</div>\'+\n' +
 '            \'</div>\'+\n' +
-'            \'<div class="subj-label">Subject line (editable)</div>\'+\n' +
+'            \'<div class="subj-label">Subject Line (Editable)</div>\'+\n' +
 '            \'<input class="subject-input" type="text" id="subj-\'+safeId+\'" placeholder="Type or edit subject line...">\'+\n' +
 '            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
 '            \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" title="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="li-pane-\'+safeId+\'" style="display:none;">\'+\n' +
-'            \'<textarea id="libody-\'+safeId+\'" style="min-height:80px;font-family:Raleway,sans-serif;"></textarea>\'+\n' +
-'            \'<div style="margin-top:6px;"><button class="btn btn-li" onclick="copyLICard(\\\'\'+safeId+\'\\\',this)">Copy for LinkedIn</button></div>\'+\n' +
+'            \'<div class="li-editor" contenteditable="true" id="libody-\'+safeId+\'" oninput="updateLICount(\\\'\'+safeId+\'\\\')"></div>\'+\n' +
+'            \'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;"><button class="btn btn-li" onclick="copyLICard(\\\'\'+safeId+\'\\\',this)">Copy for LinkedIn</button><span class="li-counter" id="li-count-\'+safeId+\'">0 / 300</span></div>\'+\n' +
 '          \'</div>\'+\n' +
 '        \'</div>\'+\n' +
 '      \'</div>\'+\n' +
@@ -476,19 +496,30 @@ module.exports = async function handler(req, res) {
 '  var contactTitle=card.getAttribute("data-title")||"";\n' +
 '  var contactFirstName=contactName.split(" ")[0];\n' +
 '  var uniqid=card.getAttribute("data-uniqid")||"*|UNIQID|*";\n' +
+'  var prospectId=card.getAttribute("data-prospect-id")||activeCid;\n' +
+'  var cacheKey=safeId+"__"+prospectId;\n' +
 '  var ebodyEl=_g("ebody-"+safeId);\n' +
 '  var subjInput=_g("subj-"+safeId);\n' +
+'  var ddLabel=_g("subj-dd-label-"+safeId);\n' +
+'  var isReselect=ddLabel&&ddLabel.textContent==="Custom Message"&&customDraftCache[cacheKey];\n' +
+'  if(customDraftCache[cacheKey]&&!isReselect){\n' +
+'    subjInput.value=customDraftCache[cacheKey].subject;\n' +
+'    ebodyEl.innerHTML=customDraftCache[cacheKey].body;\n' +
+'    composerState[safeId]={subj:customDraftCache[cacheKey].subject,body:customDraftCache[cacheKey].body,li:"",lastFirstName:contactFirstName,lastUniqid:uniqid};\n' +
+'    return;\n' +
+'  }\n' +
 '  ebodyEl.innerHTML=\'<div class="draft-loading"><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-text">Generating personalized email...</div></div>\';\n' +
 '  ebodyEl.setAttribute("contenteditable","false");\n' +
 '  subjInput.value="Generating...";\n' +
 '  subjInput.disabled=true;\n' +
 '  try{\n' +
-'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,description:lead.description||"",uniqid:uniqid};\n' +
+'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,description:lead.description||"",uniqid:uniqid,amEmail:AM.email};\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
 '    var d=await r.json();\n' +
 '    if(!r.ok||!d.subject) throw new Error(d.error||"Draft failed");\n' +
 '    subjInput.value=d.subject;\n' +
 '    ebodyEl.innerHTML=d.body;\n' +
+'    customDraftCache[cacheKey]={subject:d.subject,body:d.body};\n' +
 '    composerState[safeId]={subj:d.subject,body:d.body,li:"",lastFirstName:contactFirstName,lastUniqid:uniqid};\n' +
 '  }catch(e){\n' +
 '    console.error("Custom draft error:",e);\n' +
@@ -510,7 +541,15 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function copyLICard(safeId,btn) {\n' +
-'  navigator.clipboard.writeText(_g("libody-"+safeId).value).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy for LinkedIn";},2000);});\n' +
+'  navigator.clipboard.writeText(_g("libody-"+safeId).innerText).then(function(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy for LinkedIn";},2000);});\n' +
+'}\n' +
+'function updateLICount(safeId) {\n' +
+'  var el=_g("libody-"+safeId);\n' +
+'  var counter=_g("li-count-"+safeId);\n' +
+'  if(!el||!counter) return;\n' +
+'  var len=el.innerText.length;\n' +
+'  counter.textContent=len+" / 300";\n' +
+'  if(len>300) counter.classList.add("over"); else counter.classList.remove("over");\n' +
 '}\n' +
 '\n' +
 'function addContact(safeId, name, title, companyName, location, prospectId, opts) {\n' +
@@ -672,7 +711,7 @@ module.exports = async function handler(req, res) {
 '    var firstOpt=_g("subj-dd-panel-"+safeId);\n' +
 '    if(firstOpt){var fo=firstOpt.querySelector(".subj-dd-opt");if(fo) subjInput.value=fo.getAttribute("data-value")||"";}\n' +
 '    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,firstName,uniqid);\n' +
-'    if(lead) libodyEl.value=getLITemplate(lead,firstName,uniqid);\n' +
+'    if(lead){libodyEl.innerText=getLITemplate(lead,firstName,uniqid);updateLICount(safeId);}\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=uniqid;\n' +
 '  } else {\n' +
@@ -682,7 +721,7 @@ module.exports = async function handler(req, res) {
 '    var oldUid=st.lastUniqid||"*|UNIQID|*";\n' +
 '    var newUid=uniqid||"*|UNIQID|*";\n' +
 '    var curBody=ebodyEl.innerHTML;\n' +
-'    var curLI=libodyEl.value;\n' +
+'    var curLI=libodyEl.innerText;\n' +
 '    // Replace old first name greeting\n' +
 '    if(oldFirst!==firstName){\n' +
 '      curBody=curBody.replace("Hi "+oldFirst+",","Hi "+firstName+",");\n' +
@@ -694,7 +733,7 @@ module.exports = async function handler(req, res) {
 '      curLI=curLI.split(oldUid).join(newUid);\n' +
 '    }\n' +
 '    ebodyEl.innerHTML=curBody;\n' +
-'    libodyEl.value=curLI;\n' +
+'    libodyEl.innerText=curLI;updateLICount(safeId);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=newUid;\n' +
 '  }\n' +

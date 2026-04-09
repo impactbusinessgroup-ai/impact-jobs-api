@@ -1,6 +1,23 @@
 // api/draft.js
 // Generates personalized outreach email via Gemini with case study selection
 
+var CALENDLY = {
+  "cwillbrandt@impactbusinessgroup.com": "https://calendly.com/cwillbrandt/phone-call",
+  "dbentsen@impactbusinessgroup.com": "https://calendly.com/dbentsen",
+  "dkoetsier@impactbusinessgroup.com": "https://calendly.com/dkoetsier/",
+  "dkunkel@impactbusinessgroup.com": "https://calendly.com/drewkunkel/15min",
+  "dteliczan@impactbusinessgroup.com": "https://calendly.com/dteliczan-impactbusinessgroup",
+  "jdrajka@impactbusinessgroup.com": "https://calendly.com/jdrajka",
+  "lsylvester@impactbusinessgroup.com": "https://calendly.com/lsylvester",
+  "mherman@impactbusinessgroup.com": "https://calendly.com/markherman",
+  "mpeal@impactbusinessgroup.com": "https://calendly.com/mattpeal/15min",
+  "pkujawski@impactbusinessgroup.com": "https://calendly.com/pkujawski",
+  "sbetteley@impactbusinessgroup.com": "https://calendly.com/sbetteley",
+  "tray@impactbusinessgroup.com": "https://calendly.com/tray-impactbusinessgroup",
+  "twangler@impactbusinessgroup.com": "https://calendly.com/twangler-impactbusinessgroup/15min",
+  "msapoznikov@impactbusinessgroup.com": "https://calendly.com/msapoznikov"
+};
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -22,32 +39,41 @@ module.exports = async function handler(req, res) {
   var category = body.category || 'engineering';
   var contactTitle = body.contactTitle || 'Hiring Manager';
   var contactFirstName = body.contactFirstName || '';
+  var contactName = body.contactName || contactFirstName;
   var description = body.description || '';
   var uniqid = body.uniqid || '*|UNIQID|*';
+  var amEmail = body.amEmail || 'msapoznikov@impactbusinessgroup.com';
+  var calendlyLink = CALENDLY[amEmail] || 'https://calendly.com/msapoznikov';
 
   var greeting = contactFirstName ? 'Hi ' + contactFirstName + ',' : 'Hi,';
 
   var caseStudies =
-    'Select the most relevant case study based on the job and include a one-sentence natural reference with the tracked link:\n' +
-    '- Engineering/manufacturing/production/operations roles: use "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- angle: filled 3 specialized roles in under 2 weeks under urgent timeline\n' +
-    '- VP/Director/executive engineering or operations roles: use "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- angle: confidential executive search, niche industry, hands-on leadership placement\n' +
-    '- IT/software/tech roles: use "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- angle: built entire product team from scratch on accelerated timeline\n' +
-    '- GM/general manager/president/COO or other leadership roles: use "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- angle: confidential values-based search, succession planning\n' +
-    '- If no specific case study is a strong match, include a generic one-sentence reference linking to https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' using natural language like "You can see some of our recent client work here." Always include a case study link in every generated email.\n';
+    'Select the most relevant case study and include a one-sentence natural reference with the tracked link:\n' +
+    '- Engineering/manufacturing/production/supply chain/operations roles: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- filled 3 specialized roles in under 2 weeks under urgent timeline\n' +
+    '- VP/Director/executive engineering or operations leadership roles: "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- confidential executive search, niche industry, hands-on leadership placement\n' +
+    '- IT/software/tech roles: "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- built entire product team from scratch on accelerated timeline\n' +
+    '- GM/general manager/president/COO or senior leadership roles: "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- confidential values-based search, succession planning\n' +
+    '- If no specific case study fits, use: https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' with natural language like "You can see some of our recent client work here." Always include a case study link.\n';
 
   var prompt =
-    'You are a business development writer for iMPact Business Group, a staffing and recruiting firm based in Grand Rapids MI and Tampa FL. IBG places professionals in IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration roles nationally.\n\n' +
-    'Write a short, authentic, personalized cold outreach email from an iMPact Business Group account manager to a hiring manager at ' + companyName + '. They are hiring for: ' + jobTitle + ' (category: ' + category + '). The contact is a ' + contactTitle + '.\n\n' +
-    (description ? 'Here is the job description for additional context:\n' + description.slice(0, 1500) + '\n\n' : '') +
-    'Requirements:\n' +
-    '- Tone: genuine, direct, human. Not salesy. No buzzwords. No em dashes. No double hyphens.\n' +
-    '- Length: 3-4 short paragraphs maximum\n' +
-    '- Start the email body with "' + greeting + '"\n' +
-    '- Personalize based on: company name, job title they are hiring for, contact name and title, job category, and any relevant details from the job description\n' +
-    '- ' + caseStudies +
-    '- End with a link to the website: https://impactbusinessgroup.com/?cid=' + uniqid + '\n' +
-    '- Do NOT include a signature block\n' +
-    '- Generate a personalized subject line as well\n\n' +
+    'You are writing a cold outreach email for iMPact Business Group, a staffing firm in Grand Rapids MI and Tampa FL placing IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration professionals nationally.\n\n' +
+    'Write to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening (category: ' + category + ').\n\n' +
+    (description ? 'Job description context:\n' + description.slice(0, 1500) + '\n\n' : '') +
+    'WRITING STYLE:\n' +
+    '- Sound like a real person who wrote this quickly. Short, direct, confident.\n' +
+    '- Do NOT restate what the hiring manager already knows about their own job opening.\n' +
+    '- Do NOT use phrases like "I noticed you are looking for" or "I came across your posting."\n' +
+    '- Open with a direct, confident line about what iMPact does or a relevant result.\n' +
+    '- Add one specific detail showing knowledge of their company or industry.\n' +
+    '- No buzzwords. No AI-sounding language. No em dashes. No double hyphens.\n' +
+    '- 3 short paragraphs maximum.\n' +
+    '- Start with "' + greeting + '"\n\n' +
+    'CASE STUDY:\n' + caseStudies + '\n' +
+    'END OF EMAIL:\n' +
+    '- Include this line: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
+    '- Then include the Calendly link with natural language like "Happy to find a time to connect:" followed by: ' + calendlyLink + '\n' +
+    '- Do NOT include a signature block.\n\n' +
+    'Generate a personalized subject line as well.\n\n' +
     'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape:\n' +
     '{ "subject": "the subject line", "body": "HTML string with <p> tags for paragraphs and <a> tags for links" }';
 
