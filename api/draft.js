@@ -47,15 +47,36 @@ module.exports = async function handler(req, res) {
 
   var greeting = contactFirstName ? 'Hi ' + contactFirstName + ',' : 'Hi,';
 
+  // Subject-only generation
+  if (body.action === 'subject_only') {
+    var subjPrompt = 'Generate a short, personalized email subject line for a cold outreach to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening. The subject MUST include the job title "' + jobTitle + '". Make it direct and professional, not clickbaity. No em dashes. Return ONLY a JSON object: { "subject": "the subject line" }';
+    try {
+      var sjRes = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: subjPrompt }] }], generationConfig: { maxOutputTokens: 100, temperature: 0.8 } }) }
+      );
+      if (!sjRes.ok) return res.status(500).json({ error: 'Subject generation failed' });
+      var sjData = await sjRes.json();
+      var sjText = sjData.candidates && sjData.candidates[0] && sjData.candidates[0].content && sjData.candidates[0].content.parts && sjData.candidates[0].content.parts[0] && sjData.candidates[0].content.parts[0].text;
+      if (!sjText) return res.status(500).json({ error: 'Empty subject response' });
+      var sjClean = sjText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+      var sjParsed = JSON.parse(sjClean);
+      return res.status(200).json({ subject: sjParsed.subject || '' });
+    } catch (e) {
+      console.error('Subject generation error:', e.message);
+      return res.status(500).json({ error: 'Subject generation failed' });
+    }
+  }
+
   // LinkedIn message generation
   if (body.action === 'linkedin') {
     var liPrompt =
       'Write a short LinkedIn message from an iMPact Business Group account manager to a hiring manager at ' + companyName + ' about their ' + jobTitle + ' opening.\n\n' +
       'Requirements:\n' +
       '- Under 280 characters total including the link below.\n' +
-      '- Direct and human, not generic. Reference the job title "' + jobTitle + '" and company "' + companyName + '" specifically.\n' +
-      '- Do not use phrases like "I noticed" or "I came across."\n' +
-      '- One sentence about what iMPact does for that type of role.\n' +
+      '- Direct and human, not generic. You MUST reference the specific job title "' + jobTitle + '" and company name "' + companyName + '". Do not use a generic opener.\n' +
+      '- NEVER use "I noticed", "I came across", or any variation. Open with what iMPact does for that type of role.\n' +
+      '- One sentence about what iMPact does specifically for ' + category + ' placements.\n' +
       '- End with: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
       '- Then on a new line: Happy to find a time to connect: ' + calendlyLink + '\n' +
       '- No em dashes. No AI-sounding language. Keep it natural.\n' +
@@ -94,13 +115,30 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  var caseStudies =
-    'Select the most relevant case study and include a one-sentence natural reference with the tracked link:\n' +
-    '- Engineering/manufacturing/production/supply chain/operations roles: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- filled 3 specialized roles in under 2 weeks under urgent timeline\n' +
-    '- VP/Director/executive engineering or operations leadership roles: "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- confidential executive search, niche industry, hands-on leadership placement\n' +
-    '- IT/software/tech roles: "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- built entire product team from scratch on accelerated timeline\n' +
-    '- GM/general manager/president/COO or senior leadership roles: "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- confidential values-based search, succession planning\n' +
-    '- If no specific case study fits, use: https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' with natural language like "You can see some of our recent client work here." Always include a case study link.\n';
+  // Aggressively match case study based on job description keywords
+  var descLower = (description || '').toLowerCase() + ' ' + (jobTitle || '').toLowerCase() + ' ' + (category || '').toLowerCase();
+  var mfgKeywords = ['manufacturing', 'production', 'supply chain', 'cnc', 'machinist', 'assembly', 'automation', 'quality', 'plant operations', 'warehouse', 'logistics', 'fabricat', 'weld', 'maintenance', 'industrial'];
+  var execKeywords = ['vp', 'vice president', 'director', 'executive', 'senior director', 'svp'];
+  var itKeywords = ['software', 'developer', 'engineer', 'devops', 'cloud', 'data', 'cyber', 'network', 'sysadmin', 'architect', 'full stack', 'frontend', 'backend', 'it manager'];
+  var gmKeywords = ['general manager', 'president', 'coo', 'chief operating', 'gm', 'plant manager', 'site leader'];
+
+  var isMfg = mfgKeywords.some(function(k) { return descLower.indexOf(k) !== -1; });
+  var isExec = execKeywords.some(function(k) { return descLower.indexOf(k) !== -1; });
+  var isIT = category === 'it' || itKeywords.some(function(k) { return descLower.indexOf(k) !== -1; });
+  var isGM = gmKeywords.some(function(k) { return descLower.indexOf(k) !== -1; });
+
+  var caseStudyInstruction = '';
+  if (isGM) {
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- confidential values-based search, succession planning.';
+  } else if (isExec && (isMfg || category === 'engineering')) {
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- confidential executive search, niche industry, hands-on leadership.';
+  } else if (isIT) {
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- built entire product team from scratch on accelerated timeline.';
+  } else if (isMfg || category === 'engineering') {
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- filled 3 specialized roles in under 2 weeks under urgent timeline.';
+  } else {
+    caseStudyInstruction = 'Reference our case studies page naturally: https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' with language like "You can see some of our recent client work here."';
+  }
 
   var prompt =
     'You are writing a cold outreach email for iMPact Business Group, a staffing firm in Grand Rapids MI and Tampa FL placing IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration professionals nationally.\n\n' +
@@ -108,14 +146,13 @@ module.exports = async function handler(req, res) {
     (description ? 'Job description context:\n' + description.slice(0, 1500) + '\n\n' : '') +
     'WRITING STYLE:\n' +
     '- Sound like a real person who wrote this quickly. Short, direct, confident.\n' +
-    '- Do NOT restate what the hiring manager already knows about their own job opening.\n' +
-    '- Do NOT use phrases like "I noticed you are looking for" or "I came across your posting."\n' +
-    '- Open with a direct, confident line about what iMPact does or a relevant result.\n' +
+    '- NEVER start with "I noticed", "I came across", "I saw your posting", or any variation of restating their job posting. These are banned phrases.\n' +
+    '- Open with a direct statement about iMPact\'s relevant experience or a concrete result. Example: "We recently placed three specialized engineers in under two weeks for a company in a similar situation."\n' +
     '- Add one specific detail showing knowledge of their company or industry.\n' +
     '- No buzzwords. No AI-sounding language. No em dashes. No double hyphens.\n' +
     '- 3 short paragraphs maximum.\n' +
     '- Start with "' + greeting + '"\n\n' +
-    'CASE STUDY:\n' + caseStudies + '\n' +
+    'CASE STUDY:\n' + caseStudyInstruction + '\n\n' +
     'END OF EMAIL:\n' +
     '- Include this line: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
     '- Then include the Calendly link with natural language like "Happy to find a time to connect:" followed by: ' + calendlyLink + '\n' +
