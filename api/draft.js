@@ -1,5 +1,5 @@
 // api/draft.js
-// Generates personalized outreach email + LinkedIn message via Gemini
+// Generates personalized outreach email via Gemini with case study selection
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,15 +22,34 @@ module.exports = async function handler(req, res) {
   var category = body.category || 'engineering';
   var contactTitle = body.contactTitle || 'Hiring Manager';
   var contactFirstName = body.contactFirstName || '';
+  var description = body.description || '';
+  var uniqid = body.uniqid || '*|UNIQID|*';
 
   var greeting = contactFirstName ? 'Hi ' + contactFirstName + ',' : 'Hi,';
 
-  var prompt = 'You are a business development writer for iMPact Business Group, a staffing and recruiting firm based in Grand Rapids MI and Tampa FL. IBG places professionals in IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration roles nationally.\n\n' +
-    'Generate outreach for a lead at ' + companyName + '. They are hiring for: ' + jobTitle + ' (' + category + '). The contact is a ' + contactTitle + '.\n\n' +
-    'Write two things:\n' +
-    '1) A concise cold email subject line and body. Start the email with "' + greeting + '". The email body should be 3-4 short paragraphs: acknowledge their hiring activity for a ' + jobTitle + ', briefly explain what IBG does, offer a specific value (faster placement, pre-screened candidates, contingency-based so no upfront cost), and close with a soft CTA asking if they are open to a quick call. End with this exact signature: "Mark Sapoznikov\niMPact Business Group\nmsapoznikov@impactbusinessgroup.com"\n' +
-    '2) A LinkedIn message under 280 characters that references their hiring for ' + jobTitle + ' and offers to connect. Keep it conversational and non-salesy.\n\n' +
-    'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape: { "emailSubject": "...", "emailBody": "...", "linkedinMessage": "..." }';
+  var caseStudies =
+    'Select the most relevant case study based on the job and include a one-sentence natural reference with the tracked link:\n' +
+    '- Engineering/manufacturing/production/operations roles: use "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- angle: filled 3 specialized roles in under 2 weeks under urgent timeline\n' +
+    '- VP/Director/executive engineering or operations roles: use "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- angle: confidential executive search, niche industry, hands-on leadership placement\n' +
+    '- IT/software/tech roles: use "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- angle: built entire product team from scratch on accelerated timeline\n' +
+    '- GM/general manager/president/COO or other leadership roles: use "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- angle: confidential values-based search, succession planning\n' +
+    '- If no specific case study is a strong match, include a generic one-sentence reference linking to https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' using natural language like "You can see some of our recent client work here." Always include a case study link in every generated email.\n';
+
+  var prompt =
+    'You are a business development writer for iMPact Business Group, a staffing and recruiting firm based in Grand Rapids MI and Tampa FL. IBG places professionals in IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration roles nationally.\n\n' +
+    'Write a short, authentic, personalized cold outreach email from an iMPact Business Group account manager to a hiring manager at ' + companyName + '. They are hiring for: ' + jobTitle + ' (category: ' + category + '). The contact is a ' + contactTitle + '.\n\n' +
+    (description ? 'Here is the job description for additional context:\n' + description.slice(0, 1500) + '\n\n' : '') +
+    'Requirements:\n' +
+    '- Tone: genuine, direct, human. Not salesy. No buzzwords. No em dashes. No double hyphens.\n' +
+    '- Length: 3-4 short paragraphs maximum\n' +
+    '- Start the email body with "' + greeting + '"\n' +
+    '- Personalize based on: company name, job title they are hiring for, contact name and title, job category, and any relevant details from the job description\n' +
+    '- ' + caseStudies +
+    '- End with a link to the website: https://impactbusinessgroup.com/?cid=' + uniqid + '\n' +
+    '- Do NOT include a signature block\n' +
+    '- Generate a personalized subject line as well\n\n' +
+    'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape:\n' +
+    '{ "subject": "the subject line", "body": "HTML string with <p> tags for paragraphs and <a> tags for links" }';
 
   try {
     var geminiRes = await fetch(
@@ -40,7 +59,7 @@ module.exports = async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
+          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
         })
       }
     );
@@ -61,9 +80,8 @@ module.exports = async function handler(req, res) {
     var parsed = JSON.parse(clean);
 
     return res.status(200).json({
-      emailSubject: parsed.emailSubject || '',
-      emailBody: parsed.emailBody || '',
-      linkedinMessage: parsed.linkedinMessage || ''
+      subject: parsed.subject || '',
+      body: parsed.body || ''
     });
   } catch (e) {
     console.error('Draft generation error:', e.message);

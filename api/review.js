@@ -50,8 +50,11 @@ module.exports = async function handler(req, res) {
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.section-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2a3a5c; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2a3a5c; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
 '.contact-card:hover { border-color: rgba(26,78,162,0.4); background: #2f4065; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.2); }\n' +
+'.contact-header, .contact-info, .contact-name-row, .contact-name, .contact-title-sub, .contact-loc, .email-row, .credit-note, .badge { pointer-events: none; }\n' +
+'.contact-actions { pointer-events: auto; }\n' +
+'.contact-actions .btn-li, .contact-actions .remove-wrap, .contact-actions .btn-fetch { pointer-events: auto; }\n' +
 '.contact-card.active { border-color: rgba(93,202,165,0.7); background: #283d58; box-shadow: 0 0 16px rgba(93,202,165,0.25), 0 0 32px rgba(93,202,165,0.08), 0 4px 16px rgba(0,0,0,0.2); }\n' +
 '.contact-card.sent { border-color: rgba(93,202,165,0.4); background: rgba(93,202,165,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
@@ -84,10 +87,22 @@ module.exports = async function handler(req, res) {
 '.composer { background: #1e2e4a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
-'.subject-select { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 4px; appearance: auto; cursor: pointer; }\n' +
-'.subject-select:focus { outline: none; border-color: #1A4EA2; }\n' +
-'.subject-input { width: 100%; font-size: 13px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; font-family: Raleway, sans-serif; margin-bottom: 6px; }\n' +
-'.subject-input:focus { outline: none; border-color: #1A4EA2; }\n' +
+'.subj-dd { position: relative; margin-bottom: 4px; }\n' +
+'.subj-dd-trigger { width: 100%; font-size: 13px; padding: 9px 36px 9px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #1a2744; color: #e0e4ec; font-family: Raleway, sans-serif; cursor: pointer; display: flex; align-items: center; transition: border-color 0.15s, background 0.15s; user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n' +
+'.subj-dd-trigger:hover { background: #1e2e48; border-color: rgba(26,78,162,0.4); }\n' +
+'.subj-dd-trigger .chevron { position: absolute; right: 12px; top: 50%; transform: translateY(-50%) rotate(0deg); transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); width: 14px; height: 14px; color: rgba(255,255,255,0.4); pointer-events: none; }\n' +
+'.subj-dd.open .chevron { transform: translateY(-50%) rotate(180deg); }\n' +
+'.subj-dd.open .subj-dd-trigger { border-color: #1A4EA2; background: #1e2e48; }\n' +
+'.subj-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1e2e48; border: 1px solid rgba(26,78,162,0.3); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2); z-index: 20; opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }\n' +
+'.subj-dd.open .subj-dd-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }\n' +
+'.subj-dd-opt { padding: 9px 14px; font-size: 13px; color: rgba(255,255,255,0.8); cursor: pointer; transition: background 0.12s, color 0.12s; font-family: Raleway, sans-serif; }\n' +
+'.subj-dd-opt:hover { background: rgba(26,78,162,0.2); color: #fff; }\n' +
+'.subj-dd-opt.selected { color: #63a4ff; }\n' +
+'.subj-dd-opt:first-child { border-radius: 9px 9px 0 0; }\n' +
+'.subj-dd-opt:last-child { border-radius: 0 0 9px 9px; }\n' +
+'.subj-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.35); margin-bottom: 4px; font-family: Oswald, sans-serif; }\n' +
+'.subject-input { width: 100%; font-size: 13px; padding: 9px 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: #2a3a5c; color: #fff; font-family: Raleway, sans-serif; margin-bottom: 6px; transition: border-color 0.15s, box-shadow 0.15s; }\n' +
+'.subject-input:focus { outline: none; border-color: #1A4EA2; box-shadow: 0 0 0 2px rgba(26,78,162,0.25); }\n' +
 '.tab-row { display: flex; gap: 6px; margin-bottom: 8px; }\n' +
 '.tab { font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: rgba(255,255,255,0.5); background: transparent; font-weight: 600; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.tab.active { background: #1A4EA2; color: white; border-color: #1A4EA2; }\n' +
@@ -160,6 +175,12 @@ module.exports = async function handler(req, res) {
 '.rich-editor { width: 100%; font-size: 13px; line-height: 1.7; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: #243352; color: #e0e4ec; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; white-space: pre-wrap; }\n' +
 '.rich-editor:focus { border-color: #1A4EA2; }\n' +
 '.rich-editor a { color: #63a4ff; text-decoration: underline; }\n' +
+'@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }\n' +
+'.draft-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; gap: 12px; }\n' +
+'.draft-loading-bar { width: 80%; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(26,78,162,0.15) 25%, rgba(26,78,162,0.35) 50%, rgba(26,78,162,0.15) 75%); background-size: 200% 100%; animation: shimmer 1.5s ease infinite; }\n' +
+'.draft-loading-bar:nth-child(2) { width: 60%; animation-delay: 0.2s; }\n' +
+'.draft-loading-bar:nth-child(3) { width: 70%; animation-delay: 0.4s; }\n' +
+'.draft-loading-text { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }\n' +
 '.outlook-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(255,255,255,0.45); }\n' +
 '.outlook-toggle-btns { display: inline-flex; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }\n' +
 '.outlook-toggle-btn { padding: 2px 10px; font-size: 10px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.4); transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
@@ -384,13 +405,18 @@ module.exports = async function handler(req, res) {
 '            \'<button class="tab" onclick="switchCardTab(\\\'\'+safeId+\'\\\',\\\'linkedin\\\',this)">LinkedIn</button>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="email-pane-\'+safeId+\'">\'+\n' +
-'            \'<select class="subject-select" id="subj-select-\'+safeId+\'" onchange="onSubjectSelect(\\\'\'+safeId+\'\\\')">\'+\n' +
-'              \'<option value="\'+escHtml(subj1)+\'">\'+escHtml(subj1)+\'</option>\'+\n' +
-'              \'<option value="\'+escHtml(subj2)+\'">\'+escHtml(subj2)+\'</option>\'+\n' +
-'              \'<option value="\'+escHtml(subj3)+\'">\'+escHtml(subj3)+\'</option>\'+\n' +
-'              \'<option value="\'+escHtml(subj4)+\'">\'+escHtml(subj4)+\'</option>\'+\n' +
-'            \'</select>\'+\n' +
-'            \'<input class="subject-input" type="text" id="subj-\'+safeId+\'" placeholder="Subject line (editable)">\'+\n' +
+'            \'<div class="subj-dd" id="subj-dd-\'+safeId+\'">\'+\n' +
+'              \'<div class="subj-dd-trigger" id="subj-dd-trigger-\'+safeId+\'" onclick="toggleSubjDD(\\\'\'+safeId+\'\\\')"><span id="subj-dd-label-\'+safeId+\'">\'+escHtml(subj1)+\'</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>\'+\n' +
+'              \'<div class="subj-dd-panel" id="subj-dd-panel-\'+safeId+\'">\'+\n' +
+'                \'<div class="subj-dd-opt selected" data-value="\'+escHtml(subj1)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj1)+\'</div>\'+\n' +
+'                \'<div class="subj-dd-opt" data-value="\'+escHtml(subj2)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj2)+\'</div>\'+\n' +
+'                \'<div class="subj-dd-opt" data-value="\'+escHtml(subj3)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj3)+\'</div>\'+\n' +
+'                \'<div class="subj-dd-opt" data-value="\'+escHtml(subj4)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj4)+\'</div>\'+\n' +
+'                \'<div class="subj-dd-opt" data-value="__custom__" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">Custom Message</div>\'+\n' +
+'              \'</div>\'+\n' +
+'            \'</div>\'+\n' +
+'            \'<div class="subj-label">Subject line (editable)</div>\'+\n' +
+'            \'<input class="subject-input" type="text" id="subj-\'+safeId+\'" placeholder="Type or edit subject line...">\'+\n' +
 '            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
 '            \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" title="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '          \'</div>\'+\n' +
@@ -412,10 +438,67 @@ module.exports = async function handler(req, res) {
 '  \'</div>\';\n' +
 '}\n' +
 '\n' +
-'function onSubjectSelect(safeId) {\n' +
-'  var sel=_g("subj-select-"+safeId);\n' +
+'function toggleSubjDD(safeId) {\n' +
+'  var dd=_g("subj-dd-"+safeId);\n' +
+'  if(dd) dd.classList.toggle("open");\n' +
+'}\n' +
+'function selectSubjOpt(safeId, el) {\n' +
+'  var dd=_g("subj-dd-"+safeId);\n' +
+'  var label=_g("subj-dd-label-"+safeId);\n' +
 '  var inp=_g("subj-"+safeId);\n' +
-'  if(sel&&inp) inp.value=sel.value;\n' +
+'  dd.querySelectorAll(".subj-dd-opt").forEach(function(o){o.classList.remove("selected");});\n' +
+'  el.classList.add("selected");\n' +
+'  var val=el.getAttribute("data-value");\n' +
+'  if(val==="__custom__"){\n' +
+'    label.textContent="Custom Message";\n' +
+'    dd.classList.remove("open");\n' +
+'    generateCustomDraft(safeId);\n' +
+'    return;\n' +
+'  }\n' +
+'  label.textContent=el.textContent;\n' +
+'  inp.value=val;\n' +
+'  dd.classList.remove("open");\n' +
+'}\n' +
+'document.addEventListener("click",function(e){\n' +
+'  document.querySelectorAll(".subj-dd.open").forEach(function(dd){\n' +
+'    if(!dd.contains(e.target)) dd.classList.remove("open");\n' +
+'  });\n' +
+'});\n' +
+'\n' +
+'async function generateCustomDraft(safeId) {\n' +
+'  var activeCid=activeContacts[safeId];\n' +
+'  if(!activeCid){showToast("Select a contact first",3000);return;}\n' +
+'  var card=_g("cb-"+activeCid);\n' +
+'  if(!card) return;\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  if(!lead) return;\n' +
+'  var contactName=card.getAttribute("data-name")||"";\n' +
+'  var contactTitle=card.getAttribute("data-title")||"";\n' +
+'  var contactFirstName=contactName.split(" ")[0];\n' +
+'  var uniqid=card.getAttribute("data-uniqid")||"*|UNIQID|*";\n' +
+'  var ebodyEl=_g("ebody-"+safeId);\n' +
+'  var subjInput=_g("subj-"+safeId);\n' +
+'  ebodyEl.innerHTML=\'<div class="draft-loading"><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-bar"></div><div class="draft-loading-text">Generating personalized email...</div></div>\';\n' +
+'  ebodyEl.setAttribute("contenteditable","false");\n' +
+'  subjInput.value="Generating...";\n' +
+'  subjInput.disabled=true;\n' +
+'  try{\n' +
+'    var payload={jobTitle:lead.jobTitle||"",companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,description:lead.description||"",uniqid:uniqid};\n' +
+'    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
+'    var d=await r.json();\n' +
+'    if(!r.ok||!d.subject) throw new Error(d.error||"Draft failed");\n' +
+'    subjInput.value=d.subject;\n' +
+'    ebodyEl.innerHTML=d.body;\n' +
+'    composerState[safeId]={subj:d.subject,body:d.body,li:"",lastFirstName:contactFirstName,lastUniqid:uniqid};\n' +
+'  }catch(e){\n' +
+'    console.error("Custom draft error:",e);\n' +
+'    showToast("Could not generate email - using default template",3000);\n' +
+'    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,contactFirstName,uniqid);\n' +
+'    var firstOpt=_g("subj-dd-panel-"+safeId);\n' +
+'    if(firstOpt){var fo=firstOpt.querySelector(".subj-dd-opt");if(fo) subjInput.value=fo.getAttribute("data-value")||"";}\n' +
+'  }\n' +
+'  ebodyEl.setAttribute("contenteditable","true");\n' +
+'  subjInput.disabled=false;\n' +
 '}\n' +
 '\n' +
 'function switchCardTab(safeId, tab, btn) {\n' +
@@ -495,9 +578,7 @@ module.exports = async function handler(req, res) {
 '      \'</div></div>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
-'  card.style.cursor="pointer";\n' +
 '  card.addEventListener("click",function(e){\n' +
-'    if(e.target.closest(".contact-actions")) return;\n' +
 '    var em=card.getAttribute("data-email");\n' +
 '    if(!em) return;\n' +
 '    activateContact(cid,safeId);\n' +
@@ -588,8 +669,8 @@ module.exports = async function handler(req, res) {
 '  // If first time or no state, populate fresh\n' +
 '  if(!composerState[safeId]){\n' +
 '    composerState[safeId]={subj:"",body:"",li:"",lastFirstName:"",lastUniqid:""};\n' +
-'    var sel=_g("subj-select-"+safeId);\n' +
-'    if(sel) subjInput.value=sel.options[0].value;\n' +
+'    var firstOpt=_g("subj-dd-panel-"+safeId);\n' +
+'    if(firstOpt){var fo=firstOpt.querySelector(".subj-dd-opt");if(fo) subjInput.value=fo.getAttribute("data-value")||"";}\n' +
 '    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,firstName,uniqid);\n' +
 '    if(lead) libodyEl.value=getLITemplate(lead,firstName,uniqid);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
