@@ -316,6 +316,7 @@ async function handleDryRun(req, res) {
   let afterBlocklist = 0;
   let afterCategoryDetection = 0;
   const qualifyingJobs = [];
+  const aggregatorRejections = [];
 
   const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
 
@@ -332,7 +333,10 @@ async function handleDryRun(req, res) {
 
       // Aggregator filter
       const aggregatorHost = isAggregatorSource(job.job_apply_link, employer);
-      if (aggregatorHost) continue;
+      if (aggregatorHost) {
+        aggregatorRejections.push({ company: employer, jobTitle: title, rejectedDomain: aggregatorHost });
+        continue;
+      }
       if (isExcludedTitle(title, blockedTitles)) continue;
       if (isJobBoard(employer)) continue;
       if (isContractRole(job)) continue;
@@ -377,6 +381,7 @@ async function handleDryRun(req, res) {
       afterCategoryDetection,
       finalQualifyingCount: qualifyingJobs.length,
     },
+    aggregatorRejections,
     qualifyingJobs,
   });
 }
