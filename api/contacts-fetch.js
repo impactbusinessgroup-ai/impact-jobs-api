@@ -400,7 +400,26 @@ module.exports = async function handler(req, res) {
       var needsReprocess = hasExploriumContacts || enrichedButEmpty;
 
       if (!needsReprocess) {
-        if (lead.contacts && lead.contacts.length > 0) { console.log('Skip ' + lead.company + ': already has ' + lead.contacts.length + ' contacts (source=' + lead.contacts[0].source + ')'); skipped++; continue; }
+        if (lead.contacts && lead.contacts.length > 0) {
+          // Backfill company_linkedin on skipped leads that already have contacts
+          if (!lead.company_linkedin && lead.company_domain) {
+            try {
+              var bfRes = await fetch('https://api.apollo.io/api/v1/organizations/enrich?domain=' + encodeURIComponent(lead.company_domain), {
+                headers: { 'x-api-key': process.env.APOLLO_API_KEY }
+              });
+              if (bfRes.ok) {
+                var bfData = await bfRes.json();
+                var bfLinkedin = bfData.organization && bfData.organization.linkedin_url;
+                if (bfLinkedin) {
+                  lead.company_linkedin = bfLinkedin;
+                  await redisSet(keys[i], lead, 604800);
+                  console.log('Backfilled company_linkedin for', lead.company, ':', bfLinkedin);
+                }
+              }
+            } catch (e) { console.log('Backfill error:', e.message); }
+          }
+          console.log('Skip ' + lead.company + ': already has ' + lead.contacts.length + ' contacts (source=' + lead.contacts[0].source + ')'); skipped++; continue;
+        }
         if (lead.contactsEnrichedAt) { console.log('Skip ' + lead.company + ': already enriched at ' + new Date(lead.contactsEnrichedAt).toISOString()); skipped++; continue; }
       } else {
         console.log('Reprocessing ' + lead.company + ': ' + (hasExploriumContacts ? 'explorium contacts' : 'enriched but empty'));
