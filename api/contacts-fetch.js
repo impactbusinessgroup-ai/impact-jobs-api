@@ -161,6 +161,25 @@ async function processLead(lead, leadKey) {
     console.log('Apollo org ID for', lead.company, ':', orgId);
   } else {
     console.log('Using cached org ID for', lead.company, ':', orgId);
+    // Backfill company_linkedin if missing despite having org ID
+    if (!lead.company_linkedin) {
+      try {
+        var orgRes2 = await fetch('https://api.apollo.io/api/v1/organizations/enrich?domain=' + encodeURIComponent(domain), {
+          headers: { 'x-api-key': process.env.APOLLO_API_KEY }
+        });
+        if (orgRes2.ok) {
+          var orgData2 = await orgRes2.json();
+          var orgLinkedin2 = orgData2.organization && orgData2.organization.linkedin_url;
+          if (orgLinkedin2) {
+            lead.company_linkedin = orgLinkedin2;
+            await redisSet(leadKey, lead, 604800);
+            console.log('Backfilled company_linkedin for', lead.company, ':', orgLinkedin2);
+          }
+        }
+      } catch (e) {
+        console.log('company_linkedin backfill error:', e.message);
+      }
+    }
   }
 
   // Step 2: Gemini generates broad title keywords
