@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
 '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 50%, #141414 100%); background-attachment: fixed; color: #f0f0f0; min-height: 100vh; }\n' +
+'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #363636 0%, #2a2a2a 50%, #1f1f1f 100%); background-attachment: fixed; color: #f0f0f0; min-height: 100vh; }\n' +
 'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
 '.header { background: rgba(26,26,26,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
@@ -24,8 +24,8 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: #2e2e2e; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
-'.card-top { background: #2e2e2e; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
+'.card { background: #3a3a3a; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card-top { background: linear-gradient(135deg, #2a3a5c 0%, #1e2a42 60%, #161e30 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); position: relative; z-index: 1; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 80px; height: 80px; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
 '.company-initials { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
@@ -62,7 +62,7 @@ module.exports = async function handler(req, res) {
 '.avatar img { width: 100%; height: 100%; object-fit: cover; }\n' +
 '.contact-info { flex: 1; min-width: 0; }\n' +
 '.contact-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap; }\n' +
-'.contact-name { font-size: 13px; font-weight: 700; color: #fff; }\n' +
+'.contact-name { font-size: 16px; font-weight: 600; color: #fff; }\n' +
 '.contact-title-sub { font-size: 11px; color: #999999; }\n' +
 '.contact-loc { font-size: 11px; color: #777777; }\n' +
 '.email-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }\n' +
@@ -73,8 +73,8 @@ module.exports = async function handler(req, res) {
 '.badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
 '.btn { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #cdd; transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
-'.btn-li { background: rgba(232,98,10,0.15); color: #E8620A; border-color: rgba(232,98,10,0.25); padding: 5px 8px; }\n' +
-'.btn-li:hover { background: rgba(232,98,10,0.25); }\n' +
+'.btn-li { background: rgba(0,119,181,0.15); color: #0077B5; border-color: rgba(0,119,181,0.25); padding: 5px 8px; }\n' +
+'.btn-li:hover { background: rgba(0,119,181,0.25); }\n' +
 '.btn-fetch { background: rgba(255,160,0,0.15); color: #FCD34D; border-color: rgba(255,160,0,0.3); }\n' +
 '.btn-fetch:hover { background: rgba(255,160,0,0.25); }\n' +
 '.btn-sent { background: rgba(93,202,165,0.15); color: #6EE7C7; border-color: rgba(93,202,165,0.3); cursor: default; }\n' +
@@ -180,7 +180,7 @@ module.exports = async function handler(req, res) {
 '.btn-glass-complete:hover { box-shadow: 0 0 20px rgba(0,212,170,0.4); transform: translateY(-2px); }\n' +
 '.btn-glass-reassign:hover { box-shadow: 0 0 20px rgba(255,255,255,0.15); transform: translateY(-2px); }\n' +
 '.link-icon:hover { box-shadow: 0 0 10px rgba(232,98,10,0.3); }\n' +
-'.btn-li:hover { box-shadow: 0 0 10px rgba(232,98,10,0.35); }\n' +
+'.btn-li:hover { box-shadow: 0 0 10px rgba(0,119,181,0.35); }\n' +
 '.rich-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid #3a3a3a; border-radius: 8px; background: #2a2a2a; color: #f0f0f0; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; }\n' +
 '.rich-editor:focus { border-color: #E8620A; box-shadow: 0 0 0 2px rgba(232,98,10,0.2); }\n' +
 '.rich-editor p { margin-bottom: 16px; }\n' +
@@ -202,6 +202,12 @@ module.exports = async function handler(req, res) {
 '.outlook-toggle-btn.active { background: rgba(232,98,10,0.4); color: white; }\n' +
 '.custom-tooltip { position: fixed; background: #1a1a1a; color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: Raleway, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 150ms ease; white-space: nowrap; }\n' +
 '.custom-tooltip.visible { opacity: 1; }\n' +
+'.btn-custom-msg { position: relative; overflow: visible; }\n' +
+'.subj-bar-ai { position: relative; overflow: visible; }\n' +
+'.star-burst { position: absolute; z-index: 2; pointer-events: none; opacity: 0; transform: scale(0); transition: none; }\n' +
+'.star-burst svg { filter: drop-shadow(0 0 4px #E8620A); }\n' +
+'.btn-custom-msg:hover, .subj-bar-ai:hover { text-shadow: 0 0 8px rgba(232,98,10,0.4); }\n' +
+'.btn-custom-msg:hover { background: rgba(232,98,10,0.2); color: #ff8533; border-color: rgba(232,98,10,0.5); }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -458,7 +464,7 @@ module.exports = async function handler(req, res) {
 '            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
 '            \'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">\'+\n' +
 '              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" data-tooltip="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
-'              \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')">Custom Message</button>\'+\n' +
+'              \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink:0;"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg> Custom Message</button>\'+\n' +
 '            \'</div>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="li-pane-\'+safeId+\'" style="display:none;">\'+\n' +
@@ -648,7 +654,6 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  card.innerHTML=\n' +
 '    \'<div class="contact-header">\'+\n' +
-'      \'<div class="avatar">\'+avatarInner+\'</div>\'+\n' +
 '      \'<div class="contact-info">\'+\n' +
 '        \'<div class="contact-name-row">\'+\n' +
 '          \'<span class="contact-name">\'+name+\'</span>\'+\n' +
@@ -1045,6 +1050,65 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  function hide(){tip.classList.remove("visible");}\n' +
 '  document.addEventListener("mouseover",show);document.addEventListener("mouseout",function(e){if(e.target.closest("[data-tooltip]"))hide();});\n' +
+'})();\n' +
+'(function(){\n' +
+'  var STAR_SVG = \'<svg viewBox="0 0 24 24" fill="#E8620A"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg>\';\n' +
+'  var STAR_CONFIG = [\n' +
+'    {tx:"-120%",ty:"-140%",dur:800,size:12},\n' +
+'    {tx:"-30%",ty:"-160%",dur:700,size:8},\n' +
+'    {tx:"100%",ty:"-120%",dur:900,size:16},\n' +
+'    {tx:"140%",ty:"20%",dur:650,size:20},\n' +
+'    {tx:"110%",ty:"120%",dur:800,size:10},\n' +
+'    {tx:"-100%",ty:"110%",dur:750,size:6}\n' +
+'  ];\n' +
+'  var EASING = "cubic-bezier(0.05, 0.83, 0.43, 0.96)";\n' +
+'  function createStars(btn) {\n' +
+'    if(btn._stars) return;\n' +
+'    btn._stars = [];\n' +
+'    STAR_CONFIG.forEach(function(cfg) {\n' +
+'      var el = document.createElement("span");\n' +
+'      el.className = "star-burst";\n' +
+'      el.innerHTML = STAR_SVG;\n' +
+'      el.style.cssText = "position:absolute;top:50%;left:50%;margin-top:-"+(cfg.size/2)+"px;margin-left:-"+(cfg.size/2)+"px;width:"+cfg.size+"px;height:"+cfg.size+"px;z-index:2;pointer-events:none;opacity:0;transform:scale(0);transition:none;";\n' +
+'      el.querySelector("svg").style.cssText = "width:100%;height:100%;filter:drop-shadow(0 0 4px #E8620A);";\n' +
+'      el._cfg = cfg;\n' +
+'      btn.appendChild(el);\n' +
+'      btn._stars.push(el);\n' +
+'    });\n' +
+'  }\n' +
+'  function animateOut(btn) {\n' +
+'    if(!btn._stars) return;\n' +
+'    btn._stars.forEach(function(el) {\n' +
+'      var cfg = el._cfg;\n' +
+'      el.style.transition = "none";\n' +
+'      el.offsetHeight;\n' +
+'      el.style.transition = "transform "+cfg.dur+"ms "+EASING+", opacity "+cfg.dur+"ms "+EASING;\n' +
+'      el.style.transform = "translate("+cfg.tx+","+cfg.ty+") scale(1)";\n' +
+'      el.style.opacity = "1";\n' +
+'      setTimeout(function(){ el.style.opacity = "0"; }, cfg.dur * 0.55);\n' +
+'    });\n' +
+'  }\n' +
+'  function animateBack(btn) {\n' +
+'    if(!btn._stars) return;\n' +
+'    btn._stars.forEach(function(el) {\n' +
+'      var cfg = el._cfg;\n' +
+'      el.style.transition = "transform 400ms "+EASING+", opacity 300ms ease";\n' +
+'      el.style.transform = "scale(0)";\n' +
+'      el.style.opacity = "0";\n' +
+'    });\n' +
+'  }\n' +
+'  document.addEventListener("mouseover", function(e) {\n' +
+'    var btn = e.target.closest(".btn-custom-msg, .subj-bar-ai");\n' +
+'    if(!btn) return;\n' +
+'    createStars(btn);\n' +
+'    animateOut(btn);\n' +
+'  });\n' +
+'  document.addEventListener("mouseout", function(e) {\n' +
+'    var btn = e.target.closest(".btn-custom-msg, .subj-bar-ai");\n' +
+'    if(!btn) return;\n' +
+'    if(btn.contains(e.relatedTarget)) return;\n' +
+'    animateBack(btn);\n' +
+'  });\n' +
 '})();\n' +
 'init();\n' +
 '</script>\n' +
