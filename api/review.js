@@ -413,6 +413,19 @@ module.exports = async function handler(req, res) {
 '          fromCache:c.fromCache||false,email:c.email||"",previousJobs:c.previousJobs||[],uniqid:c.uniqid||"",photo_url:c.photo_url||""\n' +
 '        });\n' +
 '      });\n' +
+'      // Show outreach badges for contacts with logged outreach and evaluate Complete button\n' +
+'      if(lead.outreach_log){\n' +
+'        var contactCards=_g("contacts-"+safeId).querySelectorAll(".contact-card");\n' +
+'        contactCards.forEach(function(cc){\n' +
+'          var pid=cc.getAttribute("data-prospect-id")||"";\n' +
+'          if(pid&&lead.outreach_log[pid]&&lead.outreach_log[pid].length>0){\n' +
+'            var last=lead.outreach_log[pid][lead.outreach_log[pid].length-1];\n' +
+'            var badge=cc.querySelector(".outreach-badge");\n' +
+'            if(badge){badge.style.display="inline-block";badge.textContent="Outreach "+last.attempt+" sent "+new Date(last.date).toLocaleDateString();}\n' +
+'          }\n' +
+'        });\n' +
+'      }\n' +
+'      checkAllActioned(safeId);\n' +
 '    }\n' +
 '  });\n' +
 '}\n' +
@@ -513,7 +526,7 @@ module.exports = async function handler(req, res) {
 '      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\'+companyEsc+\'\\\',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> \'+(blocked?"Unblock":"Block company")+\'</button>\'+\n' +
 '      \'<div style="flex:1;"></div>\'+\n' +
 '      \'<button class="btn-glass btn-glass-reassign" onclick="openReassignModal(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_REASSIGN +\' Reassign</button>\'+\n' +
-'      (lead.reminder_stage>=3?\'<div class="remove-wrap" style="position:relative;"><button class="btn-glass btn-glass-complete" onclick="toggleCloseoutDD(\\\'\'+safeId+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button><div class="closeout-dd" id="closeout-\'+safeId+\'"><div class="closeout-dd-item" onclick="closeOutLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Close Out</div><div class="closeout-dd-item" onclick="addReminderLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Add 3-day Reminder</div></div></div>\':(lead.outreach_log&&Object.keys(lead.outreach_log).length>0?\'<button class="btn-glass btn-glass-complete" onclick="completeLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button>\':\'<button class="btn-glass btn-glass-complete disabled" data-tooltip="Action all contacts to close this lead">\'+ SVG_CHECK +\' Complete Lead</button>\'))+\n' +
+'      (lead.reminder_stage>=3?\'<div class="remove-wrap" style="position:relative;"><button class="btn-glass btn-glass-complete" onclick="toggleCloseoutDD(\\\'\'+safeId+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button><div class="closeout-dd" id="closeout-\'+safeId+\'"><div class="closeout-dd-item" onclick="closeOutLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Close Out</div><div class="closeout-dd-item" onclick="addReminderLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Add 3-day Reminder</div></div></div>\':\'<button class="btn-glass btn-glass-complete disabled" data-tooltip="Action all contacts to close this lead" onclick="completeLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button>\')+\n' +
 '    \'</div>\'+\n' +
 '  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadRedisIds=window._leadRedisIds||{};window._leadJobTitles["\'+safeId+\'"]=\'+JSON.stringify(lead.jobTitle||"")+\';window._leadCategories["\'+safeId+\'"]=\'+JSON.stringify(lead.category||"engineering")+\';window._leadRedisIds["\'+safeId+\'"]=\'+JSON.stringify(lead.id||"")+\';<\\/script>\'+\n' +
 '  \'</div>\';\n' +
@@ -1086,6 +1099,8 @@ module.exports = async function handler(req, res) {
 'function undoSkip(){if(window._skipUndo)window._skipUndo();}\n' +
 '\n' +
 'function completeLead(safeId, realId) {\n' +
+'  var btn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +
+'  if(btn&&btn.classList.contains("disabled")) return;\n' +
 '  var lead=leads.find(function(l){return l.id===realId;});\n' +
 '  showConfirm("Close this lead and start follow-up reminders?","You can still reach out to remaining contacts when reminders fire.","Confirm",function(){\n' +
 '    fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:realId,action:"complete_lead",am_email:AM.email})}).then(function(){showToast("Lead closed, reminders scheduled",3000);}).catch(function(){});\n' +
