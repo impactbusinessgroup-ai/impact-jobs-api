@@ -18,6 +18,22 @@ var CALENDLY = {
   "msapoznikov@impactbusinessgroup.com": "https://calendly.com/msapoznikov"
 };
 
+var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=';
+
+async function fetchGemini(apiKey, body) {
+  var keys = [apiKey, process.env.GEMINI_API_KEY_2].filter(Boolean);
+  for (var k = 0; k < keys.length; k++) {
+    var res = await fetch(GEMINI_URL + keys[k], {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 429 && k < keys.length - 1) { console.log('[draft] Gemini 429, retrying with backup key'); continue; }
+    return res;
+  }
+  return { ok: false, status: 429, json: async function() { return {}; }, text: async function() { return 'All Gemini keys exhausted (429)'; } };
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -53,10 +69,7 @@ module.exports = async function handler(req, res) {
   if (body.action === 'subject_only') {
     var subjPrompt = 'Generate a short, personalized email subject line for a cold outreach to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening. The subject MUST include the job title "' + jobTitle + '". Make it direct and professional, not clickbaity. No em dashes. Return ONLY a JSON object: { "subject": "the subject line" }';
     try {
-      var sjRes = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: subjPrompt }] }], generationConfig: { maxOutputTokens: 100, temperature: 0.8 } }) }
-      );
+      var sjRes = await fetchGemini(apiKey, { contents: [{ parts: [{ text: subjPrompt }] }], generationConfig: { maxOutputTokens: 100, temperature: 0.8 } });
       if (!sjRes.ok) return res.status(500).json({ error: 'Subject generation failed' });
       var sjData = await sjRes.json();
       var sjText = sjData.candidates && sjData.candidates[0] && sjData.candidates[0].content && sjData.candidates[0].content.parts && sjData.candidates[0].content.parts[0] && sjData.candidates[0].content.parts[0].text;
@@ -86,17 +99,10 @@ module.exports = async function handler(req, res) {
       'Return ONLY a JSON object: { "linkedinMessage": "the message as plain text" }';
 
     try {
-      var liRes = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: liPrompt }] }],
-            generationConfig: { maxOutputTokens: 400, temperature: 0.7 }
-          })
-        }
-      );
+      var liRes = await fetchGemini(apiKey, {
+        contents: [{ parts: [{ text: liPrompt }] }],
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7 }
+      });
       if (!liRes.ok) return res.status(500).json({ error: 'LinkedIn draft failed' });
       var liData = await liRes.json();
       var liText = liData.candidates && liData.candidates[0] && liData.candidates[0].content &&
@@ -162,17 +168,10 @@ module.exports = async function handler(req, res) {
     '{ "subject": "the subject line", "body": "HTML string with <p> tags for paragraphs and <a> tags for links" }';
 
   try {
-    var geminiRes = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
-        })
-      }
-    );
+    var geminiRes = await fetchGemini(apiKey, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+    });
 
     if (!geminiRes.ok) {
       var errBody = await geminiRes.text();

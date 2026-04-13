@@ -1,5 +1,21 @@
 // api/jobs-fetch.js
 
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=';
+
+async function fetchGemini(body) {
+  const keys = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter(Boolean);
+  for (let k = 0; k < keys.length; k++) {
+    const res = await fetch(GEMINI_URL + keys[k], {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 429 && k < keys.length - 1) { console.log('Gemini 429, retrying with backup key'); continue; }
+    return res;
+  }
+  return { ok: false, status: 429, json: async () => ({}) };
+}
+
 const EXCLUDE_TITLES = [
   'civil engineer','pe ','professional engineer','architect','architectural',
   'structural engineer','geotechnical','environmental engineer'
@@ -123,17 +139,10 @@ Full job description: ${(description || '').slice(0, 3000)}
 Return only one word.`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 10, temperature: 0 },
-        }),
-      }
-    );
+    const res = await fetchGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 10, temperature: 0 },
+    });
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
     if (VALID_CATEGORIES.includes(answer)) {
@@ -176,17 +185,10 @@ Job description: ${(description || 'Not available').slice(0, 3000)}
 Answer only YES or NO.`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 5, temperature: 0 },
-        }),
-      }
-    );
+    const res = await fetchGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 5, temperature: 0 },
+    });
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
     console.log(`Gemini filter "${title}": ${answer}`);
@@ -468,17 +470,10 @@ module.exports = async function handler(req, res) {
         try {
           geminiCalls++;
           const domainPrompt = `What is the primary website domain for this company?\n\nCompany name: ${employer}\nLocation: ${locationStr}\n\nReturn only the domain (e.g. acmecorp.com) with no explanation, no punctuation, no http or www prefix. Return the single word null if you are not confident.`;
-          const domainRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: domainPrompt }] }],
-                generationConfig: { maxOutputTokens: 30, temperature: 0 },
-              }),
-            }
-          );
+          const domainRes = await fetchGemini({
+            contents: [{ parts: [{ text: domainPrompt }] }],
+            generationConfig: { maxOutputTokens: 30, temperature: 0 },
+          });
           const domainData = await domainRes.json();
           const domainAnswer = (domainData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().toLowerCase();
           console.log(`Gemini domain inference: ${employer} -> ${domainAnswer}`);
