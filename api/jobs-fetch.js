@@ -202,7 +202,8 @@ const TRUSTED_DOMAINS = [
   'careerbuilder.com','simplyhired.com','dice.com','jobvite.com','greenhouse.io',
   'lever.co','workday.com','myworkdayjobs.com','icims.com','taleo.net',
   'smartrecruiters.com','successfactors.com','brassring.com','recruiterbox.com',
-  'bamboohr.com','paylocity.com','adp.com'
+  'bamboohr.com','paylocity.com','adp.com',
+  'whatjobs.com','digitalhire.com','jobleads.com'
 ];
 
 function isAggregatorSource(applyLink, employerName) {
