@@ -264,7 +264,7 @@ async function fetchJSearchPage(query, page = 1) {
     query,
     page: String(page),
     num_pages: '1',
-    date_posted: 'today',
+    date_posted: '3days',
     country: 'us',
     radius: '50',
   });
@@ -418,7 +418,7 @@ module.exports = async function handler(req, res) {
     if (lead?.normalizedCompany) seenCompanies.add(lead.normalizedCompany);
   }
 
-  const MAX_QUALIFIED = 3;
+  const MAX_QUALIFIED = 10;
 
   for (const query of JSEARCH_QUERIES) {
     if (qualifiedLeads.length >= MAX_QUALIFIED) break;
