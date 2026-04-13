@@ -147,6 +147,7 @@ module.exports = async function handler(req, res) {
     '- Open with a direct statement about iMPact\'s relevant experience or a concrete result. Example: "We recently placed three specialized engineers in under two weeks for a company in a similar situation."\n' +
     '- Add one specific detail showing knowledge of their company or industry.\n' +
     '- No buzzwords. No AI-sounding language. No em dashes. No double hyphens.\n' +
+    '- Use correct articles: "an" before vowel sounds (e.g., "an Automation Engineer"), "a" before consonant sounds (e.g., "a Manufacturing Engineer").\n' +
     '- 3 short paragraphs maximum.\n' +
     '- Start with "' + greeting + '"\n\n' +
     'CASE STUDY:\n' + caseStudyInstruction + '\n\n' +

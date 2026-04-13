@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
 '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
-'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #242424 0%, #1a1a1a 40%, #111111 100%); background-attachment: fixed; color: #f0f0f0; min-height: 100vh; }\n' +
+'body { font-family: Raleway, -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 50%, #141414 100%); background-attachment: fixed; color: #f0f0f0; min-height: 100vh; }\n' +
 'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
 '.header { background: rgba(26,26,26,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
@@ -24,20 +24,20 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: #242424; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
-'.card-top { background: #242424; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
+'.card { background: #2e2e2e; border-radius: 18px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card-top { background: #2e2e2e; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
-'.company-logo-wrap { width: 64px; height: 64px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
-'.company-initials { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
-'.company-name { font-size: 18px; font-weight: 700; color: white; line-height: 1.2; font-family: Oswald, sans-serif; }\n' +
-'.company-location { font-size: 12px; color: #999999; margin-top: 3px; }\n' +
-'.card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }\n' +
+'.company-logo-wrap { width: 80px; height: 80px; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
+'.company-initials { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, #FFA000, #E8620A); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; }\n' +
+'.company-name { font-size: 22px; font-weight: 700; color: white; line-height: 1.2; font-family: Oswald, sans-serif; }\n' +
+'.company-location { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
+'.card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; align-self: stretch; justify-content: center; }\n' +
 '.pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.8px; text-transform: uppercase; }\n' +
 '.pill-eng { background: rgba(29,158,117,0.07); color: #6EE7C7; border: 1px solid rgba(110,231,199,0.35); }\n' +
 '.pill-acc { background: rgba(99,179,237,0.06); color: #93C5FD; border: 1px solid rgba(147,197,253,0.35); }\n' +
 '.pill-it { background: rgba(255,160,0,0.06); color: #FCD34D; border: 1px solid rgba(252,211,77,0.35); }\n' +
 '.pill-other { background: rgba(168,130,255,0.06); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.35); }\n' +
-'.card-top-job-title { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; line-height: 1.3; }\n' +
+'.card-top-job-title { font-size: 15px; color: rgba(255,255,255,0.7); font-weight: 500; line-height: 1.3; }\n' +
 '.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.04); background: #1e1e1e; }\n' +
 '.links-bar-left, .links-bar-right { display: flex; gap: 12px; align-items: center; }\n' +
 '.link-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid #3a3a3a; color: rgba(255,255,255,0.5); cursor: pointer; text-decoration: none; transition: all 0.15s; }\n' +
@@ -50,12 +50,12 @@ module.exports = async function handler(req, res) {
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.section-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #2e2e2e; border: 1px solid #3a3a3a; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #383838; border: 1px solid #3a3a3a; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
 '.contact-card:hover { border-color: #484848; background: #363636; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
 '.contact-header, .contact-info, .contact-name-row, .contact-name, .contact-title-sub, .contact-loc, .email-row, .credit-note, .badge { pointer-events: none; }\n' +
 '.contact-actions { pointer-events: auto; }\n' +
 '.contact-actions .btn-li, .contact-actions .remove-wrap, .contact-actions .btn-fetch { pointer-events: auto; }\n' +
-'.contact-card.active { border: 2px solid #E8620A; background: #2e2e2e; box-shadow: 0 0 20px rgba(232,98,10,0.3); }\n' +
+'.contact-card.active { border: 2px solid #E8620A; background: #383838; box-shadow: 0 0 20px rgba(232,98,10,0.3); }\n' +
 '.contact-card.sent { border-color: rgba(232,98,10,0.4); background: rgba(232,98,10,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
 '.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #E8620A, #333333); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; overflow: hidden; }\n' +
@@ -84,10 +84,10 @@ module.exports = async function handler(req, res) {
 '.btn-primary:hover { background: #FF7A2F; }\n' +
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
-'.composer { background: #1e1e1e; border: 1px solid #333333; border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
+'.composer { background: #262626; border: 1px solid #333333; border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
 '.composer-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
-'.subj-bar { display: flex; align-items: center; background: #2a2a2a; border: 1px solid #444444; border-radius: 10px; padding: 0; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
+'.subj-bar { display: flex; align-items: center; background: #323232; border: 1px solid #444444; border-radius: 10px; padding: 0; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
 '.subj-bar-input { flex: 1; font-size: 14px; padding: 8px 12px; border: none; background: transparent; color: #fff; font-family: Raleway, sans-serif; outline: none; min-width: 0; border-radius: 9px 0 0 9px; }\n' +
 '.subj-bar-input::placeholder { color: #666666; }\n' +
 '.subj-bar-chevron { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #E8620A; flex-shrink: 0; border-left: 1px solid #444444; transition: background 0.2s; padding: 8px 0; }\n' +
@@ -115,12 +115,12 @@ module.exports = async function handler(req, res) {
 '.tab.active { background: #E8620A; color: white; border-color: #E8620A; }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #E8620A; background: rgba(232,98,10,0.15); padding: 3px 10px; border-radius: 6px; cursor: pointer; border: none; }\n' +
 '.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.04); background: #1a1a1a; }\n' +
-'.btn-glass { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 28px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; }\n' +
-'.btn-glass:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }\n' +
-'.btn-glass-skip { background: transparent; color: #E8620A; border-color: #E8620A; }\n' +
-'.btn-glass-skip:hover { background: rgba(232,98,10,0.15); }\n' +
-'.btn-glass-block { background: transparent; color: #cc3333; border-color: #cc3333; }\n' +
-'.btn-glass-block:hover { background: rgba(204,51,51,0.12); }\n' +
+'.btn-glass { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; min-height: 42px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 250ms cubic-bezier(0.4,0,0.2,1); background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; position: relative; overflow: hidden; }\n' +
+'.btn-glass:hover { background: #2a2a2a; border-color: rgba(255,255,255,0.2); }\n' +
+'.btn-glass-skip { background: #2a2a2a; color: #E8620A; border-color: #E8620A; }\n' +
+'.btn-glass-skip:hover { background: #2a2a2a; }\n' +
+'.btn-glass-block { background: #2a2a2a; color: #cc3333; border-color: #cc3333; }\n' +
+'.btn-glass-block:hover { background: #2a2a2a; }\n' +
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
 '.modal { background: #2a2a2a; border: 1px solid #484848; border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04); }\n' +
@@ -147,13 +147,13 @@ module.exports = async function handler(req, res) {
 '.loading { text-align: center; padding: 80px; color: rgba(255,255,255,0.4); font-size: 15px; }\n' +
 '.empty { text-align: center; padding: 80px; }\n' +
 '.empty h3 { font-size: 18px; margin-bottom: 8px; color: rgba(255,255,255,0.6); font-family: Oswald, sans-serif; }\n' +
-'.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: #E8620A; color: white; font-family: Raleway, sans-serif; transition: all 0.2s ease; box-shadow: 0 2px 12px rgba(232,98,10,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
-'.btn-send-email:hover { background: #FF7A2F; box-shadow: 0 4px 20px rgba(232,98,10,0.4); transform: translateY(-2px); }\n' +
+'.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #E8620A, #c94f00); color: white; font-family: Raleway, sans-serif; transition: all 250ms cubic-bezier(0.4,0,0.2,1); box-shadow: 0 2px 12px rgba(232,98,10,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
+'.btn-send-email:hover { background: linear-gradient(135deg, #FF7A2F, #E8620A); box-shadow: 0 6px 28px rgba(232,98,10,0.5); transform: translateY(-3px); }\n' +
 '.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
-'.btn-glass-complete { background: transparent; color: #00d4aa; border-color: #00d4aa; }\n' +
-'.btn-glass-complete:hover { background: rgba(0,212,170,0.12); }\n' +
-'.btn-glass-reassign { background: transparent; color: #cccccc; border-color: #888888; }\n' +
-'.btn-glass-reassign:hover { background: rgba(255,255,255,0.08); }\n' +
+'.btn-glass-complete { background: #2a2a2a; color: #00d4aa; border-color: #00d4aa; }\n' +
+'.btn-glass-complete:hover { background: #2a2a2a; }\n' +
+'.btn-glass-reassign { background: #2a2a2a; color: #cccccc; border-color: #888888; }\n' +
+'.btn-glass-reassign:hover { background: #2a2a2a; }\n' +
 '.reassign-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: all 0.15s; border-radius: 8px; margin: 2px 0; }\n' +
 '.reassign-item:last-child { border-bottom: none; }\n' +
 '.reassign-item:hover { background: rgba(232,98,10,0.1); color: #fff; }\n' +
@@ -171,17 +171,17 @@ module.exports = async function handler(req, res) {
 '.btn-custom-msg { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #E8620A; background: transparent; color: #E8620A; font-family: Raleway, sans-serif; transition: all 0.2s; }\n' +
 '.btn-custom-msg:hover { background: rgba(232,98,10,0.15); }\n' +
 '@keyframes sendPulse { 0%,100% { box-shadow: 0 2px 12px rgba(232,98,10,0.35); } 50% { box-shadow: 0 4px 24px rgba(232,98,10,0.6), 0 0 40px rgba(232,98,10,0.25); } }\n' +
-'.btn-glass-skip:hover { box-shadow: 0 0 16px rgba(232,98,10,0.4); transform: translateY(-2px); }\n' +
-'.btn-glass-block:hover { box-shadow: 0 0 16px rgba(204,51,51,0.3); transform: translateY(-2px); }\n' +
-'.btn-glass-complete:hover { box-shadow: 0 0 16px rgba(0,212,170,0.3); transform: translateY(-2px); }\n' +
-'.btn-glass-reassign:hover { box-shadow: 0 0 16px rgba(255,255,255,0.1); transform: translateY(-2px); }\n' +
-'.btn-glass:hover { box-shadow: 0 0 10px rgba(255,255,255,0.08); }\n' +
+'.btn-glass::before { content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 250ms cubic-bezier(0.4,0,0.2,1); }\n' +
+'.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 250ms cubic-bezier(0.4,0,0.2,1); }\n' +
+'.btn-glass:hover::before { opacity: 0.4; }\n' +
+'.btn-glass:hover::after { opacity: 0.3; }\n' +
+'.btn-glass-skip:hover { box-shadow: 0 0 20px rgba(232,98,10,0.5); transform: translateY(-2px); }\n' +
+'.btn-glass-block:hover { box-shadow: 0 0 20px rgba(204,51,51,0.4); transform: translateY(-2px); }\n' +
+'.btn-glass-complete:hover { box-shadow: 0 0 20px rgba(0,212,170,0.4); transform: translateY(-2px); }\n' +
+'.btn-glass-reassign:hover { box-shadow: 0 0 20px rgba(255,255,255,0.15); transform: translateY(-2px); }\n' +
 '.link-icon:hover { box-shadow: 0 0 10px rgba(232,98,10,0.3); }\n' +
 '.btn-li:hover { box-shadow: 0 0 10px rgba(232,98,10,0.35); }\n' +
-'.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 0.2s ease; }\n' +
-'.btn-glass { position: relative; overflow: hidden; }\n' +
-'.btn-glass:hover::after { opacity: 0.3; }\n' +
-'.rich-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid #3a3a3a; border-radius: 8px; background: #262626; color: #f0f0f0; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; }\n' +
+'.rich-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid #3a3a3a; border-radius: 8px; background: #2a2a2a; color: #f0f0f0; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; }\n' +
 '.rich-editor:focus { border-color: #E8620A; box-shadow: 0 0 0 2px rgba(232,98,10,0.2); }\n' +
 '.rich-editor p { margin-bottom: 16px; }\n' +
 '.rich-editor p:last-child { margin-bottom: 0; }\n' +
@@ -200,6 +200,8 @@ module.exports = async function handler(req, res) {
 '.outlook-toggle-btns { display: inline-flex; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }\n' +
 '.outlook-toggle-btn { padding: 2px 10px; font-size: 10px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.4); transition: all 0.15s; font-family: Raleway, sans-serif; }\n' +
 '.outlook-toggle-btn.active { background: rgba(232,98,10,0.4); color: white; }\n' +
+'.custom-tooltip { position: fixed; background: #1a1a1a; color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: Raleway, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 150ms ease; white-space: nowrap; }\n' +
+'.custom-tooltip.visible { opacity: 1; }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -208,7 +210,7 @@ module.exports = async function handler(req, res) {
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
 '  <div class="header-center">Lead Review</div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
-'    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(\\\'classic\\\')">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(\\\'new\\\')">New</button></div></div>\n' +
+'    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
 '  </div>\n' +
 '</div>\n' +
@@ -305,11 +307,13 @@ module.exports = async function handler(req, res) {
 '  return \'<span class="pill pill-eng">Engineering</span>\';\n' +
 '}\n' +
 '\n' +
+'function articleFor(title) { var first = title.replace(/^[^a-zA-Z]*/, "").charAt(0).toLowerCase(); return "aeiou".indexOf(first) >= 0 ? "an" : "a"; }\n' +
 'function getEmailTemplate(lead, firstName, uniqid) {\n' +
 '  var uid = uniqid || "*|UNIQID|*";\n' +
 '  var cal = CALENDLY[AM.email] || "";\n' +
+'  var jt = cleanJobTitle(lead.jobTitle || "");\n' +
 '  return "<p>Hi " + firstName + ",</p>" +\n' +
-'    "<p>I noticed " + lead.company + " is looking for a " + lead.jobTitle + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.</p>" +\n' +
+'    "<p>I noticed " + lead.company + " is looking for " + articleFor(jt) + " " + jt + " and wanted to reach out. At iMPact Business Group, we specialize in connecting companies with top talent in engineering, IT, accounting, and business professional roles.</p>" +\n' +
 '    "<p>We have a strong track record of placing quality candidates quickly. You can see some of our recent success stories here: <a href=\\"https://impactbusinessgroup.com/case-studies/?cid=" + uid + "\\">View Case Studies</a></p>" +\n' +
 '    "<p><a href=\\"https://impactbusinessgroup.com/employers/?cid=" + uid + "\\">Learn more about how we can help</a></p>" +\n' +
 '    (cal ? "<p>Happy to find a time to connect: <a href=\\"" + cal + "\\">" + cal + "</a></p>" : "");\n' +
@@ -393,18 +397,18 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  var linksLeft="";\n' +
 '  if(lead.company_domain){\n' +
-'    linksLeft+=\'<a class="link-icon" href="https://\'+lead.company_domain+\'" target="_blank" title="Website">\'+SVG_GLOBE+\'</a>\';\n' +
+'    linksLeft+=\'<a class="link-icon" href="https://\'+lead.company_domain+\'" target="_blank" data-tooltip="Website">\'+SVG_GLOBE+\'</a>\';\n' +
 '  } else if(lead.company_website){\n' +
 '    var wUrl=lead.company_website;if(wUrl.indexOf("http")!==0)wUrl="https://"+wUrl;\n' +
-'    linksLeft+=\'<a class="link-icon" href="\'+wUrl+\'" target="_blank" title="Website">\'+SVG_GLOBE+\'</a>\';\n' +
+'    linksLeft+=\'<a class="link-icon" href="\'+wUrl+\'" target="_blank" data-tooltip="Website">\'+SVG_GLOBE+\'</a>\';\n' +
 '  }\n' +
 '  if(lead.company_linkedin){\n' +
 '    var liUrl=lead.company_linkedin;if(liUrl.indexOf("http")!==0)liUrl="https://"+liUrl;\n' +
-'    linksLeft+=\'<a class="link-icon" href="\'+liUrl+\'" target="_blank" title="LinkedIn">\'+SVG_LINKEDIN+\'</a>\';\n' +
+'    linksLeft+=\'<a class="link-icon" href="\'+liUrl+\'" target="_blank" data-tooltip="LinkedIn">\'+SVG_LINKEDIN+\'</a>\';\n' +
 '  }\n' +
 '  var linksRight="";\n' +
-'  if(hasJD) linksRight+=\'<a class="link-icon" href="#" onclick="openJD(\\\'\'+safeId+\'\\\');return false;" title="Job Description">\'+SVG_DOC+\'</a>\';\n' +
-'  if(lead.jobUrl) linksRight+=\'<a class="link-icon" href="\'+lead.jobUrl+\'" target="_blank" title="View Posting">\'+SVG_LINK+\'</a>\';\n' +
+'  if(hasJD) linksRight+=\'<a class="link-icon" href="#" onclick="openJD(\\\'\'+safeId+\'\\\');return false;" data-tooltip="Job Description">\'+SVG_DOC+\'</a>\';\n' +
+'  if(lead.jobUrl) linksRight+=\'<a class="link-icon" href="\'+lead.jobUrl+\'" target="_blank" data-tooltip="View Posting">\'+SVG_LINK+\'</a>\';\n' +
 '\n' +
 '  return \'<div class="card" id="card-\'+safeId+\'">\'+\n' +
 '    \'<div class="card-top">\'+\n' +
@@ -442,8 +446,8 @@ module.exports = async function handler(req, res) {
 '          \'<div id="email-pane-\'+safeId+\'">\'+\n' +
 '            \'<div class="subj-bar" id="subj-bar-\'+safeId+\'">\'+\n' +
 '              \'<input class="subj-bar-input" type="text" id="subj-\'+safeId+\'" placeholder="Enter subject line">\'+\n' +
-'              \'<div class="subj-bar-chevron" onclick="toggleSubjDD(\\\'\'+safeId+\'\\\')" title="Choose a subject line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>\'+\n' +
-'              \'<div class="subj-bar-ai" id="subj-ai-\'+safeId+\'" onclick="generateSubjectAI(\\\'\'+safeId+\'\\\')" title="Generate subject line with AI"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg></div>\'+\n' +
+'              \'<div class="subj-bar-chevron" onclick="toggleSubjDD(\\\'\'+safeId+\'\\\')" data-tooltip="Choose a subject line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>\'+\n' +
+'              \'<div class="subj-bar-ai" id="subj-ai-\'+safeId+\'" onclick="generateSubjectAI(\\\'\'+safeId+\'\\\')" data-tooltip="Generate subject line with AI"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg></div>\'+\n' +
 '              \'<div class="subj-dd-panel" id="subj-dd-panel-\'+safeId+\'">\'+\n' +
 '                \'<div class="subj-dd-opt selected" data-value="\'+escHtml(subj1)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj1)+\'</div>\'+\n' +
 '                \'<div class="subj-dd-opt" data-value="\'+escHtml(subj2)+\'" onclick="selectSubjOpt(\\\'\'+safeId+\'\\\',this)">\'+escHtml(subj2)+\'</div>\'+\n' +
@@ -453,7 +457,7 @@ module.exports = async function handler(req, res) {
 '            \'</div>\'+\n' +
 '            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
 '            \'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">\'+\n' +
-'              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" title="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
+'              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" data-tooltip="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '              \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')">Custom Message</button>\'+\n' +
 '            \'</div>\'+\n' +
 '          \'</div>\'+\n' +
@@ -658,7 +662,7 @@ module.exports = async function handler(req, res) {
 '    \'</div>\'+\n' +
 '    \'<div class="contact-actions">\'+\n' +
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
-'      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" title="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
+'      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
 '      \'<div class="remove-wrap"><button class="btn-ghost" onclick="event.stopPropagation();toggleRemoveDD(\\\'\'+cid+\'\\\')">Remove</button><div class="remove-dd" id="rdd-\'+cid+\'">\'+\n' +
 '        \'<div class="remove-dd-item"><span>Wrong contact type</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWrongType(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Remove</button></div>\'+\n' +
 '        \'<div class="remove-dd-item"><span>Existing contact</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeContact(\\\'\'+cid+\'\\\')">Remove</button></div>\'+\n' +
@@ -744,7 +748,7 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  // Enable Send Email button\n' +
 '  var sendBtn=_g("send-btn-"+safeId);\n' +
-'  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("title");sendBtn.classList.add("pulse");}\n' +
+'  if(sendBtn){sendBtn.classList.remove("disabled");sendBtn.removeAttribute("data-tooltip");sendBtn.classList.add("pulse");}\n' +
 '\n' +
 '  // Activate composer with merge fields\n' +
 '  _g("composer-prompt-"+safeId).style.display="none";\n' +
@@ -1025,6 +1029,23 @@ module.exports = async function handler(req, res) {
 '  if(pref==="new") setOutlookPref("new");\n' +
 '})();\n' +
 '\n' +
+'(function(){\n' +
+'  var tip=document.createElement("div");tip.className="custom-tooltip";document.body.appendChild(tip);\n' +
+'  function show(e){\n' +
+'    var el=e.target.closest("[data-tooltip]");if(!el)return;\n' +
+'    var text=el.getAttribute("data-tooltip");if(!text)return;\n' +
+'    tip.textContent=text;\n' +
+'    var rect=el.getBoundingClientRect();\n' +
+'    var tx=rect.left+rect.width/2-tip.offsetWidth/2;\n' +
+'    var ty=rect.top-tip.offsetHeight-6;\n' +
+'    if(tx<4)tx=4;if(tx+tip.offsetWidth>window.innerWidth-4)tx=window.innerWidth-tip.offsetWidth-4;\n' +
+'    if(ty<4)ty=rect.bottom+6;\n' +
+'    tip.style.left=tx+"px";tip.style.top=ty+"px";\n' +
+'    tip.classList.add("visible");\n' +
+'  }\n' +
+'  function hide(){tip.classList.remove("visible");}\n' +
+'  document.addEventListener("mouseover",show);document.addEventListener("mouseout",function(e){if(e.target.closest("[data-tooltip]"))hide();});\n' +
+'})();\n' +
 'init();\n' +
 '</script>\n' +
 '</body>\n' +
