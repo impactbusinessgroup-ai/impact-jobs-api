@@ -152,8 +152,8 @@ module.exports = async function handler(req, res) {
 '.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
 '.btn-glass-complete { background: #2a2a2a; color: #00d4aa; border-color: #00d4aa; }\n' +
 '.btn-glass-complete:hover { background: #2a2a2a; }\n' +
-'.btn-glass-reassign { background: #2a2a2a; color: #cccccc; border-color: #888888; }\n' +
-'.btn-glass-reassign:hover { background: #2a2a2a; }\n' +
+'.btn-glass-reassign { background: #1e2a42; color: white; border: 1px solid #2a3a5c; }\n' +
+'.btn-glass-reassign:hover { background: #243250; }\n' +
 '.reassign-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: all 0.15s; border-radius: 8px; margin: 2px 0; }\n' +
 '.reassign-item:last-child { border-bottom: none; }\n' +
 '.reassign-item:hover { background: rgba(232,98,10,0.1); color: #fff; }\n' +
@@ -229,8 +229,8 @@ module.exports = async function handler(req, res) {
 '.contact-dd-remove:hover { background: rgba(198,40,40,0.1); color: #ef6961; }\n' +
 '.outreach-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: rgba(46,125,50,0.15); color: #6EE7C7; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
 '.reminder-banner { background: linear-gradient(135deg, rgba(232,98,10,0.2), rgba(232,98,10,0.1)); border: 1px solid rgba(232,98,10,0.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; font-size: 12px; color: #FFA000; }\n' +
-'.btn-glass-complete.disabled { opacity: 0.4; cursor: not-allowed; }\n' +
-'.btn-glass-complete.disabled:hover { box-shadow: none; transform: none; }\n' +
+'.btn-glass-complete.disabled { opacity: 0.4; cursor: not-allowed; background: #2a2a2a; border: 1px solid #555; color: #888; }\n' +
+'.btn-glass-complete.disabled:hover { box-shadow: none; transform: none; background: #2a2a2a; }\n' +
 '.btn-glass-complete.active-green { background: #00a86b; border: none; color: white; }\n' +
 '.btn-glass-complete.active-green:hover { box-shadow: 0 0 20px rgba(0,168,107,0.4); transform: translateY(-2px); }\n' +
 '.closeout-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #2a2a2a; border: 1px solid #484848; border-radius: 8px; min-width: 180px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
@@ -298,10 +298,10 @@ module.exports = async function handler(req, res) {
 '<div class="container">\n' +
 '  <div class="queue-bar">\n' +
 '    <div>\n' +
-'      <h2>Good morning, Mark</h2>\n' +
+'      <h2 id=\"greeting-text\">Good morning, Mark</h2>\n' +
 '      <div class="sub" id="queue-sub"></div>\n' +
 '    </div>\n' +
-'    <div class="lead-count-badge" id="lead-count"></div>\n' +
+'' +
 '  </div>\n' +
 '  <div id="leads-container"><div class="loading">Loading leads...</div></div>\n' +
 '</div>\n' +
@@ -330,6 +330,7 @@ module.exports = async function handler(req, res) {
 'var CALENDLY = {"cwillbrandt@impactbusinessgroup.com":"https://calendly.com/cwillbrandt/phone-call","dbentsen@impactbusinessgroup.com":"https://calendly.com/dbentsen","dkoetsier@impactbusinessgroup.com":"https://calendly.com/dkoetsier/","dkunkel@impactbusinessgroup.com":"https://calendly.com/drewkunkel/15min","dteliczan@impactbusinessgroup.com":"https://calendly.com/dteliczan-impactbusinessgroup","jdrajka@impactbusinessgroup.com":"https://calendly.com/jdrajka","lsylvester@impactbusinessgroup.com":"https://calendly.com/lsylvester","mherman@impactbusinessgroup.com":"https://calendly.com/markherman","mpeal@impactbusinessgroup.com":"https://calendly.com/mattpeal/15min","pkujawski@impactbusinessgroup.com":"https://calendly.com/pkujawski","sbetteley@impactbusinessgroup.com":"https://calendly.com/sbetteley","tray@impactbusinessgroup.com":"https://calendly.com/tray-impactbusinessgroup","twangler@impactbusinessgroup.com":"https://calendly.com/twangler-impactbusinessgroup/15min","msapoznikov@impactbusinessgroup.com":"https://calendly.com/msapoznikov"};\n' +
 '\n' +
 'function _g(id) { return document.getElementById(id); }\n' +
+'function updateLeadCount(){ var sub=_g("queue-sub"); if(!sub)return; if(leads.length===0) sub.innerHTML="<span style=\\"color:#666\\">No pending leads</span>"; else sub.innerHTML="<span style=\\"color:#E8620A;font-weight:600;\\">"+ leads.length+" pending lead"+(leads.length===1?"":"s")+"</span>"; }\n' +
 'function getSafeId(id) { return id.replace(/[^a-zA-Z0-9]/g, "_"); }\n' +
 'function cleanJobTitle(t) { if(!t) return ""; return t.replace(/\\s*[-\u2013]\\s*(plant|plants|facility|facil|\\d).*/i,"").replace(/\\s*[-\u2013]\\s*[A-Z][a-z]+,?\\s*(MI|FL|OH|IN|IL|WI|MN|TX|CA|AZ|PA|NY|GA|NC|SC|TN|AL|KY|VA|WA|OR|CO|MO|IA|KS|NE|ND|SD|WV|CT|NJ|MD|MA|NH|VT|ME|RI|DE|DC|HI|AK|NM|NV|UT|ID|MT|WY|AR|MS|LA|OK|\\w{2})\\b.*/i,"").replace(/,\\s*$/,"").trim(); }\n' +
 'function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\\\'/g,"&#39;"); }\n' +
@@ -390,11 +391,13 @@ module.exports = async function handler(req, res) {
 'async function init() {\n' +
 '  var today=new Date();\n' +
 '  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
-'  _g("queue-sub").textContent="All pending leads";\n' +
+'  var hr=today.getHours(); var greet=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";\n' +
+'  _g("greeting-text").textContent=greet+", Mark";\n' +
+'  _g("queue-sub").innerHTML="<span style=\\"color:#666\\">Loading leads...</span>";\n' +
 '  try{\n' +
 '    var results=await Promise.all([fetch("/api/leads").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
 '    leads=results[0].leads||[];blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
-'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'    updateLeadCount();\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||"");});\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
@@ -1076,7 +1079,7 @@ module.exports = async function handler(req, res) {
 '    var rm=[];leads.forEach(function(l){if(l.company.toLowerCase()===company.toLowerCase())rm.push(getSafeId(l.id));});\n' +
 '    leads=leads.filter(function(l){return l.company.toLowerCase()!==company.toLowerCase();});\n' +
 '    rm.forEach(function(sid){var c=_g("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
-'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'    updateLeadCount();\n' +
 '  });\n' +
 '}\n' +
 '\n' +
@@ -1089,13 +1092,13 @@ module.exports = async function handler(req, res) {
 '  var cardHTML=card?card.outerHTML:null,cardParent=card?card.parentNode:null,cardNext=card?card.nextSibling:null;\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.2s";setTimeout(function(){if(!_skipUndone)card.remove();},200);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'  updateLeadCount();\n' +
 '  _skipTimer=showToast("Lead skipped: "+cn+" <button class=\\"toast-undo\\" onclick=\\"undoSkip()\\">Undo</button>",5000);\n' +
 '  var pRealId=realId,pLead=lead;\n' +
 '  window._skipUndo=function(){\n' +
 '    _skipUndone=true;clearTimeout(_skipTimer);hideToast();\n' +
 '    if(pLead)leads.push(pLead);\n' +
-'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'    updateLeadCount();\n' +
 '    if(cardHTML&&cardParent){var tmp=document.createElement("div");tmp.innerHTML=cardHTML;var r=tmp.firstChild;r.style.opacity="0";r.style.transition="opacity 0.3s";if(cardNext&&cardNext.parentNode===cardParent)cardParent.insertBefore(r,cardNext);else cardParent.appendChild(r);setTimeout(function(){r.style.opacity="1";},10);fetchLogo(pLead.company,pLead.employerWebsite||"",pLead.location||"",getSafeId(pLead.id));}\n' +
 '  };\n' +
 '  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped"}})});},5200);\n' +
@@ -1111,7 +1114,7 @@ module.exports = async function handler(req, res) {
 '    var card=_g("card-"+safeId);\n' +
 '    if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '    leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'    _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'    updateLeadCount();\n' +
 '  },"btn-glass-complete");\n' +
 '}\n' +
 'function toggleCloseoutDD(safeId){\n' +
@@ -1123,14 +1126,14 @@ module.exports = async function handler(req, res) {
 '  var card=_g("card-"+safeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'  updateLeadCount();\n' +
 '}\n' +
 'function addReminderLead(safeId,realId){\n' +
 '  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:realId,action:"add_reminder"})}).then(function(){showToast("3-day reminder added",3000);}).catch(function(){});\n' +
 '  var card=_g("card-"+safeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
-'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'  updateLeadCount();\n' +
 '}\n' +
 '\n' +
 'var _reassignSafeId="",_reassignRealId="";\n' +
@@ -1152,7 +1155,7 @@ module.exports = async function handler(req, res) {
 '  var card=_g("card-"+_reassignSafeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==_reassignRealId;});\n' +
-'  _g("lead-count").textContent=leads.length+" pending leads";\n' +
+'  updateLeadCount();\n' +
 '  showToast("Lead reassigned to "+amName,3000);\n' +
 '}\n' +
 '\n' +
