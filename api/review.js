@@ -50,12 +50,12 @@ module.exports = async function handler(req, res) {
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.section-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #383838; border: 1px solid #3a3a3a; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
-'.contact-card:hover { border-color: #484848; background: #363636; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
+'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #424242; border: 1px solid #555555; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
+'.contact-card:hover { border-color: #666666; background: #4a4a4a; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
 '.contact-header, .contact-info, .contact-name-row, .contact-name, .contact-title-sub, .contact-loc, .email-row, .credit-note, .badge { pointer-events: none; }\n' +
 '.contact-actions { pointer-events: auto; }\n' +
 '.contact-actions .btn-li, .contact-actions .remove-wrap, .contact-actions .btn-fetch { pointer-events: auto; }\n' +
-'.contact-card.active { border: 2px solid #E8620A; background: #383838; box-shadow: 0 0 20px rgba(232,98,10,0.3); }\n' +
+'.contact-card.active { border: 2px solid #E8620A; background: #424242; box-shadow: 0 0 16px rgba(232,98,10,0.3); }\n' +
 '.contact-card.sent { border-color: rgba(232,98,10,0.4); background: rgba(232,98,10,0.06); }\n' +
 '.contact-header { display: flex; align-items: flex-start; gap: 10px; }\n' +
 '.avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #E8620A, #333333); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: Oswald, sans-serif; overflow: hidden; }\n' +
@@ -208,6 +208,10 @@ module.exports = async function handler(req, res) {
 '.star-burst svg { filter: drop-shadow(0 0 4px #E8620A); }\n' +
 '.btn-custom-msg:hover, .subj-bar-ai:hover { text-shadow: 0 0 8px rgba(232,98,10,0.4); }\n' +
 '.btn-custom-msg:hover { background: rgba(232,98,10,0.2); color: #ff8533; border-color: rgba(232,98,10,0.5); }\n' +
+'.btn-ac-circle { width: 28px; height: 28px; border-radius: 50%; background: #2a2a2a; border: 1px solid #E8620A; color: #E8620A; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }\n' +
+'.btn-ac-circle:hover { box-shadow: 0 0 12px rgba(232,98,10,0.4); background: rgba(232,98,10,0.15); }\n' +
+'.section-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }\n' +
+'.section-label-row .section-label { margin-bottom: 0; }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -410,7 +414,7 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  if(lead.company_linkedin){\n' +
 '    var liUrl=lead.company_linkedin;if(liUrl.indexOf("http")!==0)liUrl="https://"+liUrl;\n' +
-'    linksLeft+=\'<a class="link-icon" href="\'+liUrl+\'" target="_blank" data-tooltip="LinkedIn">\'+SVG_LINKEDIN+\'</a>\';\n' +
+'    linksLeft+=\'<a class="link-icon" href="\'+liUrl+\'" target="_blank" data-tooltip="LinkedIn" style="color:#0077B5;">\'+SVG_LINKEDIN+\'</a>\';\n' +
 '  }\n' +
 '  var linksRight="";\n' +
 '  if(hasJD) linksRight+=\'<a class="link-icon" href="#" onclick="openJD(\\\'\'+safeId+\'\\\');return false;" data-tooltip="Job Description">\'+SVG_DOC+\'</a>\';\n' +
@@ -438,9 +442,11 @@ module.exports = async function handler(req, res) {
 '    \'</div>\'+\n' +
 '    ((linksLeft||linksRight)?\'<div class="links-bar"><div class="links-bar-left">\'+linksLeft+\'</div><div class="links-bar-right">\'+linksRight+\'</div></div>\':"")+\n' +
 '    \'<div class="card-body">\'+\n' +
-'      \'<div class="section-label">Contacts</div>\'+\n' +
+'      \'<div class="section-label-row">\'+\n' +
+'        \'<div class="section-label">Contacts</div>\'+\n' +
+'        (hasAllContacts?\'<button class="btn-ac-circle" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Additional contacts found on Apollo">+</button>\':"")+\n' +
+'      \'</div>\'+\n' +
 '      \'<div class="contacts-row" id="contacts-\'+safeId+\'"></div>\'+\n' +
-'      (hasAllContacts?\'<div style="margin-bottom:14px;"><button class="btn-more-contacts" onclick="openACModal(\\\'\'+safeId+\'\\\')"><span style="width:14px;height:14px;display:inline-flex;">\'+SVG_PLUS+\'</span> Additional Contacts (\'+lead.allContacts.length+\')</button></div>\':"") +\n' +
 '      \'<div class="composer" id="composer-\'+safeId+\'">\'+\n' +
 '        \'<div class="composer-label">Email Composer</div>\'+\n' +
 '        \'<div class="composer-disabled" id="composer-prompt-\'+safeId+\'">Select a contact to compose an email.</div>\'+\n' +
@@ -919,8 +925,8 @@ module.exports = async function handler(req, res) {
 '    if(leadRedisId) fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadRedisId,updates:{contacts:lead.contacts,allContacts:lead.allContacts}})}).catch(function(){});\n' +
 '    row.remove();\n' +
 '    // Update button count\n' +
-'    var moreBtn=document.querySelector("#card-"+safeId+" .btn-more-contacts");\n' +
-'    if(moreBtn){if(lead.allContacts.length>0){moreBtn.innerHTML=\'<span style="width:14px;height:14px;display:inline-flex;">\'+SVG_PLUS+\'</span> Additional Contacts (\'+lead.allContacts.length+\')\';}else{moreBtn.remove();}}\n' +
+'    var acBtn=document.querySelector("#card-"+safeId+" .btn-ac-circle");\n' +
+'    if(acBtn&&!lead.allContacts.length) acBtn.remove();\n' +
 '    if(!lead.allContacts.length) closeACModal();\n' +
 '  }catch(e){btn.textContent="Failed";btn.disabled=false;}\n' +
 '}\n' +
