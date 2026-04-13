@@ -48,7 +48,7 @@ module.exports = async function handler(req, res) {
 '.cal-month { background: rgba(232,98,10,0.8); color: white; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: center; padding: 4px 0; }\n' +
 '.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; font-family: Oswald, sans-serif; }\n' +
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
-'.section-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
+'.section-label { font-size: 16px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
 '.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #424242; border: 1px solid #555555; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
 '.contact-card:hover { border-color: #666666; background: #4a4a4a; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
 '.composer { background: #262626; border: 1px solid #333333; border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
-'.composer-label { font-size: 13px; font-weight: 700; color: #f0f0f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
+'.composer-label { font-size: 16px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
 '.subj-bar { display: flex; align-items: center; background: #323232; border: 1px solid #444444; border-radius: 10px; padding: 0; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
 '.subj-bar-input { flex: 1; font-size: 14px; padding: 8px 12px; border: none; background: transparent; color: #fff; font-family: Raleway, sans-serif; outline: none; min-width: 0; border-radius: 9px 0 0 9px; }\n' +
@@ -212,26 +212,32 @@ module.exports = async function handler(req, res) {
 '.btn-ac-circle:hover { box-shadow: 0 0 12px rgba(232,98,10,0.4); background: rgba(232,98,10,0.15); }\n' +
 '.btn-ac-circle.disabled { opacity: 0.4; cursor: not-allowed; border-color: #555555; color: #888888; }\n' +
 '.btn-ac-circle.disabled:hover { box-shadow: none; background: #2a2a2a; }\n' +
-'.outreach-panel { background: #2a2a2a; border: 1px solid #444; border-radius: 10px; padding: 12px; margin-top: 8px; display: none; }\n' +
-'.outreach-panel.open { display: block; }\n' +
-'.outreach-cb-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; }\n' +
+'.contact-actions .btn, .contact-actions .btn-li, .contact-actions .btn-fetch, .contact-actions .btn-dots { height: 34px; padding: 6px 14px; display: inline-flex; align-items: center; justify-content: center; }\n' +
+'.btn-dots { width: 34px; height: 34px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; letter-spacing: 2px; line-height: 1; }\n' +
+'.btn-dots:hover { background: rgba(255,255,255,0.1); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
+'.contact-dd { display: none; position: absolute; bottom: calc(100% + 6px); right: 0; background: #2a2a2a; border: 1px solid #444; border-radius: 10px; min-width: 220px; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; opacity: 0; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }\n' +
+'.contact-dd.open { display: block; opacity: 1; transform: translateY(0); }\n' +
+'.contact-dd-section { padding: 8px 0; }\n' +
+'.contact-dd-header { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 14px 6px; }\n' +
+'.contact-dd-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }\n' +
+'.outreach-cb-row { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.12s; }\n' +
+'.outreach-cb-row:hover { background: rgba(255,255,255,0.04); }\n' +
 '.outreach-cb-row input { accent-color: #E8620A; }\n' +
-'.btn-outreach { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid #E8620A; background: rgba(232,98,10,0.15); color: #E8620A; cursor: pointer; transition: all 0.15s; }\n' +
-'.btn-outreach:hover { background: rgba(232,98,10,0.25); }\n' +
-'.btn-confirm-outreach { font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 6px; border: none; background: #E8620A; color: white; cursor: pointer; margin-top: 8px; transition: all 0.15s; }\n' +
+'.btn-confirm-outreach { display: block; width: calc(100% - 28px); margin: 6px 14px 8px; font-size: 11px; font-weight: 600; padding: 7px 14px; border-radius: 6px; border: none; background: #E8620A; color: white; cursor: pointer; transition: all 0.15s; }\n' +
 '.btn-confirm-outreach:hover { background: #FF7A2F; }\n' +
-'.btn-confirm-outreach:disabled { opacity: 0.4; cursor: not-allowed; }\n' +
+'.contact-dd-remove { padding: 6px 14px; font-size: 12px; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.12s; }\n' +
+'.contact-dd-remove:hover { background: rgba(198,40,40,0.1); color: #ef6961; }\n' +
 '.outreach-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: rgba(46,125,50,0.15); color: #6EE7C7; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
-'.btn-remove-sm { font-size: 10px; color: rgba(255,255,255,0.3); border: none; background: none; cursor: pointer; padding: 2px 4px; }\n' +
-'.btn-remove-sm:hover { color: #ef6961; }\n' +
 '.reminder-banner { background: linear-gradient(135deg, rgba(232,98,10,0.2), rgba(232,98,10,0.1)); border: 1px solid rgba(232,98,10,0.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; font-size: 12px; color: #FFA000; }\n' +
 '.btn-glass-complete.disabled { opacity: 0.4; cursor: not-allowed; }\n' +
 '.btn-glass-complete.disabled:hover { box-shadow: none; transform: none; }\n' +
+'.btn-glass-complete.active-green { background: #00a86b; border: none; color: white; }\n' +
+'.btn-glass-complete.active-green:hover { box-shadow: 0 0 20px rgba(0,168,107,0.4); transform: translateY(-2px); }\n' +
 '.closeout-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #2a2a2a; border: 1px solid #484848; border-radius: 8px; min-width: 180px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
 '.closeout-dd.open { display: block; }\n' +
 '.closeout-dd-item { padding: 8px 12px; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.12s; }\n' +
 '.closeout-dd-item:hover { background: rgba(232,98,10,0.15); color: #fff; }\n' +
-'.section-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }\n' +
+'.section-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }\n' +
 '.section-label-row .section-label { margin-bottom: 0; }\n' +
 '</style>\n' +
 '</head>\n' +
@@ -507,7 +513,7 @@ module.exports = async function handler(req, res) {
 '      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\'+companyEsc+\'\\\',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> \'+(blocked?"Unblock":"Block company")+\'</button>\'+\n' +
 '      \'<div style="flex:1;"></div>\'+\n' +
 '      \'<button class="btn-glass btn-glass-reassign" onclick="openReassignModal(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_REASSIGN +\' Reassign</button>\'+\n' +
-'      (lead.reminder_stage>=3?\'<div class="remove-wrap" style="position:relative;"><button class="btn-glass btn-glass-complete" onclick="toggleCloseoutDD(\\\'\'+safeId+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button><div class="closeout-dd" id="closeout-\'+safeId+\'"><div class="closeout-dd-item" onclick="closeOutLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Close Out</div><div class="closeout-dd-item" onclick="addReminderLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Add 3-day Reminder</div></div></div>\':(lead.outreach_log&&Object.keys(lead.outreach_log).length>0?\'<button class="btn-glass btn-glass-complete" onclick="completeLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button>\':\'<button class="btn-glass btn-glass-complete disabled" data-tooltip="Log outreach for at least one contact to close this lead">\'+ SVG_CHECK +\' Complete Lead</button>\'))+\n' +
+'      (lead.reminder_stage>=3?\'<div class="remove-wrap" style="position:relative;"><button class="btn-glass btn-glass-complete" onclick="toggleCloseoutDD(\\\'\'+safeId+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button><div class="closeout-dd" id="closeout-\'+safeId+\'"><div class="closeout-dd-item" onclick="closeOutLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Close Out</div><div class="closeout-dd-item" onclick="addReminderLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">Add 3-day Reminder</div></div></div>\':(lead.outreach_log&&Object.keys(lead.outreach_log).length>0?\'<button class="btn-glass btn-glass-complete" onclick="completeLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_CHECK +\' Complete Lead</button>\':\'<button class="btn-glass btn-glass-complete disabled" data-tooltip="Action all contacts to close this lead">\'+ SVG_CHECK +\' Complete Lead</button>\'))+\n' +
 '    \'</div>\'+\n' +
 '  \'<script>window._leadJobTitles=window._leadJobTitles||{};window._leadCategories=window._leadCategories||{};window._leadRedisIds=window._leadRedisIds||{};window._leadJobTitles["\'+safeId+\'"]=\'+JSON.stringify(lead.jobTitle||"")+\';window._leadCategories["\'+safeId+\'"]=\'+JSON.stringify(lead.category||"engineering")+\';window._leadRedisIds["\'+safeId+\'"]=\'+JSON.stringify(lead.id||"")+\';<\\/script>\'+\n' +
 '  \'</div>\';\n' +
@@ -706,21 +712,27 @@ module.exports = async function handler(req, res) {
 '    \'<div class="contact-actions">\'+\n' +
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
-'      \'<button class="btn-outreach" id="ob-\'+cid+\'" onclick="event.stopPropagation();toggleOutreachPanel(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Outreach</button>\'+\n' +
-'      \'<div class="remove-wrap"><button class="btn-remove-sm" onclick="event.stopPropagation();toggleRemoveDD(\\\'\'+cid+\'\\\')">Remove</button><div class="remove-dd" id="rdd-\'+cid+\'">\'+\n' +
-'        \'<div class="remove-dd-item"><span>Made Contact</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'made_contact\\\')">Remove</button></div>\'+\n' +
-'        \'<div class="remove-dd-item"><span>Wrong Contact Type</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'wrong_type\\\')">Remove</button></div>\'+\n' +
-'        \'<div class="remove-dd-item"><span>Existing Contact</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'existing\\\')">Remove</button></div>\'+\n' +
-'        \'<div class="remove-dd-item"><span>Not Interested</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'not_interested\\\')">Remove</button></div>\'+\n' +
-'        \'<div class="remove-dd-item"><span>Other</span><button class="remove-dd-btn" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'other\\\')">Remove</button></div>\'+\n' +
-'      \'</div></div>\'+\n' +
 '      \'<span class="outreach-badge" id="obd-\'+cid+\'" style="display:none;"></span>\'+\n' +
-'    \'</div>\'+\n' +
-'    \'<div class="outreach-panel" id="op-\'+cid+\'">\'+\n' +
-'      \'<label class="outreach-cb-row"><input type="checkbox" id="oc-email-\'+cid+\'"> Email</label>\'+\n' +
-'      \'<label class="outreach-cb-row"><input type="checkbox" id="oc-limsg-\'+cid+\'"> LinkedIn Message</label>\'+\n' +
-'      \'<label class="outreach-cb-row"><input type="checkbox" id="oc-liconn-\'+cid+\'"> LinkedIn Connect</label>\'+\n' +
-'      \'<button class="btn-confirm-outreach" id="oc-confirm-\'+cid+\'" onclick="event.stopPropagation();confirmOutreach(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Confirm Outreach</button>\'+\n' +
+'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-dots" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')">&#x2026;</button>\'+\n' +
+'        \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
+'          \'<div class="contact-dd-section">\'+\n' +
+'            \'<div class="contact-dd-header">Log Outreach</div>\'+\n' +
+'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-email-\'+cid+\'"> Email</label>\'+\n' +
+'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-limsg-\'+cid+\'"> LinkedIn Message</label>\'+\n' +
+'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-liconn-\'+cid+\'"> LinkedIn Connect</label>\'+\n' +
+'            \'<button class="btn-confirm-outreach" onclick="event.stopPropagation();confirmOutreach(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Confirm Outreach</button>\'+\n' +
+'          \'</div>\'+\n' +
+'          \'<div class="contact-dd-divider"></div>\'+\n' +
+'          \'<div class="contact-dd-section">\'+\n' +
+'            \'<div class="contact-dd-header">Remove</div>\'+\n' +
+'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'made_contact\\\')">Made Contact</div>\'+\n' +
+'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'wrong_type\\\')">Wrong Contact Type</div>\'+\n' +
+'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'existing\\\')">Existing Contact</div>\'+\n' +
+'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'not_interested\\\')">Not Interested</div>\'+\n' +
+'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'other\\\')">Other</div>\'+\n' +
+'          \'</div>\'+\n' +
+'        \'</div>\'+\n' +
+'      \'</div>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
 '  card.addEventListener("click",function(e){\n' +
@@ -734,13 +746,10 @@ module.exports = async function handler(req, res) {
 'function logFeedback(title,category,signal){\n' +
 '  fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"log_feedback",title:title,category:category,signal:signal})}).catch(function(){});\n' +
 '}\n' +
-'function toggleRemoveDD(cid){\n' +
-'  var dd=_g("rdd-"+cid);\n' +
-'  if(dd) dd.classList.toggle("open");\n' +
-'}\n' +
-'function toggleOutreachPanel(cid,safeId){\n' +
-'  var panel=_g("op-"+cid);\n' +
-'  if(panel) panel.classList.toggle("open");\n' +
+'function toggleContactDD(cid){\n' +
+'  document.querySelectorAll(".contact-dd.open").forEach(function(el){el.classList.remove("open");});\n' +
+'  var dd=_g("cdd-"+cid);\n' +
+'  if(dd) dd.classList.add("open");\n' +
 '}\n' +
 'function confirmOutreach(cid,safeId){\n' +
 '  var methods=[];\n' +
@@ -759,11 +768,9 @@ module.exports = async function handler(req, res) {
 '      if(badge){badge.style.display="inline-block";badge.textContent="Outreach "+attempt+" sent "+new Date().toLocaleDateString();}\n' +
 '      var btn=_g("ob-"+cid);\n' +
 '      if(btn) btn.textContent="Follow-up";\n' +
-'      var panel=_g("op-"+cid);\n' +
-'      if(panel) panel.classList.remove("open");\n' +
-'      // Enable Complete Lead button\n' +
-'      var completeBtn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +
-'      if(completeBtn){completeBtn.classList.remove("disabled");completeBtn.removeAttribute("data-tooltip");}\n' +
+'      var cdd=_g("cdd-"+cid);\n' +
+'      if(cdd) cdd.classList.remove("open");\n' +
+'      checkAllActioned(safeId);\n' +
 '      showToast("Outreach logged",2000);\n' +
 '    }\n' +
 '  }).catch(function(){});\n' +
@@ -774,7 +781,23 @@ module.exports = async function handler(req, res) {
 '  var leadId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
 '  var payload={id:leadId,action:"log_removal",apollo_id:card.getAttribute("data-prospect-id")||"",contact_name:card.getAttribute("data-name")||"",contact_title:card.getAttribute("data-title")||"",reason:reason,am_email:AM.email};\n' +
 '  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(function(){});\n' +
-'  card.style.opacity="0";card.style.transition="opacity 0.2s";setTimeout(function(){card.remove();},200);\n' +
+'  card.style.opacity="0";card.style.transition="opacity 0.2s";setTimeout(function(){card.remove();setTimeout(function(){checkAllActioned(safeId);},50);},200);\n' +
+'}\n' +
+'function checkAllActioned(safeId){\n' +
+'  var row=_g("contacts-"+safeId);\n' +
+'  if(!row) return;\n' +
+'  var cards=row.querySelectorAll(".contact-card");\n' +
+'  var allDone=true;\n' +
+'  cards.forEach(function(c){\n' +
+'    var badge=c.querySelector(".outreach-badge");\n' +
+'    if(!badge||badge.style.display==="none") allDone=false;\n' +
+'  });\n' +
+'  if(cards.length===0) allDone=true;\n' +
+'  var completeBtn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +
+'  if(completeBtn){\n' +
+'    if(allDone){completeBtn.classList.remove("disabled");completeBtn.classList.add("active-green");completeBtn.removeAttribute("data-tooltip");}\n' +
+'    else{completeBtn.classList.add("disabled");completeBtn.classList.remove("active-green");completeBtn.setAttribute("data-tooltip","Action all contacts to close this lead");}\n' +
+'  }\n' +
 '}\n' +
 '\n' +
 'async function activateContact(cid, safeId) {\n' +
@@ -1012,7 +1035,7 @@ module.exports = async function handler(req, res) {
 '    document.querySelectorAll(\'[id^="ss-"]\').forEach(function(el){if(!el.contains(e.target))el.style.display="none";});\n' +
 '  }\n' +
 '  if(!e.target.closest(".remove-wrap")){\n' +
-'    document.querySelectorAll(".remove-dd.open").forEach(function(el){el.classList.remove("open");});\n' +
+'    document.querySelectorAll(".contact-dd.open").forEach(function(el){el.classList.remove("open");});\n' +
 '  }\n' +
 '});\n' +
 '\n' +
