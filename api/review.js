@@ -124,11 +124,11 @@ module.exports = async function handler(req, res) {
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
 '.modal { background: #2a2a2a; border: 1px solid #484848; border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04); }\n' +
-'.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }\n' +
+'.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }\n' +
 '.modal-header h3 { font-size: 16px; font-weight: 600; color: #fff; font-family: Oswald, sans-serif; }\n' +
 '.modal-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); border: none; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; }\n' +
 '.modal-close:hover { background: rgba(255,255,255,0.1); }\n' +
-'.modal-body { padding: 16px 24px; overflow-y: auto; }\n' +
+'.modal-body { padding: 16px 24px; overflow-y: auto; flex: 1; min-height: 0; max-height: 70vh; }\n' +
 '.modal-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }\n' +
 '.modal-row:last-child { border-bottom: none; }\n' +
 '.modal-row-name { font-size: 13px; font-weight: 600; color: #fff; }\n' +
@@ -210,6 +210,8 @@ module.exports = async function handler(req, res) {
 '.btn-custom-msg:hover { background: rgba(232,98,10,0.2); color: #ff8533; border-color: rgba(232,98,10,0.5); }\n' +
 '.btn-ac-circle { width: 28px; height: 28px; border-radius: 50%; background: #2a2a2a; border: 1px solid #E8620A; color: #E8620A; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }\n' +
 '.btn-ac-circle:hover { box-shadow: 0 0 12px rgba(232,98,10,0.4); background: rgba(232,98,10,0.15); }\n' +
+'.btn-ac-circle.disabled { opacity: 0.4; cursor: not-allowed; border-color: #555555; color: #888888; }\n' +
+'.btn-ac-circle.disabled:hover { box-shadow: none; background: #2a2a2a; }\n' +
 '.section-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }\n' +
 '.section-label-row .section-label { margin-bottom: 0; }\n' +
 '</style>\n' +
@@ -444,7 +446,7 @@ module.exports = async function handler(req, res) {
 '    \'<div class="card-body">\'+\n' +
 '      \'<div class="section-label-row">\'+\n' +
 '        \'<div class="section-label">Contacts</div>\'+\n' +
-'        (hasAllContacts?\'<button class="btn-ac-circle" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Additional contacts found on Apollo">+</button>\':"")+\n' +
+'        (hasAllContacts?\'<button class="btn-ac-circle" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Additional contacts found on Apollo">+</button>\':\'<button class="btn-ac-circle disabled" data-tooltip="No additional contacts available">+</button>\')+\n' +
 '      \'</div>\'+\n' +
 '      \'<div class="contacts-row" id="contacts-\'+safeId+\'"></div>\'+\n' +
 '      \'<div class="composer" id="composer-\'+safeId+\'">\'+\n' +
