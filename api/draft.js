@@ -27,12 +27,14 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   var body = req.body;
+  console.log('[draft] Incoming request:', JSON.stringify({ action: body && body.action, jobTitle: body && body.jobTitle, companyName: body && body.companyName, contactFirstName: body && body.contactFirstName, category: body && body.category, hasDescription: !!(body && body.description) }));
   if (!body || !body.jobTitle || !body.companyName) {
+    console.log('[draft] Rejected: missing required fields');
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   var apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!apiKey) { console.log('[draft] Rejected: no GEMINI_API_KEY'); return res.status(500).json({ error: 'GEMINI_API_KEY not configured' }); }
 
   var jobTitle = body.jobTitle || '';
   var companyName = body.companyName || '';
@@ -173,7 +175,8 @@ module.exports = async function handler(req, res) {
     );
 
     if (!geminiRes.ok) {
-      console.error('Gemini draft error:', geminiRes.status);
+      var errBody = await geminiRes.text();
+      console.error('[draft] Gemini HTTP error:', geminiRes.status, errBody.slice(0, 500));
       return res.status(500).json({ error: 'Draft generation failed' });
     }
 
@@ -182,17 +185,23 @@ module.exports = async function handler(req, res) {
                data.candidates[0].content.parts && data.candidates[0].content.parts[0] &&
                data.candidates[0].content.parts[0].text;
 
-    if (!text) return res.status(500).json({ error: 'Empty response from Gemini' });
+    console.log('[draft] Gemini response candidates:', data.candidates ? data.candidates.length : 0, 'blockReason:', data.candidates && data.candidates[0] && data.candidates[0].finishReason, 'promptFeedback:', JSON.stringify(data.promptFeedback || null));
+    if (!text) {
+      console.error('[draft] Empty Gemini text. Full response:', JSON.stringify(data).slice(0, 1000));
+      return res.status(500).json({ error: 'Empty response from Gemini' });
+    }
 
+    console.log('[draft] Raw Gemini text (first 300):', text.slice(0, 300));
     var clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
     var parsed = JSON.parse(clean);
 
+    console.log('[draft] Success: subject=', (parsed.subject || '').slice(0, 80), 'bodyLen=', (parsed.body || '').length);
     return res.status(200).json({
       subject: parsed.subject || '',
       body: parsed.body || ''
     });
   } catch (e) {
-    console.error('Draft generation error:', e.message);
+    console.error('[draft] Draft generation error:', e.message, e.stack && e.stack.slice(0, 300));
     return res.status(500).json({ error: 'Draft generation failed' });
   }
 };
