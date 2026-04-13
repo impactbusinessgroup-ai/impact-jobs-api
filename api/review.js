@@ -504,23 +504,28 @@ module.exports = async function handler(req, res) {
 '  bar.classList.remove("open");\n' +
 '}\n' +
 'async function generateSubjectAI(safeId) {\n' +
+'  console.log("[AI-Subject] Called for safeId:", safeId);\n' +
 '  var activeCid=activeContacts[safeId];\n' +
-'  if(!activeCid){showToast("Select a contact first",3000);return;}\n' +
+'  if(!activeCid){console.log("[AI-Subject] No active contact");showToast("Select a contact first",3000);return;}\n' +
 '  var card=_g("cb-"+activeCid);\n' +
-'  if(!card) return;\n' +
+'  if(!card){console.log("[AI-Subject] Card element not found for cid:", activeCid);return;}\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
-'  if(!lead) return;\n' +
+'  if(!lead){console.log("[AI-Subject] Lead not found for safeId:", safeId);return;}\n' +
 '  var aiBtn=_g("subj-ai-"+safeId);\n' +
 '  var inp=_g("subj-"+safeId);\n' +
 '  aiBtn.innerHTML=\'<div class="spinner"></div>\';\n' +
 '  try{\n' +
 '    var contactFirstName=(card.getAttribute("data-name")||"").split(" ")[0];\n' +
 '    var uniqid=card.getAttribute("data-uniqid")||"*|UNIQID|*";\n' +
+'    console.log("[AI-Subject] uniqid:", uniqid, "contactFirstName:", contactFirstName);\n' +
 '    var payload={jobTitle:cleanJobTitle(lead.jobTitle||""),companyName:lead.company||"",category:lead.category||"engineering",contactTitle:card.getAttribute("data-title")||"",contactFirstName:contactFirstName,uniqid:uniqid,amEmail:AM.email,action:"subject_only"};\n' +
+'    console.log("[AI-Subject] Sending payload:", JSON.stringify(payload));\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
+'    console.log("[AI-Subject] Response status:", r.status);\n' +
 '    var d=await r.json();\n' +
+'    console.log("[AI-Subject] Response body:", JSON.stringify(d));\n' +
 '    if(d.subject) inp.value=d.subject;\n' +
-'  }catch(e){console.error("AI subject error:",e);}\n' +
+'  }catch(e){console.error("[AI-Subject] Error:",e);}\n' +
 '  aiBtn.innerHTML=\'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg>\';\n' +
 '}\n' +
 'document.addEventListener("click",function(e){\n' +
@@ -530,16 +535,18 @@ module.exports = async function handler(req, res) {
 '});\n' +
 '\n' +
 'async function generateCustomDraft(safeId) {\n' +
+'  console.log("[CustomDraft] Called for safeId:", safeId);\n' +
 '  var activeCid=activeContacts[safeId];\n' +
-'  if(!activeCid){showToast("Select a contact first",3000);return;}\n' +
+'  if(!activeCid){console.log("[CustomDraft] No active contact");showToast("Select a contact first",3000);return;}\n' +
 '  var card=_g("cb-"+activeCid);\n' +
-'  if(!card) return;\n' +
+'  if(!card){console.log("[CustomDraft] Card element not found for cid:", activeCid);return;}\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
-'  if(!lead) return;\n' +
+'  if(!lead){console.log("[CustomDraft] Lead not found for safeId:", safeId);return;}\n' +
 '  var contactName=card.getAttribute("data-name")||"";\n' +
 '  var contactTitle=card.getAttribute("data-title")||"";\n' +
 '  var contactFirstName=contactName.split(" ")[0];\n' +
 '  var uniqid=card.getAttribute("data-uniqid")||"*|UNIQID|*";\n' +
+'  console.log("[CustomDraft] contact:", contactName, "uniqid:", uniqid, "hasEmail:", !!card.getAttribute("data-email"));\n' +
 '  var prospectId=card.getAttribute("data-prospect-id")||activeCid;\n' +
 '  var cacheKey=safeId+"__"+prospectId;\n' +
 '  var ebodyEl=_g("ebody-"+safeId);\n' +
@@ -549,14 +556,17 @@ module.exports = async function handler(req, res) {
 '  ebodyEl.setAttribute("contenteditable","false");\n' +
 '  try{\n' +
 '    var payload={jobTitle:cleanJobTitle(lead.jobTitle||""),companyName:lead.company||"",category:lead.category||"engineering",contactTitle:contactTitle,contactFirstName:contactFirstName,contactName:contactName,description:lead.description||"",uniqid:uniqid,amEmail:AM.email};\n' +
+'    console.log("[CustomDraft] Sending payload:", JSON.stringify(payload));\n' +
 '    var r=await fetch("/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
+'    console.log("[CustomDraft] Response status:", r.status);\n' +
 '    var d=await r.json();\n' +
+'    console.log("[CustomDraft] Response body:", JSON.stringify(d).slice(0,300));\n' +
 '    if(!r.ok||!d.body) throw new Error(d.error||"Draft failed");\n' +
 '    ebodyEl.innerHTML=d.body;\n' +
 '    customDraftCache[cacheKey]={body:d.body};\n' +
 '    composerState[safeId].body=d.body;\n' +
 '  }catch(e){\n' +
-'    console.error("Custom draft error:",e);\n' +
+'    console.error("[CustomDraft] Error:",e);\n' +
 '    showToast("Could not generate email - using default template",3000);\n' +
 '    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,contactFirstName,uniqid);\n' +
 '  }\n' +
