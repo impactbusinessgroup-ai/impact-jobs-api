@@ -281,12 +281,117 @@ async function fetchJSearchPage(query, page = 1) {
   return data.data || [];
 }
 
+// --- Fetch one page from JSearch (dry run variant with configurable date_posted) ---
+async function fetchJSearchPageDryRun(query, datePosted) {
+  const params = new URLSearchParams({
+    query,
+    page: '1',
+    num_pages: '1',
+    date_posted: datePosted,
+    country: 'us',
+    radius: '50',
+  });
+  const url = `https://jsearch.p.rapidapi.com/search?${params}`;
+  const res = await fetch(url, {
+    headers: {
+      'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+      'x-rapidapi-key': process.env.JSEARCH_API_KEY,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    console.error(`JSearch error for "${query}": ${res.status}`);
+    return [];
+  }
+  const data = await res.json();
+  return data.data || [];
+}
+
+// --- Dry run handler ---
+async function handleDryRun(req, res) {
+  const seenCompanies = new Set();
+  let totalFetched = 0;
+  let afterAggregatorFilter = 0;
+  let afterGeminiRelevance = 0;
+  let afterBlocklist = 0;
+  let afterCategoryDetection = 0;
+  const qualifyingJobs = [];
+
+  const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
+
+  for (const query of JSEARCH_QUERIES) {
+    console.log(`[dry-run] Fetching: ${query}`);
+    const jobs = await fetchJSearchPageDryRun(query, '3days');
+    console.log(`[dry-run] Got ${jobs.length} jobs for: ${query}`);
+    totalFetched += jobs.length;
+
+    for (const job of jobs) {
+      const title = job.job_title || '';
+      const employer = job.employer_name || '';
+      const description = job.job_description || '';
+
+      // Aggregator filter
+      const aggregatorHost = isAggregatorSource(job.job_apply_link, employer);
+      if (aggregatorHost) continue;
+      if (isExcludedTitle(title, blockedTitles)) continue;
+      if (isJobBoard(employer)) continue;
+      if (isContractRole(job)) continue;
+      if (!hasPrimaryKeyword(title)) continue;
+      afterAggregatorFilter++;
+
+      // Gemini relevance check
+      const isRelevant = await isRelevantViaGemini(title, description);
+      if (!isRelevant) continue;
+      afterGeminiRelevance++;
+
+      // Blocklist check
+      if (isBlockedCompany(employer, blockedCompanies)) continue;
+      const normalized = normalizeCompany(employer);
+      if (seenCompanies.has(normalized)) continue;
+      seenCompanies.add(normalized);
+      afterBlocklist++;
+
+      // Category detection
+      const category = await detectCategory(title, description);
+      afterCategoryDetection++;
+
+      qualifyingJobs.push({
+        jobTitle: title,
+        company: employer,
+        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, ''),
+        category,
+        sourceUrl: job.job_apply_link || '',
+      });
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  return res.status(200).json({
+    dryRun: true,
+    summary: {
+      totalFetchedFromJSearch: totalFetched,
+      afterAggregatorFilter,
+      afterGeminiRelevanceCheck: afterGeminiRelevance,
+      afterBlocklistCheck: afterBlocklist,
+      afterCategoryDetection,
+      finalQualifyingCount: qualifyingJobs.length,
+    },
+    qualifyingJobs,
+  });
+}
+
 // --- Main handler ---
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
   if (req.headers['authorization'] !== 'Bearer test123') {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Dry run mode: full pipeline but no Redis writes and no Apollo enrichment
+  if (req.query && req.query.dryrun === 'true') {
+    return handleDryRun(req, res);
   }
 
   const today = new Date().toISOString().split('T')[0];
