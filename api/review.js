@@ -729,7 +729,7 @@ module.exports = async function handler(req, res) {
 '      \'<div class="remove-wrap" style="position:relative;"><button class="btn-dots" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')">&#x2026;</button>\'+\n' +
 '        \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
 '          \'<div class="contact-dd-section">\'+\n' +
-'            \'<div class="contact-dd-header">Log Outreach</div>\'+\n' +
+'            \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
 '            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-email-\'+cid+\'"> Email</label>\'+\n' +
 '            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-limsg-\'+cid+\'"> LinkedIn Message</label>\'+\n' +
 '            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-liconn-\'+cid+\'"> LinkedIn Connect</label>\'+\n' +
@@ -737,7 +737,7 @@ module.exports = async function handler(req, res) {
 '          \'</div>\'+\n' +
 '          \'<div class="contact-dd-divider"></div>\'+\n' +
 '          \'<div class="contact-dd-section">\'+\n' +
-'            \'<div class="contact-dd-header">Remove</div>\'+\n' +
+'            \'<div class="contact-dd-header" style="color:#cc4444;font-weight:600;">Remove</div>\'+\n' +
 '            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'made_contact\\\')">Made Contact</div>\'+\n' +
 '            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'wrong_type\\\')">Wrong Contact Type</div>\'+\n' +
 '            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'existing\\\')">Existing Contact</div>\'+\n' +
@@ -801,11 +801,15 @@ module.exports = async function handler(req, res) {
 '  if(!row) return;\n' +
 '  var cards=row.querySelectorAll(".contact-card");\n' +
 '  var allDone=true;\n' +
+'  var actionedCount=0;\n' +
 '  cards.forEach(function(c){\n' +
 '    var badge=c.querySelector(".outreach-badge");\n' +
-'    if(!badge||badge.style.display==="none") allDone=false;\n' +
+'    var isActioned=badge&&badge.style.display!=="none";\n' +
+'    if(isActioned) actionedCount++;\n' +
+'    else allDone=false;\n' +
 '  });\n' +
 '  if(cards.length===0) allDone=true;\n' +
+'  console.log("[checkAllActioned]",safeId,"total:",cards.length,"actioned:",actionedCount,"allDone:",allDone);\n' +
 '  var completeBtn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +
 '  if(completeBtn){\n' +
 '    if(allDone){completeBtn.classList.remove("disabled");completeBtn.classList.add("active-green");completeBtn.removeAttribute("data-tooltip");}\n' +
