@@ -115,12 +115,12 @@ module.exports = async function handler(req, res) {
 '.tab.active { background: #E8620A; color: white; border-color: #E8620A; }\n' +
 '.search-add-btn { font-size: 11px; font-weight: 700; color: #E8620A; background: rgba(232,98,10,0.15); padding: 3px 10px; border-radius: 6px; cursor: pointer; border: none; }\n' +
 '.card-footer { display: flex; gap: 8px; align-items: center; padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.04); background: #1a1a1a; }\n' +
-'.btn-glass { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; min-height: 42px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 250ms cubic-bezier(0.4,0,0.2,1); background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); text-decoration: none; font-family: Raleway, sans-serif; position: relative; overflow: hidden; }\n' +
+'.btn-glass { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; height: 42px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 200ms ease; background: #2a2a2a; border: none; color: white; text-decoration: none; font-family: Raleway, sans-serif; position: relative; }\n' +
 '.btn-glass:hover { background: #2a2a2a; border-color: rgba(255,255,255,0.2); }\n' +
-'.btn-glass-skip { background: #2a2a2a; color: #E8620A; border-color: #E8620A; }\n' +
-'.btn-glass-skip:hover { background: #2a2a2a; }\n' +
-'.btn-glass-block { background: #2a2a2a; color: #cc3333; border-color: #cc3333; }\n' +
-'.btn-glass-block:hover { background: #2a2a2a; }\n' +
+'.btn-glass-skip { background: #E8620A; color: white; border: none; }\n' +
+'.btn-glass-skip:hover { background: #cc5200; }\n' +
+'.btn-glass-block { background: #cc3333; color: white; border: none; }\n' +
+'.btn-glass-block:hover { background: #aa2222; }\n' +
 '.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,25,0.8); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }\n' +
 '.modal-overlay.open { display: flex; }\n' +
 '.modal { background: #2a2a2a; border: 1px solid #484848; border-radius: 20px; max-width: 560px; width: 92%; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04); }\n' +
@@ -150,10 +150,10 @@ module.exports = async function handler(req, res) {
 '.btn-send-email { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #E8620A, #c94f00); color: white; font-family: Raleway, sans-serif; transition: all 250ms cubic-bezier(0.4,0,0.2,1); box-shadow: 0 2px 12px rgba(232,98,10,0.35); margin-top: 10px; letter-spacing: 0.3px; }\n' +
 '.btn-send-email:hover { background: linear-gradient(135deg, #FF7A2F, #E8620A); box-shadow: 0 6px 28px rgba(232,98,10,0.5); transform: translateY(-3px); }\n' +
 '.btn-send-email.disabled { opacity: 0.35; cursor: default; pointer-events: none; }\n' +
-'.btn-glass-complete { background: #2a2a2a; color: #00d4aa; border-color: #00d4aa; }\n' +
-'.btn-glass-complete:hover { background: #2a2a2a; }\n' +
-'.btn-glass-reassign { background: #1e2a42; color: white; border: 1px solid #2a3a5c; }\n' +
-'.btn-glass-reassign:hover { background: #243250; }\n' +
+'.btn-glass-complete { background: #00a86b; color: white; border: none; }\n' +
+'.btn-glass-complete:hover { background: #008a57; }\n' +
+'.btn-glass-reassign { background: #1e2a42; color: white; border: none; }\n' +
+'.btn-glass-reassign:hover { background: #2a3a5c; }\n' +
 '.reassign-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); transition: all 0.15s; border-radius: 8px; margin: 2px 0; }\n' +
 '.reassign-item:last-child { border-bottom: none; }\n' +
 '.reassign-item:hover { background: rgba(232,98,10,0.1); color: #fff; }\n' +
@@ -175,10 +175,10 @@ module.exports = async function handler(req, res) {
 '.btn-glass::after { content: ""; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(to right, transparent, currentColor, transparent); opacity: 0; transition: opacity 250ms cubic-bezier(0.4,0,0.2,1); }\n' +
 '.btn-glass:hover::before { opacity: 0.4; }\n' +
 '.btn-glass:hover::after { opacity: 0.3; }\n' +
-'.btn-glass-skip:hover { box-shadow: 0 0 20px rgba(232,98,10,0.5); transform: translateY(-2px); }\n' +
-'.btn-glass-block:hover { box-shadow: 0 0 20px rgba(204,51,51,0.4); transform: translateY(-2px); }\n' +
-'.btn-glass-complete:hover { box-shadow: 0 0 20px rgba(0,212,170,0.4); transform: translateY(-2px); }\n' +
-'.btn-glass-reassign:hover { box-shadow: 0 0 20px rgba(255,255,255,0.15); transform: translateY(-2px); }\n' +
+'.btn-glass-skip:hover { box-shadow: 0 4px 16px rgba(232,98,10,0.4); transform: translateY(-2px); }\n' +
+'.btn-glass-block:hover { box-shadow: 0 4px 16px rgba(204,51,51,0.3); transform: translateY(-2px); }\n' +
+'.btn-glass-complete:hover { box-shadow: 0 4px 16px rgba(0,168,107,0.4); transform: translateY(-2px); }\n' +
+'.btn-glass-reassign:hover { box-shadow: 0 4px 16px rgba(30,42,66,0.4); transform: translateY(-2px); }\n' +
 '.link-icon:hover { box-shadow: 0 0 10px rgba(232,98,10,0.3); }\n' +
 '.btn-li:hover { box-shadow: 0 0 10px rgba(0,119,181,0.35); }\n' +
 '.rich-editor { width: 100%; font-size: 14px; line-height: 1.6; padding: 12px 14px; border: 1px solid #3a3a3a; border-radius: 8px; background: #2a2a2a; color: #f0f0f0; min-height: 180px; overflow-y: auto; font-family: Raleway, sans-serif; outline: none; }\n' +
@@ -229,10 +229,8 @@ module.exports = async function handler(req, res) {
 '.contact-dd-remove:hover { background: rgba(198,40,40,0.1); color: #ef6961; }\n' +
 '.outreach-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: rgba(46,125,50,0.15); color: #6EE7C7; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
 '.reminder-banner { background: linear-gradient(135deg, rgba(232,98,10,0.2), rgba(232,98,10,0.1)); border: 1px solid rgba(232,98,10,0.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; font-size: 12px; color: #FFA000; }\n' +
-'.btn-glass-complete.disabled { opacity: 0.4; cursor: not-allowed; background: #2a2a2a; border: 1px solid #555; color: #888; }\n' +
-'.btn-glass-complete.disabled:hover { box-shadow: none; transform: none; background: #2a2a2a; }\n' +
-'.btn-glass-complete.active-green { background: #00a86b; border: none; color: white; }\n' +
-'.btn-glass-complete.active-green:hover { box-shadow: 0 0 20px rgba(0,168,107,0.4); transform: translateY(-2px); }\n' +
+'.btn-glass-complete.disabled { opacity: 0.6; cursor: not-allowed; background: #444444; color: #888888; border: none; }\n' +
+'.btn-glass-complete.disabled:hover { box-shadow: none; transform: none; background: #444444; }\n' +
 '.closeout-dd { display: none; position: absolute; bottom: 100%; right: 0; background: #2a2a2a; border: 1px solid #484848; border-radius: 8px; min-width: 180px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.4); overflow: hidden; margin-bottom: 4px; }\n' +
 '.closeout-dd.open { display: block; }\n' +
 '.closeout-dd-item { padding: 8px 12px; font-size: 12px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.12s; }\n' +
@@ -815,8 +813,8 @@ module.exports = async function handler(req, res) {
 '  console.log("[checkAllActioned]",safeId,"total:",cards.length,"actioned:",actionedCount,"allDone:",allDone);\n' +
 '  var completeBtn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +
 '  if(completeBtn){\n' +
-'    if(allDone){completeBtn.classList.remove("disabled");completeBtn.classList.add("active-green");completeBtn.removeAttribute("data-tooltip");}\n' +
-'    else{completeBtn.classList.add("disabled");completeBtn.classList.remove("active-green");completeBtn.setAttribute("data-tooltip","Action all contacts to close this lead");}\n' +
+'    if(allDone){completeBtn.classList.remove("disabled");completeBtn.removeAttribute("data-tooltip");}\n' +
+'    else{completeBtn.classList.add("disabled");completeBtn.setAttribute("data-tooltip","Action all contacts to close this lead");}\n' +
 '  }\n' +
 '}\n' +
 '\n' +
