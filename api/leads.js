@@ -47,10 +47,11 @@ module.exports = async function handler(req, res) {
 
   const { method, query } = req;
 
-  // GET -- return today's leads
- if (method === 'GET') {
+  // GET -- return leads for dashboard (new, pending, in_progress, and reminder leads)
+  if (method === 'GET') {
     const keys = await redisKeys('lead:*');
     const leads = [];
+    const VISIBLE_STATUSES = ['new', 'pending', 'in_progress'];
 
     // Load blocked companies for filtering
     const blockedRaw = await redisGet('blocklist:companies');
@@ -59,11 +60,11 @@ module.exports = async function handler(req, res) {
     for (const key of keys) {
       try {
         const lead = await redisGet(key);
-        if (lead && lead.status !== 'skipped' && lead.status !== 'completed' && lead.company) {
-          const norm = (lead.normalizedCompany || lead.company.toLowerCase()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-          const isBlocked = blockedCompanies.some(bc => norm.includes(bc) || bc.includes(norm));
-          if (!isBlocked) leads.push(lead);
-        }
+        if (!lead || !lead.company) continue;
+        if (!VISIBLE_STATUSES.includes(lead.status)) continue;
+        const norm = (lead.normalizedCompany || lead.company.toLowerCase()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+        const isBlocked = blockedCompanies.some(bc => norm.includes(bc) || bc.includes(norm));
+        if (!isBlocked) leads.push(lead);
       } catch(e) {
         console.error('Error reading lead key:', key, e.message);
       }
@@ -78,14 +79,96 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, leads: ready });
   }
 
-  // PATCH -- update a lead (skip, update status, add contact)
+  // PATCH -- update a lead
   if (method === 'PATCH') {
-    const { id, updates } = req.body;
+    const body = req.body;
+    const id = body.id;
     if (!id) return res.status(400).json({ error: 'Missing id' });
 
     const lead = await redisGet(id);
     if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
+    const action = body.action;
+
+    // --- log_outreach: log outreach methods to a contact ---
+    if (action === 'log_outreach') {
+      const { apollo_id, contact_name, contact_title, methods, am_email } = body;
+      if (!apollo_id || !methods || !methods.length) return res.status(400).json({ error: 'Missing apollo_id or methods' });
+      if (!lead.outreach_log) lead.outreach_log = {};
+      const prev = lead.outreach_log[apollo_id] || [];
+      const attempt = prev.length + 1;
+      const entry = { methods, attempt, date: new Date().toISOString(), am_email: am_email || '' };
+      prev.push(entry);
+      lead.outreach_log[apollo_id] = prev;
+      if (lead.status === 'new') lead.status = 'in_progress';
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      // Write to activity log
+      const log = (await redisGet('contact_activity_log')) || [];
+      log.push({ apollo_id, contact_name: contact_name || '', contact_title: contact_title || '', lead_category: lead.category || '', action_type: 'outreach_sent', outreach_methods: methods, attempt, reminder_stage: lead.reminder_stage || 0, am_email: am_email || '', lead_id: id, date: new Date().toISOString() });
+      await redisSet('contact_activity_log', log);
+      return res.status(200).json({ ok: true, attempt, lead });
+    }
+
+    // --- log_removal: remove contact and log reason ---
+    if (action === 'log_removal') {
+      const { apollo_id, contact_name, contact_title, reason, am_email } = body;
+      if (!apollo_id || !reason) return res.status(400).json({ error: 'Missing apollo_id or reason' });
+      if (lead.contacts) lead.contacts = lead.contacts.filter(c => (c.apollo_id || '') !== apollo_id);
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      const logEntry = { apollo_id, contact_name: contact_name || '', contact_title: contact_title || '', lead_category: lead.category || '', action_type: 'removal', removal_reason: reason, reminder_stage: lead.reminder_stage || 0, am_email: am_email || '', lead_id: id, date: new Date().toISOString() };
+      if (reason === 'made_contact') logEntry.outreach_result = 'made_contact';
+      const log = (await redisGet('contact_activity_log')) || [];
+      log.push(logEntry);
+      await redisSet('contact_activity_log', log);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- complete_lead: set to awaiting_followup ---
+    if (action === 'complete_lead') {
+      const { am_email } = body;
+      lead.status = 'awaiting_followup';
+      lead.completedAt = new Date().toISOString();
+      lead.reminder_stage = 0;
+      lead.last_reminder_date = lead.completedAt;
+      // Build outreach summary from log
+      const summary = [];
+      if (lead.outreach_log) {
+        for (const aid in lead.outreach_log) {
+          const entries = lead.outreach_log[aid];
+          const contact = (lead.contacts || []).find(c => c.apollo_id === aid);
+          summary.push({ apollo_id: aid, name: contact ? (contact.full_name || contact.name || '') : aid, attempts: entries });
+        }
+      }
+      lead.outreach_summary = summary;
+      const domain = lead.company_domain || '';
+      if (domain) {
+        const completedDomains = (await redisGet('completed_domains')) || [];
+        if (!completedDomains.includes(domain)) { completedDomains.push(domain); await redisSet('completed_domains', completedDomains); }
+      }
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- close_out: permanently close lead ---
+    if (action === 'close_out') {
+      lead.status = 'closed';
+      lead.closedAt = new Date().toISOString();
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- add_reminder: reset reminder date, keep stage at 3 ---
+    if (action === 'add_reminder') {
+      lead.last_reminder_date = new Date().toISOString();
+      lead.reminder_stage = 3;
+      lead.status = 'awaiting_followup';
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- Default: generic field update ---
+    const updates = body.updates;
+    if (!updates) return res.status(400).json({ error: 'Missing updates or action' });
     const updated = { ...lead, ...updates };
     await redisSet(id, updated, 60 * 60 * 24 * 7);
 
@@ -93,21 +176,8 @@ module.exports = async function handler(req, res) {
       const domain = lead.company_domain || '';
       if (domain) {
         const completedDomains = (await redisGet('completed_domains')) || [];
-        if (!completedDomains.includes(domain)) {
-          completedDomains.push(domain);
-          await redisSet('completed_domains', completedDomains);
-        }
+        if (!completedDomains.includes(domain)) { completedDomains.push(domain); await redisSet('completed_domains', completedDomains); }
       }
-      const followupEntry = {
-        leadId: id,
-        companyName: lead.company || '',
-        jobTitle: lead.jobTitle || '',
-        assignedAM: updates.assignedAM || lead.assignedAM || '',
-        completedAt: new Date().toISOString(),
-      };
-      const queue = (await redisGet('followup_queue')) || [];
-      queue.push(followupEntry);
-      await redisSet('followup_queue', queue);
     }
 
     return res.status(200).json({ ok: true, lead: updated });

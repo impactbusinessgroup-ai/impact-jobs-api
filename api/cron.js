@@ -103,6 +103,165 @@ const repEmail = subscriber.merge_fields.REPEMAIL || '';
   });
 }
 
+// --- Round robin config ---
+const ROUND_ROBIN = {
+  engineering: ['Paul Kujawski', 'Dan Teliczan', 'Steve Betteley', 'Doug Koetsier'],
+  it: ['Doug Koetsier', 'Jamie Drajka', 'Dan Teliczan', 'Curt Willbrandt', 'Trish Wangler', 'Steve Betteley'],
+  accounting: ['Lauren Sylvester', 'Matt Peal'],
+  other: ['Lauren Sylvester', 'Trish Wangler'],
+};
+const TAMPA_AMS = ['Mark Herman', 'Drew Bentsen'];
+const ESCALATION_AM = 'Matt Peal';
+
+const AM_EMAIL_MAP = {
+  'Doug Koetsier': 'dkoetsier@impactbusinessgroup.com',
+  'Paul Kujawski': 'pkujawski@impactbusinessgroup.com',
+  'Matt Peal': 'mpeal@impactbusinessgroup.com',
+  'Lauren Sylvester': 'lsylvester@impactbusinessgroup.com',
+  'Dan Teliczan': 'dteliczan@impactbusinessgroup.com',
+  'Curt Willbrandt': 'cwillbrandt@impactbusinessgroup.com',
+  'Trish Wangler': 'twangler@impactbusinessgroup.com',
+  'Mark Herman': 'mherman@impactbusinessgroup.com',
+  'Jamie Drajka': 'jdrajka@impactbusinessgroup.com',
+  'Drew Bentsen': 'dbentsen@impactbusinessgroup.com',
+  'Steve Betteley': 'sbetteley@impactbusinessgroup.com',
+};
+
+const CALENDLY_MAP = {
+  'cwillbrandt@impactbusinessgroup.com': 'https://calendly.com/cwillbrandt/phone-call',
+  'dbentsen@impactbusinessgroup.com': 'https://calendly.com/dbentsen',
+  'dkoetsier@impactbusinessgroup.com': 'https://calendly.com/dkoetsier/',
+  'dteliczan@impactbusinessgroup.com': 'https://calendly.com/dteliczan-impactbusinessgroup',
+  'jdrajka@impactbusinessgroup.com': 'https://calendly.com/jdrajka',
+  'lsylvester@impactbusinessgroup.com': 'https://calendly.com/lsylvester',
+  'mherman@impactbusinessgroup.com': 'https://calendly.com/markherman',
+  'mpeal@impactbusinessgroup.com': 'https://calendly.com/mattpeal/15min',
+  'pkujawski@impactbusinessgroup.com': 'https://calendly.com/pkujawski',
+  'sbetteley@impactbusinessgroup.com': 'https://calendly.com/sbetteley',
+  'tray@impactbusinessgroup.com': 'https://calendly.com/tray-impactbusinessgroup',
+  'twangler@impactbusinessgroup.com': 'https://calendly.com/twangler-impactbusinessgroup/15min',
+  'msapoznikov@impactbusinessgroup.com': 'https://calendly.com/msapoznikov',
+};
+
+function businessDaysBetween(dateA, dateB) {
+  const a = new Date(dateA); const b = new Date(dateB);
+  let count = 0;
+  const d = new Date(a);
+  while (d < b) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) count++;
+  }
+  return count;
+}
+
+function getNextRoundRobin(category, location, currentAM) {
+  const isTampa = (location || '').toLowerCase().includes('tampa');
+  if (isTampa) {
+    const idx = TAMPA_AMS.indexOf(currentAM);
+    return TAMPA_AMS[(idx + 1) % TAMPA_AMS.length];
+  }
+  const pool = ROUND_ROBIN[category] || ROUND_ROBIN.engineering;
+  const idx = pool.indexOf(currentAM);
+  return pool[(idx + 1) % pool.length];
+}
+
+// --- Lead inactivity rerouting ---
+async function checkInactiveLeads() {
+  const keys = await redisKeys('lead:*');
+  let rerouted = 0;
+  const now = new Date();
+
+  for (const key of keys) {
+    const lead = await redisGet(key);
+    if (!lead) continue;
+    if (lead.status !== 'new' && lead.status !== 'pending') continue;
+
+    // Check if any outreach logged
+    const hasOutreach = lead.outreach_log && Object.keys(lead.outreach_log).length > 0;
+    if (hasOutreach) continue;
+
+    const assignedAt = lead.assignedAt || lead.createdAt;
+    if (!assignedAt) continue;
+
+    const bizDays = businessDaysBetween(new Date(typeof assignedAt === 'number' ? assignedAt : assignedAt), now);
+    if (bizDays < 2) continue;
+
+    if (!lead.assignment_history) lead.assignment_history = [];
+    const reassignCount = lead.assignment_history.length;
+
+    let newAM;
+    if (reassignCount >= 1) {
+      newAM = ESCALATION_AM;
+    } else {
+      newAM = getNextRoundRobin(lead.category || 'engineering', lead.location || '', lead.assignedAM || '');
+    }
+
+    const newEmail = AM_EMAIL_MAP[newAM] || '';
+    lead.assignment_history.push({ am_name: lead.assignedAM || '', am_email: lead.assignedAMEmail || '', assigned_at: assignedAt, reassign_reason: 'inactivity_2bd' });
+    lead.assignedAM = newAM;
+    lead.assignedAMEmail = newEmail;
+    lead.assignedAt = now.toISOString();
+
+    await redisSet(key, lead, 60 * 60 * 24 * 14);
+
+    // Update Mailchimp rep for company contacts
+    try {
+      const mcApiKey = process.env.MAILCHIMP_API_KEY;
+      const mcDc = mcApiKey.split('-')[1];
+      const audienceId = process.env.MAILCHIMP_CLIENT_AUDIENCE_ID;
+      // Fire and forget Mailchimp update
+      fetch(`https://${mcDc}.api.mailchimp.com/3.0/search-members?query=${encodeURIComponent(lead.company)}&list_id=${audienceId}`, {
+        headers: { Authorization: `Bearer ${mcApiKey}` },
+      }).then(r => r.json()).then(data => {
+        const members = (data.exact_matches && data.exact_matches.members) || [];
+        for (const m of members) {
+          const co = (m.merge_fields && m.merge_fields.COMPANY || '').toLowerCase();
+          if (co !== lead.company.toLowerCase()) continue;
+          const hash = require('crypto').createHash('md5').update(m.email_address.toLowerCase()).digest('hex');
+          fetch(`https://${mcDc}.api.mailchimp.com/3.0/lists/${audienceId}/members/${hash}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${mcApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merge_fields: { REPNAME: newAM, REPEMAIL: newEmail, CALENDLY: CALENDLY_MAP[newEmail] || '' } }),
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+    } catch (e) { console.error('MC reroute error:', e.message); }
+
+    rerouted++;
+    console.log(`Rerouted ${lead.company} from ${lead.assignment_history[lead.assignment_history.length - 1].am_name} to ${newAM}`);
+  }
+  return rerouted;
+}
+
+// --- Reminder firing ---
+async function fireReminders() {
+  const keys = await redisKeys('lead:*');
+  let reminded = 0;
+  const now = new Date();
+
+  for (const key of keys) {
+    const lead = await redisGet(key);
+    if (!lead) continue;
+    if (lead.status !== 'awaiting_followup') continue;
+
+    const lastDate = lead.last_reminder_date || lead.completedAt;
+    if (!lastDate) continue;
+
+    const bizDays = businessDaysBetween(new Date(lastDate), now);
+    if (bizDays < 3) continue;
+
+    lead.reminder_stage = (lead.reminder_stage || 0) + 1;
+    lead.last_reminder_date = now.toISOString();
+    lead.status = 'pending';
+
+    await redisSet(key, lead, 60 * 60 * 24 * 14);
+    reminded++;
+    console.log(`Reminder ${lead.reminder_stage} fired for ${lead.company}`);
+  }
+  return reminded;
+}
+
 // --- Main handler ---
 module.exports = async function handler(req, res) {
   // Disable caching
@@ -114,12 +273,8 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // --- Session alerts ---
   const keys = await redisKeys('session:*');
-
-  if (!keys.length) {
-    return res.status(200).json({ ok: true, checked: 0 });
-  }
-
   let alerted = 0;
 
   for (const key of keys) {
@@ -140,5 +295,13 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ ok: true, checked: keys.length, alerted });
+  // --- Lead inactivity rerouting ---
+  let rerouted = 0;
+  try { rerouted = await checkInactiveLeads(); } catch (e) { console.error('Inactivity check error:', e.message); }
+
+  // --- Reminder firing ---
+  let reminded = 0;
+  try { reminded = await fireReminders(); } catch (e) { console.error('Reminder firing error:', e.message); }
+
+  return res.status(200).json({ ok: true, checked: keys.length, alerted, rerouted, reminded });
 };
