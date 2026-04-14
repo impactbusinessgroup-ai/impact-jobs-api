@@ -4,17 +4,12 @@ const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemi
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchGemini(body) {
-  const keys = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter(Boolean);
-  for (let k = 0; k < keys.length; k++) {
-    const res = await fetch(GEMINI_URL + keys[k], {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (res.status === 429 && k < keys.length - 1) { console.log('Gemini 429, retrying with backup key'); continue; }
-    return res;
-  }
-  return { ok: false, status: 429, json: async () => ({}) };
+  const res = await fetch(GEMINI_URL + process.env.GOOGLE_API_KEY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res;
 }
 
 const EXCLUDE_TITLES = [
