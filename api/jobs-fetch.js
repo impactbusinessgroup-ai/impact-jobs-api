@@ -451,6 +451,15 @@ module.exports = async function handler(req, res) {
       if (isContractRole(job)) { totalFiltered++; continue; }
       if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
+      // Pre-Gemini employer keyword filter
+      const empLower = employer.toLowerCase();
+      const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements'].some(k => empLower.includes(k));
+      const govEduHit = ['public schools','school district','township','department of'].some(k => empLower.includes(k)) || ['city of','county of','state of'].some(k => empLower.startsWith(k));
+      if (staffingHit || govEduHit) {
+        rejectionLog.push({ jobTitle: title, company: employer, geminiResponse: 'pre-gemini-keyword', timestamp: new Date().toISOString() });
+        totalFiltered++; continue;
+      }
+
       // Fast pre-filter: skip obviously irrelevant titles without a Gemini call
       if (!hasPrimaryKeyword(title)) { totalFiltered++; continue; }
 
