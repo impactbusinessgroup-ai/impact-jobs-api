@@ -26,9 +26,16 @@ const JSEARCH_QUERIES = [
   'engineer Grand Rapids Michigan',
   'accounting Grand Rapids Michigan',
   'information technology Grand Rapids Michigan',
+  'engineer Muskegon Michigan',
+  'engineer Holland Michigan',
+  'engineer Zeeland Michigan',
+  'engineer Rockford Michigan',
   'engineer Tampa Florida',
   'accounting Tampa Florida',
   'information technology Tampa Florida',
+  'engineer St. Petersburg Florida',
+  'engineer Clearwater Florida',
+  'accounting St. Petersburg Florida',
 ];
 
 const PRIMARY_KEYWORDS = [

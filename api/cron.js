@@ -405,13 +405,14 @@ module.exports = async function handler(req, res) {
   let reminded = 0;
   try { reminded = await fireReminders(); } catch (e) { console.error('Reminder firing error:', e.message); }
 
-  // --- Morning email (7:45 AM ET window: 7:40-7:50) ---
+  // --- Morning email (7:45 AM ET window: 7:40-7:50, or force=true) ---
   let emailSent = false;
   try {
+    const forceEmail = req.query && req.query.force === 'true';
     const etNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
     const hr = etNow.getHours();
     const min = etNow.getMinutes();
-    if (hr === 7 && min >= 40 && min <= 50) {
+    if (forceEmail || (hr === 7 && min >= 40 && min <= 50)) {
       emailSent = await sendMorningEmail();
     }
   } catch (e) { console.error('Morning email error:', e.message); }
