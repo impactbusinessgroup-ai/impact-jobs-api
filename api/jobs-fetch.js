@@ -191,10 +191,10 @@ Answer only YES or NO.`;
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
     console.log(`Gemini filter "${title}": ${answer}`);
-    return answer === 'YES';
+    return { relevant: answer === 'YES', response: answer || 'NO_RESPONSE' };
   } catch (e) {
     console.error('Gemini filter error:', e.message);
-    return true;
+    return { relevant: true, response: 'ERROR: ' + e.message };
   }
 }
 
@@ -346,8 +346,8 @@ async function handleDryRun(req, res) {
       afterAggregatorFilter++;
 
       // Gemini relevance check
-      const isRelevant = await isRelevantViaGemini(title, description);
-      if (!isRelevant) continue;
+      const geminiResult = await isRelevantViaGemini(title, description);
+      if (!geminiResult.relevant) continue;
       afterGeminiRelevance++;
 
       // Blocklist check
@@ -407,6 +407,7 @@ module.exports = async function handler(req, res) {
   let totalFetched = 0;
   let totalFiltered = 0;
   let geminiCalls = 0;
+  const rejectionLog = [];
 
   const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
   console.log(`Blocklists: ${blockedCompanies.length} companies, ${blockedTitles.length} titles`);
@@ -446,8 +447,11 @@ module.exports = async function handler(req, res) {
 
       // All keyword-matching jobs go through Gemini for staffing/agency + relevance validation
       geminiCalls++;
-      const isRelevant = await isRelevantViaGemini(title, description);
-      if (!isRelevant) { totalFiltered++; continue; }
+      const geminiResult = await isRelevantViaGemini(title, description);
+      if (!geminiResult.relevant) {
+        rejectionLog.push({ jobTitle: title, company: employer, geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
+        totalFiltered++; continue;
+      }
 
       const normalized = normalizeCompany(employer);
       if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
@@ -518,7 +522,18 @@ module.exports = async function handler(req, res) {
     await new Promise(r => setTimeout(r, 300));
   }
 
-  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified, ${geminiCalls} Gemini calls`);
+  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified, ${geminiCalls} Gemini calls, ${rejectionLog.length} Gemini rejections`);
+
+  // Write Gemini rejection log to Redis (append to existing)
+  if (rejectionLog.length > 0) {
+    try {
+      const existing = await redisGet('filter_rejection_log');
+      const combined = (Array.isArray(existing) ? existing : []).concat(rejectionLog);
+      await redisSet('filter_rejection_log', combined);
+    } catch (e) {
+      console.error('Failed to write rejection log:', e.message);
+    }
+  }
 
   return res.status(200).json({
     ok: true,
