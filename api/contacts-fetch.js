@@ -388,12 +388,14 @@ module.exports = async function handler(req, res) {
   if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
 
   try {
+    var MAX_PER_RUN = 3;
     var keys = await redisKeys('lead:*');
     var processed = 0;
     var contactsFound = 0;
     var skipped = 0;
 
     for (var i = 0; i < keys.length; i++) {
+      if (processed >= MAX_PER_RUN) { console.log('Hit max ' + MAX_PER_RUN + ' leads per run, deferring rest'); break; }
       var lead = await redisGet(keys[i]);
       if (!lead) { console.log('Skip ' + keys[i] + ': null lead'); skipped++; continue; }
 
