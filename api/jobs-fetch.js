@@ -168,26 +168,25 @@ function hasPrimaryKeyword(title) {
 async function isRelevantViaGemini(title, description) {
   const prompt = `You are a filter for a staffing agency that places candidates in Engineering, Manufacturing, Accounting, Finance, and IT roles in the United States.
 
-Evaluate this job posting and answer only YES or NO to this question: Is this a direct employer job posting that a staffing agency could potentially pitch their services to?
+Evaluate this job posting and answer only YES or NO: Is this a direct employer job posting that a staffing agency could potentially pitch their services to?
 
-Answer NO if any of these are true:
-- The posting is from a staffing, recruiting, or consulting firm posting on behalf of a client (look for language like 'we are recruiting for', 'our client is looking for', 'on behalf of our client', '[company] is recruiting for', 'contract position', 'we are seeking on behalf of')
-- The company is itself a staffing, recruiting, temp, or workforce solutions firm
-- The job is outside the United States
-- The role is military, government, or public sector
-- The role is unrelated to Engineering, Manufacturing, Accounting, Finance, or IT
+Answer NO only if one of these is clearly true:
+- The posting is from a staffing, recruiting, or consulting firm posting on behalf of a client (look for phrases like "we are recruiting for", "our client is looking for", "on behalf of our client", or the company is a known staffing firm)
+- The job is located outside the United States
+- The role is military, active duty, or direct government employment (city, county, state, or federal government)
+- The role itself is completely unrelated to Engineering, Manufacturing, IT, Accounting, or Finance regardless of the employer industry -- for example: clinical healthcare roles (nurses, doctors, therapists), customer-facing retail roles (cashiers, store associates), food service roles (servers, cooks, kitchen staff), teaching, legal practice, real estate agents
 
-Answer YES only if this appears to be a direct employer in a relevant industry hiring for a relevant role.
+Answer YES if the role function could reasonably fall under Engineering, Manufacturing, IT, Accounting, Finance, or related business operations -- regardless of what industry the employer is in. A Controller at a hospital, an IT Manager at a retailer, or an Engineer at a food company should all be YES. When in doubt, answer YES.
 
 Job title: ${title}
-Job description: ${(description || 'Not available').slice(0, 3000)}
+Job description: ${(description || 'Not available').slice(0, 5000)}
 
 Answer only YES or NO.`;
 
   try {
     const res = await fetchGemini({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 5, temperature: 0 },
+      generationConfig: { maxOutputTokens: 5, temperature: 0.1 },
     });
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
@@ -263,7 +262,7 @@ async function fetchJSearchPage(query, page = 1) {
   const params = new URLSearchParams({
     query,
     page: String(page),
-    num_pages: '1',
+    num_pages: '3',
     date_posted: 'today',
     country: 'us',
     radius: '50',
