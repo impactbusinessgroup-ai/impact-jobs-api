@@ -122,7 +122,7 @@ async function processLead(lead, leadKey) {
           country: '',
           linkedin: c.linkedin || '',
           photo_url: c.photo_url || '',
-          email: c.email || null,
+          email: null,
           emailInferred: false,
           source: 'apollo',
           fromCache: true,
@@ -337,7 +337,7 @@ async function processLead(lead, leadKey) {
         country: enriched.country || '',
         linkedin: ensureUrl(enriched.linkedin_url || ''),
         photo_url: enriched.photo_url || '',
-        email: enriched.email || null,
+        email: null,
         emailInferred: false,
         source: 'apollo'
       });
