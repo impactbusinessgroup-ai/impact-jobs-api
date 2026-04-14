@@ -299,11 +299,11 @@ async function sendMorningEmail() {
   for (const key of keys) {
     const lead = await redisGet(key);
     if (!lead) continue;
-    if (lead.status === 'new' || lead.status === 'pending') {
+    if ((lead.status === 'new' || lead.status === 'pending') && lead.contacts && lead.contacts.length > 0) {
       newLeads.push(lead);
       const cat = lead.category || 'engineering';
       catCounts[cat] = (catCounts[cat] || 0) + 1;
-      totalContacts += (lead.contacts || []).length;
+      totalContacts += lead.contacts.length;
     }
     if (lead.status === 'awaiting_followup') {
       const lastDate = lead.last_reminder_date || lead.completedAt;
