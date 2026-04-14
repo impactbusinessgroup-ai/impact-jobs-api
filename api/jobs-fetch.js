@@ -451,19 +451,26 @@ module.exports = async function handler(req, res) {
       const employer = job.employer_name || '';
       const description = job.job_description || '';
       const aggregatorHost = isAggregatorSource(job.job_apply_link, employer);
-      if (aggregatorHost) { console.log('Filtered aggregator source:', employer, '-', aggregatorHost); totalFiltered++; continue; }
+      if (aggregatorHost) {
+        console.log('Filtered aggregator source:', employer, '-', aggregatorHost);
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'aggregator-whitelist', timestamp: new Date().toISOString() });
+        totalFiltered++; continue;
+      }
 
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isJobBoard(employer)) { totalFiltered++; continue; }
       if (isContractRole(job)) { totalFiltered++; continue; }
-      if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
+      if (isBlockedCompany(employer, blockedCompanies)) {
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'blocklist', timestamp: new Date().toISOString() });
+        totalFiltered++; continue;
+      }
 
       // Pre-Gemini employer keyword filter
       const empLower = employer.toLowerCase();
-      const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements'].some(k => empLower.includes(k));
+      const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements','jobot','akkodis'].some(k => empLower.includes(k));
       const govEduHit = ['public schools','school district','township','department of'].some(k => empLower.includes(k)) || ['city of','county of','state of'].some(k => empLower.startsWith(k));
       if (staffingHit || govEduHit) {
-        rejectionLog.push({ jobTitle: title, company: employer, geminiResponse: 'pre-gemini-keyword', timestamp: new Date().toISOString() });
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'pre-gemini-keyword', timestamp: new Date().toISOString() });
         totalFiltered++; continue;
       }
 
@@ -475,12 +482,18 @@ module.exports = async function handler(req, res) {
       await sleep(250);
       const geminiResult = await isRelevantViaGemini(title, description);
       if (!geminiResult.relevant) {
-        rejectionLog.push({ jobTitle: title, company: employer, geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'gemini-no', geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
         totalFiltered++; continue;
+      }
+      if (geminiResult.response === 'EMPTY_PASSTHROUGH' || geminiResult.response.startsWith('ERROR_PASSTHROUGH')) {
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'gemini-empty', geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
       }
 
       const normalized = normalizeCompany(employer);
-      if (seenCompanies.has(normalized)) { totalFiltered++; continue; }
+      if (seenCompanies.has(normalized)) {
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'company-dedup', timestamp: new Date().toISOString() });
+        totalFiltered++; continue;
+      }
       seenCompanies.add(normalized);
 
       const category = await detectCategory(title, description);

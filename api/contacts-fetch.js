@@ -282,13 +282,24 @@ async function processLead(lead, leadKey) {
 
   var rankText = await callGemini(validatePrompt);
   var selectedIndexes = parseGeminiJson(rankText);
-  if (!Array.isArray(selectedIndexes)) {
-    console.log('Gemini selected:', lead.company, '- [] from', people.length, 'candidates');
-    return null;
-  }
-  console.log('Gemini selected:', lead.company, '-', selectedIndexes, 'from', people.length, 'candidates');
-  if (!selectedIndexes.length) {
-    return null;
+  var usedFallback = false;
+  if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
+    console.log('Gemini selected:', lead.company, '- empty/null from', people.length, 'candidates, using seniority fallback');
+    // Fallback: rank by seniority and take top 3
+    var seniorityOrder = ['president','ceo','vp','vice president','director','senior manager','manager'];
+    var ranked = people.map(function(p, idx) {
+      var t = (p.title || '').toLowerCase();
+      var rank = seniorityOrder.length;
+      for (var s = 0; s < seniorityOrder.length; s++) {
+        if (t.indexOf(seniorityOrder[s]) !== -1) { rank = s; break; }
+      }
+      return { idx: idx, rank: rank };
+    }).sort(function(a, b) { return a.rank - b.rank; });
+    selectedIndexes = ranked.slice(0, 3).map(function(r) { return r.idx; });
+    usedFallback = true;
+    console.log('Fallback selected:', lead.company, '-', selectedIndexes, 'from', people.length, 'candidates');
+  } else {
+    console.log('Gemini selected:', lead.company, '-', selectedIndexes, 'from', people.length, 'candidates');
   }
 
   // Step 5: Enrich selected contacts (1 credit each)
@@ -375,7 +386,7 @@ async function processLead(lead, leadKey) {
   // Step 8: Extract company-level data
   var companyData = { apollo_org_id: orgId };
 
-  return contacts.length > 0 ? { contacts: contacts, allContacts: allContacts, companyData: companyData } : null;
+  return contacts.length > 0 ? { contacts: contacts, allContacts: allContacts, companyData: companyData, usedFallback: usedFallback } : null;
 }
 
 module.exports = async function handler(req, res) {
@@ -441,10 +452,11 @@ module.exports = async function handler(req, res) {
           lead.contacts = result.contacts;
           lead.allContacts = result.allContacts || [];
           if (result.companyData.apollo_org_id) lead.apollo_org_id = result.companyData.apollo_org_id;
+          if (result.usedFallback) lead.contactSelectionMethod = 'seniority-fallback';
           lead.contactsEnrichedAt = Date.now();
           await redisSet(keys[i], lead, 604800);
           contactsFound += result.contacts.length;
-          console.log('Found', result.contacts.length, 'contacts for', lead.company, '+', lead.allContacts.length, 'additional');
+          console.log('Found', result.contacts.length, 'contacts for', lead.company, (result.usedFallback ? '(seniority fallback)' : ''), '+', lead.allContacts.length, 'additional');
         } else {
           lead.contactsEnrichedAt = Date.now();
           lead.contacts = [];
