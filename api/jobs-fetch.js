@@ -1,6 +1,7 @@
 // api/jobs-fetch.js
 
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchGemini(body) {
   const keys = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter(Boolean);
@@ -191,10 +192,17 @@ Answer only YES or NO.`;
     const data = await res.json();
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase();
     console.log(`Gemini filter "${title}": ${answer}`);
-    return { relevant: answer === 'YES', response: answer || 'NO_RESPONSE' };
+    if (!answer) {
+      console.log(`Gemini empty response for "${title}", defaulting to pass-through`);
+      return { relevant: true, response: 'EMPTY_PASSTHROUGH' };
+    }
+    if (answer === 'NO') {
+      return { relevant: false, response: 'NO' };
+    }
+    return { relevant: true, response: answer };
   } catch (e) {
     console.error('Gemini filter error:', e.message);
-    return { relevant: true, response: 'ERROR: ' + e.message };
+    return { relevant: true, response: 'ERROR_PASSTHROUGH: ' + e.message };
   }
 }
 
@@ -346,6 +354,7 @@ async function handleDryRun(req, res) {
       afterAggregatorFilter++;
 
       // Gemini relevance check
+      await sleep(250);
       const geminiResult = await isRelevantViaGemini(title, description);
       if (!geminiResult.relevant) continue;
       afterGeminiRelevance++;
@@ -447,6 +456,7 @@ module.exports = async function handler(req, res) {
 
       // All keyword-matching jobs go through Gemini for staffing/agency + relevance validation
       geminiCalls++;
+      await sleep(250);
       const geminiResult = await isRelevantViaGemini(title, description);
       if (!geminiResult.relevant) {
         rejectionLog.push({ jobTitle: title, company: employer, geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
