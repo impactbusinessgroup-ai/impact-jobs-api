@@ -478,6 +478,11 @@ module.exports = async function handler(req, res) {
         lead.contactsEnrichedAt = Date.now();
       }
 
+      // Fetch company logo via Brandfetch
+      if (domain && process.env.BRANDFETCH_CLIENT_ID) {
+        lead.company_logo = 'https://cdn.brandfetch.io/' + encodeURIComponent(domain) + '/w/128/h/128?c=' + process.env.BRANDFETCH_CLIENT_ID;
+      }
+
       // Save final state
       await redisSet(leadId, lead, 604800);
       return res.status(200).json({ ok: true, leadId, lead });

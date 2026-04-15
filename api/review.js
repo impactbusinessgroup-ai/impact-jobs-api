@@ -351,6 +351,7 @@ module.exports = async function handler(req, res) {
 '          <div class="add-field"><label>Location</label><input type="text" id="add-location" placeholder="City, State"></div>\n' +
 '          <div class="add-field"><label>Company Website</label><input type="text" id="add-domain" placeholder="company.com"></div>\n' +
 '        </div>\n' +
+'        <div class="add-field"><label>Job Description</label><textarea id="add-desc-preview" readonly style="min-height:100px;max-height:100px;resize:none;opacity:0.6;font-size:11px;line-height:1.5;cursor:default;"></textarea></div>\n' +
 '      </div>\n' +
 '      <div class="add-footer">\n' +
 '        <button class="btn-cancel" onclick="addGoBack()">&#x2190; Back</button>\n' +
@@ -1349,6 +1350,7 @@ module.exports = async function handler(req, res) {
 '    _g("add-location").value=d.location||"";\n' +
 '    _g("add-category").value=d.category||"engineering";\n' +
 '    _g("add-domain").value=d.domain||"";\n' +
+'    _g("add-desc-preview").value=_addDesc;\n' +
 '    _g("add-stage1").style.display="none";\n' +
 '    _g("add-stage2").style.display="";\n' +
 '  }catch(e){\n' +
