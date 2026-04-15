@@ -501,8 +501,7 @@ module.exports = async function handler(req, res) {
 
       // Temporary: re-process leads from old Explorium pipeline
       var hasExploriumContacts = lead.contacts && lead.contacts.length > 0 && lead.contacts[0].source === 'explorium';
-      var enrichedButEmpty = lead.contactsEnrichedAt && (!lead.contacts || lead.contacts.length === 0);
-      var needsReprocess = hasExploriumContacts || enrichedButEmpty;
+      var needsReprocess = hasExploriumContacts;
 
       if (!needsReprocess) {
         if (lead.contacts && lead.contacts.length > 0) {
