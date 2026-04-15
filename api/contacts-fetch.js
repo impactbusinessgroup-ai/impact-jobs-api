@@ -487,6 +487,8 @@ module.exports = async function handler(req, res) {
   try {
     var MAX_PER_RUN = 3;
     var keys = await redisKeys('lead:*');
+    // Sort keys descending so newest dates are processed first
+    keys.sort(function(a, b) { return b.localeCompare(a); });
     var processed = 0;
     var contactsFound = 0;
     var skipped = 0;
