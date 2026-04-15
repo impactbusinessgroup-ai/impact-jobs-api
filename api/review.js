@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
 '<head>\n' +
 '<meta charset="UTF-8">\n' +
 '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-'<title>iMPact Lead Review</title>\n' +
+'<title>iMPact Client Lead Review</title>\n' +
 '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
@@ -17,7 +17,27 @@ module.exports = async function handler(req, res) {
 'h1,h2,h3,h4,h5,h6,.section-label,.pill,.cal-month { font-family: Oswald, sans-serif; }\n' +
 '.header { background: rgba(26,26,26,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
-'.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
+'.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
+'.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 8px rgba(34,197,94,0.3); }\n' +
+'.btn-add-lead:hover { background: #16a34a; transform: scale(1.08); }\n' +
+'.add-modal { max-width: 620px; }\n' +
+'.add-modal .modal-body { padding: 20px 24px; }\n' +
+'.add-field { margin-bottom: 14px; }\n' +
+'.add-field label { display: block; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }\n' +
+'.add-field input, .add-field select, .add-field textarea { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 13px; font-family: Raleway, sans-serif; outline: none; transition: border-color 0.15s; }\n' +
+'.add-field input:focus, .add-field select:focus, .add-field textarea:focus { border-color: rgba(232,98,10,0.5); }\n' +
+'.add-field textarea { min-height: 120px; resize: vertical; line-height: 1.5; }\n' +
+'.add-field select option { background: #2a2a2a; color: #fff; }\n' +
+'.add-row { display: flex; gap: 12px; }\n' +
+'.add-row .add-field { flex: 1; }\n' +
+'.add-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06); }\n' +
+'.add-footer .btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: Raleway, sans-serif; }\n' +
+'.add-footer .btn-cancel:hover { background: rgba(255,255,255,0.1); }\n' +
+'.add-footer .btn-submit { background: #22c55e; border: none; color: white; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: Raleway, sans-serif; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }\n' +
+'.add-footer .btn-submit:hover { background: #16a34a; }\n' +
+'.add-footer .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }\n' +
+'.add-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }\n' +
+'@keyframes spin { to { transform: rotate(360deg); } }\n' +
 '.header-meta { color: #999999; font-size: 12px; text-align: right; }\n' +
 '.container { max-width: 920px; margin: 0 auto; padding: 28px 16px 60px; }\n' +
 '.queue-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }\n' +
@@ -249,8 +269,9 @@ module.exports = async function handler(req, res) {
 '\n' +
 '<div class="header">\n' +
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
-'  <div class="header-center">Lead Review</div>\n' +
+'  <div class="header-center">Client Lead Review</div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
+'    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
 '  </div>\n' +
@@ -296,6 +317,32 @@ module.exports = async function handler(req, res) {
 '      <button class="modal-close" onclick="closeReassignModal()">&#x2715;</button>\n' +
 '    </div>\n' +
 '    <div class="modal-body" id="reassign-body"></div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="add-overlay" onclick="if(event.target===this)closeAddModal()">\n' +
+'  <div class="modal add-modal">\n' +
+'    <div class="modal-header">\n' +
+'      <h3>Add Job Lead</h3>\n' +
+'      <button class="modal-close" onclick="closeAddModal()">&#x2715;</button>\n' +
+'    </div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="add-field"><label>Job Title *</label><input type="text" id="add-title" placeholder="e.g. Senior Mechanical Engineer"></div>\n' +
+'      <div class="add-row">\n' +
+'        <div class="add-field"><label>Company Name *</label><input type="text" id="add-company" placeholder="e.g. Acme Manufacturing"></div>\n' +
+'        <div class="add-field" style="max-width:160px;"><label>Category</label><select id="add-category"><option value="engineering">Engineering</option><option value="it">IT</option><option value="accounting">Accounting</option><option value="other">Other</option></select></div>\n' +
+'      </div>\n' +
+'      <div class="add-row">\n' +
+'        <div class="add-field"><label>Location *</label><input type="text" id="add-location" placeholder="City, State"></div>\n' +
+'        <div class="add-field"><label>Job URL</label><input type="text" id="add-url" placeholder="https://..."></div>\n' +
+'      </div>\n' +
+'      <div class="add-field"><label>Job Description *</label><textarea id="add-desc" placeholder="Paste the full job description here"></textarea></div>\n' +
+'      <div id="add-status" style="font-size:12px;color:#22c55e;text-align:center;min-height:18px;"></div>\n' +
+'    </div>\n' +
+'    <div class="add-footer">\n' +
+'      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>\n' +
+'      <button class="btn-submit" id="add-submit-btn" onclick="submitAddLead()">Add Lead</button>\n' +
+'    </div>\n' +
 '  </div>\n' +
 '</div>\n' +
 '\n' +
@@ -1256,6 +1303,49 @@ module.exports = async function handler(req, res) {
 '    animateBack(btn);\n' +
 '  });\n' +
 '})();\n' +
+'function openAddModal(){\n' +
+'  _g("add-title").value="";_g("add-company").value="";_g("add-location").value="";\n' +
+'  _g("add-category").value="engineering";_g("add-url").value="";_g("add-desc").value="";\n' +
+'  _g("add-status").textContent="";_g("add-submit-btn").disabled=false;\n' +
+'  _g("add-submit-btn").innerHTML="Add Lead";\n' +
+'  _g("add-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeAddModal(){_g("add-overlay").classList.remove("open");}\n' +
+'\n' +
+'async function submitAddLead(){\n' +
+'  var title=_g("add-title").value.trim();\n' +
+'  var company=_g("add-company").value.trim();\n' +
+'  var location=_g("add-location").value.trim();\n' +
+'  var category=_g("add-category").value;\n' +
+'  var jobUrl=_g("add-url").value.trim();\n' +
+'  var desc=_g("add-desc").value.trim();\n' +
+'  if(!title||!company||!location||!desc){showToast("Please fill in all required fields",2000);return;}\n' +
+'  var btn=_g("add-submit-btn");\n' +
+'  btn.disabled=true;btn.innerHTML=\'<div class="add-spinner"></div> Finding contacts...\';\n' +
+'  _g("add-status").textContent="Searching Apollo for contacts...";\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:location,category:category,jobUrl:jobUrl,description:desc})});\n' +
+'    var d=await r.json();\n' +
+'    if(!d.ok){_g("add-status").textContent="Error: "+(d.error||"Unknown");btn.disabled=false;btn.innerHTML="Add Lead";return;}\n' +
+'    var lead=d.lead;\n' +
+'    var contactCount=(lead.contacts||[]).length;\n' +
+'    _g("add-status").textContent=contactCount>0?"Found "+contactCount+" contacts!":"Lead added (no contacts found)";\n' +
+'    leads.unshift(lead);\n' +
+'    var container=document.querySelector(".container");\n' +
+'    var firstCard=container.querySelector(".card");\n' +
+'    var temp=document.createElement("div");\n' +
+'    temp.innerHTML=renderCard(lead);\n' +
+'    var newCard=temp.firstChild;\n' +
+'    if(firstCard)container.insertBefore(newCard,firstCard);\n' +
+'    else container.appendChild(newCard);\n' +
+'    updateLeadCount();\n' +
+'    setTimeout(function(){closeAddModal();showToast("Lead added: "+company+" ("+contactCount+" contacts)",3000);},1000);\n' +
+'  }catch(e){\n' +
+'    _g("add-status").textContent="Error: "+e.message;\n' +
+'    btn.disabled=false;btn.innerHTML="Add Lead";\n' +
+'  }\n' +
+'}\n' +
+'\n' +
 'init();\n' +
 '</script>\n' +
 '</body>\n' +
