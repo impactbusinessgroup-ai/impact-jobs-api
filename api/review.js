@@ -1372,34 +1372,33 @@ module.exports = async function handler(req, res) {
 '  window._leadJobTitles[safeId]=lead.jobTitle||"";\n' +
 '  window._leadCategories[safeId]=lead.category||"engineering";\n' +
 '  window._leadRedisIds[safeId]=lead.id||"";\n' +
-'  // Replace via outerHTML\n' +
-'  var oldCard=_g(oldCardId);\n' +
-'  console.log("[AddLead] oldCard lookup:",oldCardId,"| found:",!!oldCard);\n' +
-'  if(oldCard){\n' +
-'    var html=renderCard(lead);\n' +
-'    oldCard.outerHTML=html;\n' +
-'  }\n' +
-'  // Find the new card by its ID (outerHTML killed the old reference)\n' +
-'  var newCard=_g("card-"+safeId);\n' +
-'  console.log("[AddLead] newCard after outerHTML:",!!newCard,"| id:","card-"+safeId);\n' +
-'  if(newCard){\n' +
-'    var parentEl=newCard.parentNode;\n' +
-'    if(parentEl){\n' +
-'      var pcs=window.getComputedStyle(parentEl);\n' +
-'      console.log("[AddLead] Parent CSS | display:",pcs.display,"| overflow:",pcs.overflow,"| position:",pcs.position,"| height:",pcs.height);\n' +
-'    }\n' +
-'    console.log("[AddLead] Card offsetTop:",newCard.offsetTop,"| rect:",JSON.stringify(newCard.getBoundingClientRect()));\n' +
-'    // Re-append to force DOM recognition\n' +
-'    if(parentEl){\n' +
-'      parentEl.removeChild(newCard);\n' +
-'      parentEl.insertBefore(newCard,parentEl.firstChild);\n' +
-'      void parentEl.offsetHeight;\n' +
-'    }\n' +
-'    newCard.style.display="block";\n' +
-'    console.log("[AddLead] After re-append rect:",JSON.stringify(newCard.getBoundingClientRect()));\n' +
-'    newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
-'    console.log("[AddLead] Card height:",newCard.offsetHeight,"| children:",newCard.children.length);\n' +
-'  }\n' +
+'  // Find placeholder card\n' +
+'  var card=_g(oldCardId);\n' +
+'  console.log("[AddLead] placeholder lookup:",oldCardId,"| found:",!!card);\n' +
+'  if(!card) return;\n' +
+'  // Render the full card into a temp div\n' +
+'  var html=renderCard(lead);\n' +
+'  var temp=document.createElement("div");\n' +
+'  temp.innerHTML=html;\n' +
+'  var rendered=temp.firstChild;\n' +
+'  // Copy innerHTML from rendered card into the placeholder (keep same DOM node)\n' +
+'  card.innerHTML=rendered.innerHTML;\n' +
+'  // Copy class and data attributes from rendered card\n' +
+'  card.className=rendered.className;\n' +
+'  if(rendered.id) card.id=rendered.id;\n' +
+'  // Copy all data-* attributes\n' +
+'  Array.from(rendered.attributes).forEach(function(attr){\n' +
+'    if(attr.name.indexOf("data-")===0||attr.name==="style") card.setAttribute(attr.name,attr.value);\n' +
+'  });\n' +
+'  // Remove any leftover spinner overlay\n' +
+'  var ov=card.querySelector(".card-loading-overlay");\n' +
+'  if(ov) ov.remove();\n' +
+'  // Force visible\n' +
+'  card.style.display="block";\n' +
+'  card.style.position="";\n' +
+'  void card.offsetHeight;\n' +
+'  console.log("[AddLead] Card updated in place | id:",card.id,"| height:",card.offsetHeight,"| children:",card.children.length);\n' +
+'  card.scrollIntoView({behavior:"smooth",block:"start"});\n' +
 '  // Fetch logo\n' +
 '  var logoUrl=lead.company_logo_apollo||lead.company_logo||"";\n' +
 '  fetchLogo(lead.company,lead.company_domain||lead.company_website||"",lead.location||"",safeId,logoUrl);\n' +
