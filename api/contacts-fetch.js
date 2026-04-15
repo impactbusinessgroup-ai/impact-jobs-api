@@ -91,9 +91,12 @@ function getDefaultTitles() {
   return ['Director', 'VP', 'Manager', 'President', 'General Manager'];
 }
 
-async function processLead(lead, leadKey) {
+async function processLead(lead, leadKey, debugLog) {
+  var dbg = { company: lead.company, domain: lead.company_domain || '', timestamp: new Date().toISOString() };
   var domain = lead.company_domain || '';
   if (!domain) {
+    dbg.result = 'skip_no_domain';
+    debugLog.push(dbg);
     console.log('Skip ' + lead.company + ': no org ID');
     return null;
   }
@@ -149,9 +152,14 @@ async function processLead(lead, leadKey) {
     var orgData = await orgRes.json();
     orgId = orgData.organization && orgData.organization.id;
     if (!orgId) {
+      dbg.org_enrichment = 'fail_no_org_id';
+      dbg.result = 'skip_no_org_id';
+      debugLog.push(dbg);
       console.log('Skip ' + lead.company + ': no org ID');
       return null;
     }
+    dbg.org_enrichment = 'success';
+    dbg.org_id = orgId;
 
     // Store org ID and company LinkedIn on lead
     lead.apollo_org_id = orgId;
@@ -160,6 +168,8 @@ async function processLead(lead, leadKey) {
     await redisSet(leadKey, lead, 604800);
     console.log('Apollo org ID for', lead.company, ':', orgId);
   } else {
+    dbg.org_enrichment = 'cached';
+    dbg.org_id = orgId;
     console.log('Using cached org ID for', lead.company, ':', orgId);
     // Backfill company_linkedin if missing despite having org ID
     if (!lead.company_linkedin) {
@@ -254,6 +264,9 @@ async function processLead(lead, leadKey) {
   });
 
   if (!apolloRes.ok) {
+    dbg.apollo_people = 'http_error_' + apolloRes.status;
+    dbg.result = 'skip_apollo_http_error';
+    debugLog.push(dbg);
     console.log('No Apollo people found for', lead.company);
     return null;
   }
@@ -261,9 +274,15 @@ async function processLead(lead, leadKey) {
   var apolloData = await apolloRes.json();
   var people = apolloData.people || [];
   var total = (apolloData.pagination && apolloData.pagination.total_entries != null) ? apolloData.pagination.total_entries : people.length;
+  dbg.apollo_people_count = people.length;
+  dbg.apollo_people_total = total;
+  dbg.apollo_search_titles = searchBody.person_titles;
+  dbg.apollo_search_location = searchBody.person_locations || null;
   console.log('Apollo search result:', lead.company, '-', total, 'people found');
 
   if (!people.length) {
+    dbg.result = 'skip_no_people';
+    debugLog.push(dbg);
     console.log('No Apollo people found for', lead.company);
     return null;
   }
@@ -292,8 +311,14 @@ async function processLead(lead, leadKey) {
     }).sort(function(a, b) { return a.rank - b.rank; });
     selectedIndexes = ranked.slice(0, 3).map(function(r) { return r.idx; });
     usedFallback = true;
+    dbg.gemini_validation = 'seniority_fallback';
+    dbg.gemini_selected_count = selectedIndexes.length;
+    dbg.gemini_selected_indexes = selectedIndexes;
     console.log('Fallback selected:', lead.company, '-', selectedIndexes, 'from', people.length, 'candidates');
   } else {
+    dbg.gemini_validation = 'gemini_selected';
+    dbg.gemini_selected_count = selectedIndexes.length;
+    dbg.gemini_selected_indexes = selectedIndexes;
     console.log('Gemini selected:', lead.company, '-', selectedIndexes, 'from', people.length, 'candidates');
   }
 
@@ -385,6 +410,12 @@ async function processLead(lead, leadKey) {
   // Step 8: Extract company-level data
   var companyData = { apollo_org_id: orgId };
 
+  dbg.enriched_contacts_count = contacts.length;
+  dbg.all_contacts_count = allContacts.length;
+  dbg.enriched_names = contacts.map(function(c) { return c.full_name + ' - ' + c.title; });
+  dbg.result = contacts.length > 0 ? 'success' : 'no_contacts_after_enrich';
+  debugLog.push(dbg);
+
   return contacts.length > 0 ? { contacts: contacts, allContacts: allContacts, companyData: companyData, usedFallback: usedFallback } : null;
 }
 
@@ -403,6 +434,7 @@ module.exports = async function handler(req, res) {
     var processed = 0;
     var contactsFound = 0;
     var skipped = 0;
+    var debugLog = (await redisGet('contacts_fetch_debug')) || [];
 
     for (var i = 0; i < keys.length; i++) {
       if (processed >= MAX_PER_RUN) { console.log('Hit max ' + MAX_PER_RUN + ' leads per run, deferring rest'); break; }
@@ -445,7 +477,7 @@ module.exports = async function handler(req, res) {
       console.log('Processing contacts for:', lead.company, '-', lead.jobTitle);
 
       try {
-        var result = await processLead(lead, keys[i]);
+        var result = await processLead(lead, keys[i], debugLog);
 
         if (result && result.contacts && result.contacts.length > 0) {
           lead.contacts = result.contacts;
@@ -473,6 +505,7 @@ module.exports = async function handler(req, res) {
       if (i < keys.length - 1) await delay(500);
     }
 
+    await redisSet('contacts_fetch_debug', debugLog, 86400);
     return res.status(200).json({ ok: true, processed: processed, contactsFound: contactsFound, skipped: skipped });
   } catch (e) {
     console.error('Contacts fetch error:', e.message);
