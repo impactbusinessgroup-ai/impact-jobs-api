@@ -462,7 +462,7 @@ module.exports = async function handler(req, res) {
 
       // Pre-Gemini employer keyword filter
       const empLower = employer.toLowerCase();
-      const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements','jobot','akkodis'].some(k => empLower.includes(k));
+      const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements','jobot','akkodis','search & delivery','employment partners','vetjobs','vet jobs'].some(k => empLower.includes(k));
       const govEduHit = ['public schools','school district','township','department of'].some(k => empLower.includes(k)) || ['city of','county of','state of'].some(k => empLower.startsWith(k));
       if (staffingHit || govEduHit) {
         rejectionLog.push({ jobTitle: title, company: employer, reason: 'pre-gemini-keyword', timestamp: new Date().toISOString() });
