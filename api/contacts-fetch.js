@@ -336,6 +336,32 @@ async function processLead(lead, leadKey, debugLog) {
     }
   }
 
+  // Retry with broad default titles if Gemini's specific titles returned 0
+  if (!people.length) {
+    var broadTitles = ['President', 'CEO', 'Owner', 'COO', 'Operations Manager', 'General Manager', 'Plant Manager', 'HR Manager', 'Talent Acquisition', 'Recruiter', 'Director', 'VP', 'Vice President', 'Manager'];
+    var broadBody = { organization_ids: [orgId], person_titles: broadTitles, per_page: 10 };
+    dbg.broad_title_retry = true;
+    console.log('Retrying with broad titles for', lead.company);
+
+    var broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.APOLLO_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(broadBody)
+    });
+
+    if (broadRes.ok) {
+      var broadData = await broadRes.json();
+      people = broadData.people || [];
+      total = (broadData.pagination && broadData.pagination.total_entries != null) ? broadData.pagination.total_entries : people.length;
+      dbg.broad_retry_people_count = people.length;
+      dbg.broad_retry_people_total = total;
+      console.log('Apollo broad retry result:', lead.company, '-', total, 'people found');
+    }
+  }
+
   if (!people.length) {
     dbg.result = 'skip_no_people';
     debugLog.push(dbg);
