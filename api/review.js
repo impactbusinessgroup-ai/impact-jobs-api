@@ -1383,7 +1383,20 @@ module.exports = async function handler(req, res) {
 '  var newCard=_g("card-"+safeId);\n' +
 '  console.log("[AddLead] newCard after outerHTML:",!!newCard,"| id:","card-"+safeId);\n' +
 '  if(newCard){\n' +
+'    var parentEl=newCard.parentNode;\n' +
+'    if(parentEl){\n' +
+'      var pcs=window.getComputedStyle(parentEl);\n' +
+'      console.log("[AddLead] Parent CSS | display:",pcs.display,"| overflow:",pcs.overflow,"| position:",pcs.position,"| height:",pcs.height);\n' +
+'    }\n' +
+'    console.log("[AddLead] Card offsetTop:",newCard.offsetTop,"| rect:",JSON.stringify(newCard.getBoundingClientRect()));\n' +
+'    // Re-append to force DOM recognition\n' +
+'    if(parentEl){\n' +
+'      parentEl.removeChild(newCard);\n' +
+'      parentEl.insertBefore(newCard,parentEl.firstChild);\n' +
+'      void parentEl.offsetHeight;\n' +
+'    }\n' +
 '    newCard.style.display="block";\n' +
+'    console.log("[AddLead] After re-append rect:",JSON.stringify(newCard.getBoundingClientRect()));\n' +
 '    newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
 '    console.log("[AddLead] Card height:",newCard.offsetHeight,"| children:",newCard.children.length);\n' +
 '  }\n' +
