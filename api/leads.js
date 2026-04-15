@@ -254,19 +254,36 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid feedback payload' });
     }
 
+    if (action === 'extract_job') {
+      const { description } = body;
+      if (!description) return res.status(400).json({ error: 'Missing description' });
+      const prompt = 'Extract the following from this job posting and return as JSON: {"jobTitle": "...", "company": "...", "city": "...", "state": "...", "category": "engineering|it|accounting|other", "domain": "company.com"}\n\nCategory rules:\n- engineering: mechanical, electrical, civil, manufacturing, process, quality, design, product, chemical, environmental, controls, structural engineers and engineering managers\n- it: software, data, cloud, cybersecurity, network, systems, DevOps, QA/testing, IT support, database, AI/ML engineers and IT managers\n- accounting: accountants, auditors, financial analysts, controllers, bookkeepers, tax, payroll, billing\n- other: anything else\n\nFor domain, infer the company website from context clues. Return only JSON.\n\nJob Description:\n' + description.substring(0, 3000);
+      try {
+        const text = await callGemini(prompt, 500);
+        const parsed = parseGeminiJson(text);
+        if (parsed) {
+          const loc = (parsed.city && parsed.state) ? parsed.city + ', ' + parsed.state : (parsed.city || parsed.state || '');
+          return res.status(200).json({ ok: true, jobTitle: parsed.jobTitle || '', company: parsed.company || '', location: loc, category: parsed.category || 'engineering', domain: parsed.domain || '' });
+        }
+      } catch (e) { console.log('Extract error:', e.message); }
+      return res.status(200).json({ ok: false, error: 'Could not parse job description' });
+    }
+
     if (action === 'add_lead') {
       const { jobTitle, company, location, category, jobUrl, description } = body;
-      if (!jobTitle || !company || !location || !description) {
+      if (!jobTitle || !company || !location) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      // Step 1: Use Gemini to extract company domain
-      const domainPrompt = 'Given this company name and job description, return only the company\'s primary website domain (e.g. "acme.com"). No explanation, just the domain.\n\nCompany: ' + company + '\nJob Description: ' + description.substring(0, 500);
-      let domain = '';
-      try {
-        const domainText = await callGemini(domainPrompt, 50);
-        if (domainText) domain = domainText.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim().toLowerCase();
-      } catch (e) { console.log('Domain extraction error:', e.message); }
+      // Use domain from frontend (already extracted by extract_job) or infer
+      let domain = (body.domain || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim().toLowerCase();
+      if (!domain) {
+        const domainPrompt = 'Given this company name and job description, return only the company\'s primary website domain (e.g. "acme.com"). No explanation, just the domain.\n\nCompany: ' + company + '\nJob Description: ' + (description || '').substring(0, 500);
+        try {
+          const domainText = await callGemini(domainPrompt, 50);
+          if (domainText) domain = domainText.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim().toLowerCase();
+        } catch (e) { console.log('Domain extraction error:', e.message); }
+      }
       if (domain) domain = getRootDomain(domain);
 
       // Step 2: Create lead object

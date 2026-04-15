@@ -38,6 +38,9 @@ module.exports = async function handler(req, res) {
 '.add-footer .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }\n' +
 '.add-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }\n' +
 '@keyframes spin { to { transform: rotate(360deg); } }\n' +
+'.card-loading-overlay { position: absolute; inset: 0; background: rgba(42,42,42,0.85); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 5; }\n' +
+'.card-loading-overlay .add-spinner { width: 24px; height: 24px; }\n' +
+'.card-loading-overlay span { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; }\n' +
 '.header-meta { color: #999999; font-size: 12px; text-align: right; }\n' +
 '.container { max-width: 920px; margin: 0 auto; padding: 28px 16px 60px; }\n' +
 '.queue-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }\n' +
@@ -326,22 +329,33 @@ module.exports = async function handler(req, res) {
 '      <h3>Add Job Lead</h3>\n' +
 '      <button class="modal-close" onclick="closeAddModal()">&#x2715;</button>\n' +
 '    </div>\n' +
-'    <div class="modal-body">\n' +
-'      <div class="add-field"><label>Job Title *</label><input type="text" id="add-title" placeholder="e.g. Senior Mechanical Engineer"></div>\n' +
-'      <div class="add-row">\n' +
-'        <div class="add-field"><label>Company Name *</label><input type="text" id="add-company" placeholder="e.g. Acme Manufacturing"></div>\n' +
-'        <div class="add-field" style="max-width:160px;"><label>Category</label><select id="add-category"><option value="engineering">Engineering</option><option value="it">IT</option><option value="accounting">Accounting</option><option value="other">Other</option></select></div>\n' +
+'    <div id="add-stage1">\n' +
+'      <div class="modal-body">\n' +
+'        <div class="add-field"><label>Job URL</label><input type="text" id="add-url" placeholder="https://... (optional)"></div>\n' +
+'        <div class="add-field"><label>Job Description *</label><textarea id="add-desc" style="min-height:200px;" placeholder="Paste the full job description here"></textarea></div>\n' +
+'        <div id="add-status1" style="font-size:12px;color:#22c55e;text-align:center;min-height:18px;"></div>\n' +
 '      </div>\n' +
-'      <div class="add-row">\n' +
-'        <div class="add-field"><label>Location *</label><input type="text" id="add-location" placeholder="City, State"></div>\n' +
-'        <div class="add-field"><label>Job URL</label><input type="text" id="add-url" placeholder="https://..."></div>\n' +
+'      <div class="add-footer">\n' +
+'        <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>\n' +
+'        <button class="btn-submit" id="add-generate-btn" onclick="generateJobDetails()">Generate</button>\n' +
 '      </div>\n' +
-'      <div class="add-field"><label>Job Description *</label><textarea id="add-desc" placeholder="Paste the full job description here"></textarea></div>\n' +
-'      <div id="add-status" style="font-size:12px;color:#22c55e;text-align:center;min-height:18px;"></div>\n' +
 '    </div>\n' +
-'    <div class="add-footer">\n' +
-'      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>\n' +
-'      <button class="btn-submit" id="add-submit-btn" onclick="submitAddLead()">Add Lead</button>\n' +
+'    <div id="add-stage2" style="display:none;">\n' +
+'      <div class="modal-body">\n' +
+'        <div class="add-field"><label>Job Title</label><input type="text" id="add-title" placeholder="e.g. Senior Mechanical Engineer"></div>\n' +
+'        <div class="add-row">\n' +
+'          <div class="add-field"><label>Company Name</label><input type="text" id="add-company" placeholder="e.g. Acme Manufacturing"></div>\n' +
+'          <div class="add-field" style="max-width:160px;"><label>Category</label><select id="add-category"><option value="engineering">Engineering</option><option value="it">IT</option><option value="accounting">Accounting</option><option value="other">Other</option></select></div>\n' +
+'        </div>\n' +
+'        <div class="add-row">\n' +
+'          <div class="add-field"><label>Location</label><input type="text" id="add-location" placeholder="City, State"></div>\n' +
+'          <div class="add-field"><label>Company Website</label><input type="text" id="add-domain" placeholder="company.com"></div>\n' +
+'        </div>\n' +
+'      </div>\n' +
+'      <div class="add-footer">\n' +
+'        <button class="btn-cancel" onclick="addGoBack()">&#x2190; Back</button>\n' +
+'        <button class="btn-submit" id="add-submit-btn" onclick="submitAddLead()">Add Lead</button>\n' +
+'      </div>\n' +
 '    </div>\n' +
 '  </div>\n' +
 '</div>\n' +
@@ -1303,46 +1317,95 @@ module.exports = async function handler(req, res) {
 '    animateBack(btn);\n' +
 '  });\n' +
 '})();\n' +
+'var _addDesc="";\n' +
 'function openAddModal(){\n' +
-'  _g("add-title").value="";_g("add-company").value="";_g("add-location").value="";\n' +
-'  _g("add-category").value="engineering";_g("add-url").value="";_g("add-desc").value="";\n' +
-'  _g("add-status").textContent="";_g("add-submit-btn").disabled=false;\n' +
-'  _g("add-submit-btn").innerHTML="Add Lead";\n' +
+'  _g("add-url").value="";_g("add-desc").value="";\n' +
+'  _g("add-status1").textContent="";\n' +
+'  _g("add-stage1").style.display="";\n' +
+'  _g("add-stage2").style.display="none";\n' +
+'  _g("add-generate-btn").disabled=false;\n' +
+'  _g("add-generate-btn").innerHTML="Generate";\n' +
 '  _g("add-overlay").classList.add("open");\n' +
 '}\n' +
 'function closeAddModal(){_g("add-overlay").classList.remove("open");}\n' +
+'function addGoBack(){\n' +
+'  _g("add-stage1").style.display="";\n' +
+'  _g("add-stage2").style.display="none";\n' +
+'}\n' +
+'\n' +
+'async function generateJobDetails(){\n' +
+'  var desc=_g("add-desc").value.trim();\n' +
+'  if(!desc){showToast("Please paste a job description",2000);return;}\n' +
+'  _addDesc=desc;\n' +
+'  var btn=_g("add-generate-btn");\n' +
+'  btn.disabled=true;btn.innerHTML=\'<div class="add-spinner"></div> Analyzing...\';\n' +
+'  _g("add-status1").textContent="";\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"extract_job",description:desc})});\n' +
+'    var d=await r.json();\n' +
+'    if(!d.ok){_g("add-status1").textContent="Error: "+(d.error||"Could not parse");btn.disabled=false;btn.innerHTML="Generate";return;}\n' +
+'    _g("add-title").value=d.jobTitle||"";\n' +
+'    _g("add-company").value=d.company||"";\n' +
+'    _g("add-location").value=d.location||"";\n' +
+'    _g("add-category").value=d.category||"engineering";\n' +
+'    _g("add-domain").value=d.domain||"";\n' +
+'    _g("add-stage1").style.display="none";\n' +
+'    _g("add-stage2").style.display="";\n' +
+'  }catch(e){\n' +
+'    _g("add-status1").textContent="Error: "+e.message;\n' +
+'  }\n' +
+'  btn.disabled=false;btn.innerHTML="Generate";\n' +
+'}\n' +
 '\n' +
 'async function submitAddLead(){\n' +
 '  var title=_g("add-title").value.trim();\n' +
 '  var company=_g("add-company").value.trim();\n' +
-'  var location=_g("add-location").value.trim();\n' +
+'  var loc=_g("add-location").value.trim();\n' +
 '  var category=_g("add-category").value;\n' +
+'  var domain=_g("add-domain").value.trim();\n' +
 '  var jobUrl=_g("add-url").value.trim();\n' +
-'  var desc=_g("add-desc").value.trim();\n' +
-'  if(!title||!company||!location||!desc){showToast("Please fill in all required fields",2000);return;}\n' +
-'  var btn=_g("add-submit-btn");\n' +
-'  btn.disabled=true;btn.innerHTML=\'<div class="add-spinner"></div> Finding contacts...\';\n' +
-'  _g("add-status").textContent="Searching Apollo for contacts...";\n' +
+'  if(!title||!company||!loc){showToast("Please fill in title, company and location",2000);return;}\n' +
+'  closeAddModal();\n' +
+'  // Create placeholder lead for card\n' +
+'  var slug=company.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").substring(0,40);\n' +
+'  var today=new Date().toISOString().split("T")[0];\n' +
+'  var placeholderId="lead:"+today+":"+slug;\n' +
+'  var placeholder={id:placeholderId,jobTitle:title,company:company,location:loc,category:category,company_domain:domain,status:"pending",contacts:[],createdAt:Date.now(),source:"manual"};\n' +
+'  leads.unshift(placeholder);\n' +
+'  var container=_g("leads-container");\n' +
+'  var temp=document.createElement("div");\n' +
+'  temp.innerHTML=renderCard(placeholder);\n' +
+'  var newCard=temp.firstChild;\n' +
+'  newCard.style.position="relative";\n' +
+'  var overlay=document.createElement("div");\n' +
+'  overlay.className="card-loading-overlay";\n' +
+'  overlay.innerHTML=\'<div class="add-spinner"></div><span>Finding contacts...</span>\';\n' +
+'  newCard.appendChild(overlay);\n' +
+'  container.insertBefore(newCard,container.firstChild);\n' +
+'  updateLeadCount();\n' +
+'  // Fire enrichment request\n' +
 '  try{\n' +
-'    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:location,category:category,jobUrl:jobUrl,description:desc})});\n' +
+'    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
 '    var d=await r.json();\n' +
-'    if(!d.ok){_g("add-status").textContent="Error: "+(d.error||"Unknown");btn.disabled=false;btn.innerHTML="Add Lead";return;}\n' +
-'    var lead=d.lead;\n' +
-'    var contactCount=(lead.contacts||[]).length;\n' +
-'    _g("add-status").textContent=contactCount>0?"Found "+contactCount+" contacts!":"Lead added (no contacts found)";\n' +
-'    leads.unshift(lead);\n' +
-'    var container=document.querySelector(".container");\n' +
-'    var firstCard=container.querySelector(".card");\n' +
-'    var temp=document.createElement("div");\n' +
-'    temp.innerHTML=renderCard(lead);\n' +
-'    var newCard=temp.firstChild;\n' +
-'    if(firstCard)container.insertBefore(newCard,firstCard);\n' +
-'    else container.appendChild(newCard);\n' +
-'    updateLeadCount();\n' +
-'    setTimeout(function(){closeAddModal();showToast("Lead added: "+company+" ("+contactCount+" contacts)",3000);},1000);\n' +
+'    if(d.ok&&d.lead){\n' +
+'      var idx=leads.findIndex(function(l){return l.id===placeholderId;});\n' +
+'      if(idx>=0) leads[idx]=d.lead;\n' +
+'      var safeId=getSafeId(placeholderId);\n' +
+'      var card=_g("card-"+safeId);\n' +
+'      if(card){\n' +
+'        var t2=document.createElement("div");\n' +
+'        t2.innerHTML=renderCard(d.lead);\n' +
+'        card.parentNode.replaceChild(t2.firstChild,card);\n' +
+'      }\n' +
+'      var cc=(d.lead.contacts||[]).length;\n' +
+'      showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
+'    }else{\n' +
+'      overlay.querySelector("span").textContent="No contacts found";\n' +
+'      setTimeout(function(){if(overlay.parentNode)overlay.remove();},2000);\n' +
+'    }\n' +
 '  }catch(e){\n' +
-'    _g("add-status").textContent="Error: "+e.message;\n' +
-'    btn.disabled=false;btn.innerHTML="Add Lead";\n' +
+'    overlay.querySelector("span").textContent="Error: "+e.message;\n' +
+'    setTimeout(function(){if(overlay.parentNode)overlay.remove();},3000);\n' +
 '  }\n' +
 '}\n' +
 '\n' +
