@@ -150,7 +150,8 @@ async function processLead(lead, leadKey, debugLog) {
     }
 
     var orgData = await orgRes.json();
-    orgId = orgData.organization && orgData.organization.id;
+    var org = orgData.organization || {};
+    orgId = org.id;
     if (!orgId) {
       dbg.org_enrichment = 'fail_no_org_id';
       dbg.result = 'skip_no_org_id';
@@ -161,33 +162,43 @@ async function processLead(lead, leadKey, debugLog) {
     dbg.org_enrichment = 'success';
     dbg.org_id = orgId;
 
-    // Store org ID and company LinkedIn on lead
+    // Store org ID, location metadata, and company LinkedIn on lead
     lead.apollo_org_id = orgId;
-    var orgLinkedin = orgData.organization && orgData.organization.linkedin_url;
+    lead.apollo_num_locations = org.num_locations || null;
+    lead.apollo_hq_city = org.city || '';
+    lead.apollo_hq_state = org.state || '';
+    lead.apollo_estimated_employees = org.estimated_num_employees || null;
+    var orgLinkedin = org.linkedin_url;
     if (orgLinkedin) lead.company_linkedin = orgLinkedin;
     await redisSet(leadKey, lead, 604800);
-    console.log('Apollo org ID for', lead.company, ':', orgId);
+    console.log('Apollo org ID for', lead.company, ':', orgId, '| locations:', org.num_locations, '| HQ:', org.city, org.state);
   } else {
     dbg.org_enrichment = 'cached';
     dbg.org_id = orgId;
     console.log('Using cached org ID for', lead.company, ':', orgId);
-    // Backfill company_linkedin if missing despite having org ID
-    if (!lead.company_linkedin) {
+    // Fetch org data if location metadata missing
+    if (!lead.apollo_num_locations || !lead.company_linkedin) {
       try {
         var orgRes2 = await fetch('https://api.apollo.io/api/v1/organizations/enrich?domain=' + encodeURIComponent(domain), {
           headers: { 'x-api-key': process.env.APOLLO_API_KEY }
         });
         if (orgRes2.ok) {
           var orgData2 = await orgRes2.json();
-          var orgLinkedin2 = orgData2.organization && orgData2.organization.linkedin_url;
-          if (orgLinkedin2) {
-            lead.company_linkedin = orgLinkedin2;
-            await redisSet(leadKey, lead, 604800);
-            console.log('Backfilled company_linkedin for', lead.company, ':', orgLinkedin2);
+          var org2 = orgData2.organization || {};
+          if (!lead.apollo_num_locations) {
+            lead.apollo_num_locations = org2.num_locations || null;
+            lead.apollo_hq_city = org2.city || '';
+            lead.apollo_hq_state = org2.state || '';
+            lead.apollo_estimated_employees = org2.estimated_num_employees || null;
           }
+          if (!lead.company_linkedin && org2.linkedin_url) {
+            lead.company_linkedin = org2.linkedin_url;
+          }
+          await redisSet(leadKey, lead, 604800);
+          console.log('Backfilled org metadata for', lead.company, '| locations:', lead.apollo_num_locations, '| HQ:', lead.apollo_hq_city, lead.apollo_hq_state);
         }
       } catch (e) {
-        console.log('company_linkedin backfill error:', e.message);
+        console.log('Org metadata backfill error:', e.message);
       }
     }
   }
@@ -242,17 +253,37 @@ async function processLead(lead, leadKey, debugLog) {
 
   console.log('Gemini titles:', lead.company, '-', JSON.stringify(personTitles));
 
-  // Step 3: Apollo people search (free)
+  // Step 3: Apollo people search (free) with location strategy
   var jobState = extractState(lead.location);
+  var numLocations = lead.apollo_num_locations || 1;
+  var hqState = (lead.apollo_hq_state || '').toLowerCase();
+  var targetStates = ['michigan', 'florida'];
+  var hqInTarget = targetStates.indexOf(hqState) !== -1;
+
   var searchBody = {
     organization_ids: [orgId],
     person_titles: personTitles,
     per_page: 10
   };
-  if (jobState) {
-    searchBody.person_locations = [jobState + ', United States'];
+
+  var locationStrategy;
+  if (numLocations === 1) {
+    // Single location: no location filter
+    locationStrategy = 'single_location_no_filter';
+  } else if (hqInTarget) {
+    // Multi-location, HQ in MI/FL: filter by job state
+    locationStrategy = 'multi_hq_in_target';
+    if (jobState) searchBody.person_locations = [jobState + ', United States'];
+  } else {
+    // Multi-location, HQ outside MI/FL: try with filter first
+    locationStrategy = 'multi_hq_outside_target';
+    if (jobState) searchBody.person_locations = [jobState + ', United States'];
   }
-  console.log('Apollo location filter:', lead.company, '-', searchBody.person_locations || '(none)');
+
+  dbg.location_strategy = locationStrategy;
+  dbg.num_locations = numLocations;
+  dbg.hq_state = lead.apollo_hq_state || '';
+  console.log('Apollo location strategy:', lead.company, '-', locationStrategy, '| numLocations:', numLocations, '| HQ state:', lead.apollo_hq_state || '(unknown)', '| filter:', searchBody.person_locations || '(none)');
 
   var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
     method: 'POST',
@@ -279,6 +310,31 @@ async function processLead(lead, leadKey, debugLog) {
   dbg.apollo_search_titles = searchBody.person_titles;
   dbg.apollo_search_location = searchBody.person_locations || null;
   console.log('Apollo search result:', lead.company, '-', total, 'people found');
+
+  // Retry without location filter for multi-location HQ-outside-target companies
+  if (!people.length && locationStrategy === 'multi_hq_outside_target' && searchBody.person_locations) {
+    console.log('Retrying without location filter for', lead.company);
+    delete searchBody.person_locations;
+    dbg.location_retry = true;
+
+    var retryRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.APOLLO_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(searchBody)
+    });
+
+    if (retryRes.ok) {
+      var retryData = await retryRes.json();
+      people = retryData.people || [];
+      total = (retryData.pagination && retryData.pagination.total_entries != null) ? retryData.pagination.total_entries : people.length;
+      dbg.apollo_retry_people_count = people.length;
+      dbg.apollo_retry_people_total = total;
+      console.log('Apollo retry result:', lead.company, '-', total, 'people found (no location filter)');
+    }
+  }
 
   if (!people.length) {
     dbg.result = 'skip_no_people';
