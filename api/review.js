@@ -1379,7 +1379,16 @@ module.exports = async function handler(req, res) {
 '  var newCard=temp.firstChild;\n' +
 '  // Replace old card in DOM\n' +
 '  var oldCard=_g(oldCardId);\n' +
+'  console.log("[AddLead] oldCard lookup:",oldCardId,"| found:",!!oldCard,"| parentNode:",oldCard?!!oldCard.parentNode:false);\n' +
 '  if(oldCard&&oldCard.parentNode) oldCard.parentNode.replaceChild(newCard,oldCard);\n' +
+'  // Force visibility and diagnose\n' +
+'  newCard.style.display="block";\n' +
+'  newCard.style.visibility="visible";\n' +
+'  newCard.style.opacity="1";\n' +
+'  var cs=window.getComputedStyle(newCard);\n' +
+'  console.log("[AddLead] Card after insert | display:",cs.display,"| visibility:",cs.visibility,"| height:",newCard.offsetHeight,"| offsetParent:",!!newCard.offsetParent);\n' +
+'  console.log("[AddLead] Card classes:",newCard.className,"| inline style:",newCard.getAttribute("style")||"none","| hidden class:",newCard.classList.contains("hidden"));\n' +
+'  newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
 '  // Fetch logo\n' +
 '  fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",safeId,lead.company_logo_apollo||lead.company_logo||"");\n' +
 '  updateLeadCount();\n' +
