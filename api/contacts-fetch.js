@@ -91,15 +91,35 @@ function getDefaultTitles() {
   return ['Director', 'VP', 'Manager', 'President', 'General Manager'];
 }
 
+function getRootDomain(domain) {
+  if (!domain) return domain;
+  // Strip www
+  var d = domain.replace(/^www\./, '');
+  // Extract root domain (last two parts, or last three if TLD is two-part like co.uk)
+  var parts = d.split('.');
+  if (parts.length <= 2) return d;
+  // Keep last 2 parts as root domain
+  return parts.slice(-2).join('.');
+}
+
 async function processLead(lead, leadKey, debugLog) {
   var dbg = { company: lead.company, domain: lead.company_domain || '', timestamp: new Date().toISOString() };
-  var domain = lead.company_domain || '';
-  if (!domain) {
+  var rawDomain = lead.company_domain || '';
+  if (!rawDomain) {
     dbg.result = 'skip_no_domain';
     debugLog.push(dbg);
-    console.log('Skip ' + lead.company + ': no org ID');
+    console.log('Skip ' + lead.company + ': no domain');
     return null;
   }
+
+  // Strip subdomains to get root domain
+  var domain = getRootDomain(rawDomain);
+  if (domain !== rawDomain) {
+    console.log('Stripped subdomain:', rawDomain, '->', domain);
+    lead.company_domain = domain;
+    await redisSet(leadKey, lead, 604800);
+  }
+  dbg.domain = domain;
 
   // Check contacts cache for this domain
   var cachedContacts = [];
@@ -144,22 +164,54 @@ async function processLead(lead, leadKey, debugLog) {
       headers: { 'x-api-key': process.env.APOLLO_API_KEY }
     });
 
-    if (!orgRes.ok) {
-      console.log('Skip ' + lead.company + ': no org ID');
-      return null;
+    var org = {};
+    if (orgRes.ok) {
+      var orgData = await orgRes.json();
+      org = orgData.organization || {};
+      orgId = org.id;
     }
 
-    var orgData = await orgRes.json();
-    var org = orgData.organization || {};
-    orgId = org.id;
+    // Fallback 2: search by company name if domain enrichment failed
     if (!orgId) {
-      dbg.org_enrichment = 'fail_no_org_id';
+      console.log('Org enrichment failed for', lead.company, '(' + domain + '), trying company name search');
+      dbg.org_enrichment = 'domain_failed';
+      try {
+        var nameSearchRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
+          method: 'POST',
+          headers: {
+            'x-api-key': process.env.APOLLO_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ q_organization_name: lead.company, per_page: 5 })
+        });
+        if (nameSearchRes.ok) {
+          var nameData = await nameSearchRes.json();
+          var orgs = nameData.organizations || nameData.accounts || [];
+          if (orgs.length > 0) {
+            // Take first reasonable match
+            var match = orgs[0];
+            orgId = match.id;
+            org = match;
+            dbg.org_search_fallback = true;
+            dbg.org_search_match = match.name || '';
+            console.log('Company name search found:', match.name, '| org_id:', orgId);
+          } else {
+            console.log('Company name search returned 0 results for', lead.company);
+          }
+        }
+      } catch (e) {
+        console.log('Company name search error:', e.message);
+      }
+    }
+
+    if (!orgId) {
+      dbg.org_enrichment = dbg.org_enrichment || 'fail_no_org_id';
       dbg.result = 'skip_no_org_id';
       debugLog.push(dbg);
-      console.log('Skip ' + lead.company + ': no org ID');
+      console.log('Skip ' + lead.company + ': no org ID after all fallbacks');
       return null;
     }
-    dbg.org_enrichment = 'success';
+    if (!dbg.org_search_fallback) dbg.org_enrichment = 'success';
     dbg.org_id = orgId;
 
     // Store org ID, location metadata, and company LinkedIn on lead
