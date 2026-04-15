@@ -1360,6 +1360,7 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function replaceCardWithLead(lead, oldCardId) {\n' +
+'  console.log("[AddLead] replaceCardWithLead called | id:",lead.id,"| oldCardId:",oldCardId,"| contacts:",lead.contacts?lead.contacts.length:0);\n' +
 '  var safeId=getSafeId(lead.id);\n' +
 '  // Update leads array\n' +
 '  var idx=leads.findIndex(function(l){return l.id===lead.id;});\n' +
@@ -1415,6 +1416,7 @@ module.exports = async function handler(req, res) {
 '    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
 '    var d=await r.json();\n' +
 '    if(d.ok&&d.lead){\n' +
+'      console.log("[AddLead] Response received | id:",d.lead.id,"| contacts:",(d.lead.contacts||[]).length,"| enrichedAt:",d.lead.contactsEnrichedAt);\n' +
 '      var cardId="card-"+getSafeId(placeholderId);\n' +
 '      replaceCardWithLead(d.lead,cardId);\n' +
 '      var cc=(d.lead.contacts||[]).length;\n' +
