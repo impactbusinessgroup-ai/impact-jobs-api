@@ -1359,6 +1359,31 @@ module.exports = async function handler(req, res) {
 '  btn.disabled=false;btn.innerHTML="Generate";\n' +
 '}\n' +
 '\n' +
+'function replaceCardWithLead(lead, oldCardId) {\n' +
+'  var safeId=getSafeId(lead.id);\n' +
+'  // Update leads array\n' +
+'  var idx=leads.findIndex(function(l){return l.id===lead.id;});\n' +
+'  if(idx>=0) leads[idx]=lead; else leads.unshift(lead);\n' +
+'  // Register metadata (normally done by inline script tags)\n' +
+'  window._leadJobTitles=window._leadJobTitles||{};\n' +
+'  window._leadCategories=window._leadCategories||{};\n' +
+'  window._leadRedisIds=window._leadRedisIds||{};\n' +
+'  window._leadJobTitles[safeId]=lead.jobTitle||"";\n' +
+'  window._leadCategories[safeId]=lead.category||"engineering";\n' +
+'  window._leadRedisIds[safeId]=lead.id||"";\n' +
+'  // Render new card HTML\n' +
+'  var html=renderCard(lead);\n' +
+'  var temp=document.createElement("div");\n' +
+'  temp.innerHTML=html;\n' +
+'  var newCard=temp.firstChild;\n' +
+'  // Replace old card in DOM\n' +
+'  var oldCard=_g(oldCardId);\n' +
+'  if(oldCard&&oldCard.parentNode) oldCard.parentNode.replaceChild(newCard,oldCard);\n' +
+'  // Fetch logo\n' +
+'  fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",safeId,lead.company_logo_apollo||lead.company_logo||"");\n' +
+'  updateLeadCount();\n' +
+'}\n' +
+'\n' +
 'async function submitAddLead(){\n' +
 '  var title=_g("add-title").value.trim();\n' +
 '  var company=_g("add-company").value.trim();\n' +
@@ -1390,15 +1415,8 @@ module.exports = async function handler(req, res) {
 '    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
 '    var d=await r.json();\n' +
 '    if(d.ok&&d.lead){\n' +
-'      var idx=leads.findIndex(function(l){return l.id===placeholderId;});\n' +
-'      if(idx>=0) leads[idx]=d.lead;\n' +
-'      var safeId=getSafeId(placeholderId);\n' +
-'      var card=_g("card-"+safeId);\n' +
-'      if(card){\n' +
-'        var t2=document.createElement("div");\n' +
-'        t2.innerHTML=renderCard(d.lead);\n' +
-'        card.parentNode.replaceChild(t2.firstChild,card);\n' +
-'      }\n' +
+'      var cardId="card-"+getSafeId(placeholderId);\n' +
+'      replaceCardWithLead(d.lead,cardId);\n' +
 '      var cc=(d.lead.contacts||[]).length;\n' +
 '      showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
 '    }else{\n' +
