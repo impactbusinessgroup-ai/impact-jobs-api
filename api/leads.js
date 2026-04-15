@@ -343,6 +343,7 @@ module.exports = async function handler(req, res) {
           const locState = (location || '').split(',')[1] ? (location || '').split(',')[1].trim() : '';
           const searchBody = { q_organization_name: company, per_page: 5 };
           if (locState) searchBody.organization_locations = [locState];
+          console.log('[add_lead] Org name search request:', JSON.stringify(searchBody));
           const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
             method: 'POST',
             headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
@@ -351,18 +352,22 @@ module.exports = async function handler(req, res) {
           if (nsRes.ok) {
             const nsData = await nsRes.json();
             const orgs = nsData.organizations || nsData.accounts || [];
+            console.log('[add_lead] Org name search results:', orgs.slice(0, 3).map(o => ({ name: o.name, state: o.state, id: o.id })));
             if (orgs.length > 0) { orgId = orgs[0].id; org = orgs[0]; }
           }
           // Fallback: retry without location filter
           if (!orgId && locState) {
+            const fallbackBody = { q_organization_name: company, per_page: 5 };
+            console.log('[add_lead] Org name search retry (no location):', JSON.stringify(fallbackBody));
             const nsRes2 = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
               method: 'POST',
               headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ q_organization_name: company, per_page: 5 })
+              body: JSON.stringify(fallbackBody)
             });
             if (nsRes2.ok) {
               const nsData2 = await nsRes2.json();
               const orgs2 = nsData2.organizations || nsData2.accounts || [];
+              console.log('[add_lead] Retry results:', orgs2.slice(0, 3).map(o => ({ name: o.name, state: o.state, id: o.id })));
               if (orgs2.length > 0) { orgId = orgs2[0].id; org = orgs2[0]; }
             }
           }

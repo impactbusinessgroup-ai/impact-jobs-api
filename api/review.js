@@ -1415,90 +1415,18 @@ module.exports = async function handler(req, res) {
 '  var jobUrl=_g("add-url").value.trim();\n' +
 '  if(!title||!company||!loc){showToast("Please fill in title, company and location",2000);return;}\n' +
 '  closeAddModal();\n' +
-'  var slug=company.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").substring(0,40);\n' +
-'  var today=new Date().toISOString().split("T")[0];\n' +
-'  var placeholderId="lead:"+today+":"+slug;\n' +
-'  var placeholder={id:placeholderId,jobTitle:title,company:company,location:loc,category:category,company_domain:domain,status:"pending",contacts:[],createdAt:Date.now(),source:"manual"};\n' +
-'  leads.unshift(placeholder);\n' +
-'  var container=_g("leads-container");\n' +
-'  var temp=document.createElement("div");\n' +
-'  temp.innerHTML=renderCard(placeholder);\n' +
-'  var newCard=temp.firstChild;\n' +
-'  newCard.style.position="relative";\n' +
-'  var overlay=document.createElement("div");\n' +
-'  overlay.className="card-loading-overlay";\n' +
-'  overlay.innerHTML=\'<div class="add-spinner"></div><span>Finding contacts...</span>\';\n' +
-'  newCard.appendChild(overlay);\n' +
-'  container.insertBefore(newCard,container.firstChild);\n' +
-'  updateLeadCount();\n' +
-'  // Fire POST - returns immediately, enrichment runs async on server\n' +
+'  showToast("Adding lead - finding contacts...",30000);\n' +
 '  var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
 '  var d=await r.json();\n' +
-'  if(!d.ok){overlay.querySelector("span").textContent="Error: "+(d.error||"Failed");return;}\n' +
-'  console.log("[AddLead] POST returned | leadId:",d.leadId,"| hasLead:",!!d.lead,"| contacts:",d.lead?(d.lead.contacts||[]).length:"N/A","| enrichedAt:",d.lead?d.lead.contactsEnrichedAt:"N/A");\n' +
-'  // If POST already returned enriched lead, use it directly - no polling needed\n' +
-'  if(d.lead&&(d.lead.contactsEnrichedAt||(d.lead.contacts&&d.lead.contacts.length>0))){\n' +
-'    console.log("[AddLead] Lead already enriched in POST response, skipping poll");\n' +
-'    var cardId="card-"+getSafeId(placeholderId);\n' +
-'    replaceCardWithLead(d.lead,cardId);\n' +
-'    var cc=(d.lead.contacts||[]).length;\n' +
-'    showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
-'    return;\n' +
+'  if(d.ok){\n' +
+'    var cc=d.lead?(d.lead.contacts||[]).length:0;\n' +
+'    showToast("Lead added: "+company+" ("+cc+" contacts) - refreshing...",2000);\n' +
+'    setTimeout(function(){window.location.reload();},1000);\n' +
+'  }else{\n' +
+'    showToast("Error: "+(d.error||"Failed to add lead"),3000);\n' +
 '  }\n' +
-'  var pollId=d.leadId||placeholderId;\n' +
-'  console.log("[Poll] Starting poll | leadId:",pollId,"| placeholderId:",placeholderId);\n' +
-'  // Poll for enrichment completion\n' +
-'  var startTime=Date.now();\n' +
-'  var pollAttempt=0;\n' +
-'  var pollTimer=setInterval(async function(){\n' +
-'    try{\n' +
-'      pollAttempt++;\n' +
-'      var elapsed=Date.now()-startTime;\n' +
-'      if(elapsed>45000){\n' +
-'        clearInterval(pollTimer);\n' +
-'        console.log("[Poll] stopped | reason: timeout | attempts:",pollAttempt,"| elapsed:",elapsed+"ms");\n' +
-'        var tr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
-'        var td=await tr.json();\n' +
-'        console.log("[Poll] timeout final fetch | ok:",td.ok,"| hasLead:",!!td.lead,"| contacts:",td.lead?(td.lead.contacts||[]).length:"N/A");\n' +
-'        if(td.ok&&td.lead){\n' +
-'          console.log("[Poll] timeout lead object:",JSON.stringify({id:td.lead.id,contacts:(td.lead.contacts||[]).length,enrichedAt:td.lead.contactsEnrichedAt,status:td.lead.status}));\n' +
-'          var cardId="card-"+getSafeId(placeholderId);\n' +
-'          replaceCardWithLead(td.lead,cardId);\n' +
-'          var newC=_g("card-"+getSafeId(td.lead.id));\n' +
-'          console.log("[Poll] after replaceCard | newCard exists:",!!newC,"| innerHTML length:",newC?newC.innerHTML.length:0);\n' +
-'          showToast("Lead added: "+company+" ("+((td.lead.contacts||[]).length)+" contacts)",3000);\n' +
-'        }else{\n' +
-'          overlay.querySelector("span").textContent="Timeout - no contacts found";\n' +
-'          setTimeout(function(){if(overlay.parentNode)overlay.remove();},2000);\n' +
-'        }\n' +
-'        return;\n' +
-'      }\n' +
-'      var pr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
-'      var pd=await pr.json();\n' +
-'      if(!pd.ok||!pd.lead){console.log("[Poll] attempt",pollAttempt,"| leadId:",pollId,"| response: no lead");return;}\n' +
-'      var lead=pd.lead;\n' +
-'      var hasContacts=lead.contacts&&lead.contacts.length>0;\n' +
-'      var enrichDone=!!lead.contactsEnrichedAt;\n' +
-'      console.log("[Poll] attempt",pollAttempt,"| leadId:",pollId,"| contacts:",(lead.contacts||[]).length,"| enrichedAt:",lead.contactsEnrichedAt||"not set","| elapsed:",elapsed+"ms");\n' +
-'      if(hasContacts||enrichDone){\n' +
-'        clearInterval(pollTimer);\n' +
-'        var reason=hasContacts?"contacts_found":"enriched_no_contacts";\n' +
-'        console.log("[Poll] stopped | reason:",reason,"| contacts:",(lead.contacts||[]).length,"| enrichedAt:",lead.contactsEnrichedAt);\n' +
-'        console.log("[Poll] final lead:",JSON.stringify({id:lead.id,company:lead.company,contacts:(lead.contacts||[]).length,allContacts:(lead.allContacts||[]).length,enrichedAt:lead.contactsEnrichedAt,status:lead.status,org_id:lead.apollo_org_id||"none"}));\n' +
-'        var cardId="card-"+getSafeId(placeholderId);\n' +
-'        console.log("[Poll] calling replaceCardWithLead | cardId:",cardId,"| exists:",!!_g(cardId));\n' +
-'        replaceCardWithLead(lead,cardId);\n' +
-'        var newC=_g("card-"+getSafeId(lead.id));\n' +
-'        console.log("[Poll] after replaceCard | newCard exists:",!!newC,"| innerHTML length:",newC?newC.innerHTML.length:0);\n' +
-'        var cc=(lead.contacts||[]).length;\n' +
-'        showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
-'      }\n' +
-'    }catch(pe){console.error("[Poll] error on attempt",pollAttempt,":",pe.message,pe.stack);}\n' +
-'  },3000);\n' +
 '  }catch(e){\n' +
-'    console.error("[AddLead] ERROR:",e.message);\n' +
-'    var ov=document.querySelector(".card-loading-overlay");\n' +
-'    if(ov){ov.querySelector("span").textContent="Error: "+e.message;setTimeout(function(){if(ov.parentNode)ov.remove();},3000);}\n' +
+'    showToast("Error: "+e.message,3000);\n' +
 '  }\n' +
 '}\n' +
 '\n' +
