@@ -1396,20 +1396,17 @@ module.exports = async function handler(req, res) {
 '\n' +
 'async function submitAddLead(){\n' +
 '  try{\n' +
-'  console.log("[AddLead] submitAddLead() called");\n' +
 '  var title=_g("add-title").value.trim();\n' +
 '  var company=_g("add-company").value.trim();\n' +
 '  var loc=_g("add-location").value.trim();\n' +
 '  var category=_g("add-category").value;\n' +
 '  var domain=_g("add-domain").value.trim();\n' +
 '  var jobUrl=_g("add-url").value.trim();\n' +
-'  console.log("[AddLead] Fields:",{title:title,company:company,loc:loc,category:category,domain:domain,descLen:(_addDesc||"").length});\n' +
 '  if(!title||!company||!loc){showToast("Please fill in title, company and location",2000);return;}\n' +
 '  closeAddModal();\n' +
 '  var slug=company.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").substring(0,40);\n' +
 '  var today=new Date().toISOString().split("T")[0];\n' +
 '  var placeholderId="lead:"+today+":"+slug;\n' +
-'  console.log("[AddLead] Placeholder ID:",placeholderId);\n' +
 '  var placeholder={id:placeholderId,jobTitle:title,company:company,location:loc,category:category,company_domain:domain,status:"pending",contacts:[],createdAt:Date.now(),source:"manual"};\n' +
 '  leads.unshift(placeholder);\n' +
 '  var container=_g("leads-container");\n' +
@@ -1423,26 +1420,48 @@ module.exports = async function handler(req, res) {
 '  newCard.appendChild(overlay);\n' +
 '  container.insertBefore(newCard,container.firstChild);\n' +
 '  updateLeadCount();\n' +
-'  console.log("[AddLead] Placeholder card inserted, firing POST to /api/leads");\n' +
+'  // Fire POST - returns immediately, enrichment runs async on server\n' +
 '  var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
-'  console.log("[AddLead] POST response status:",r.status);\n' +
 '  var d=await r.json();\n' +
-'  console.log("[AddLead] Response JSON:",JSON.stringify({ok:d.ok,hasLead:!!d.lead,leadId:d.leadId,contactsCount:d.lead?(d.lead.contacts||[]).length:"N/A",error:d.error||null}));\n' +
-'  if(d.ok&&d.lead){\n' +
-'    var cc=(d.lead.contacts||[]).length;\n' +
-'    console.log("[AddLead] contacts.length > 0?",cc>0,"| count:",cc);\n' +
-'    var cardId="card-"+getSafeId(placeholderId);\n' +
-'    console.log("[AddLead] About to call replaceCardWithLead | cardId:",cardId,"| oldCard exists:",!!_g(cardId));\n' +
-'    replaceCardWithLead(d.lead,cardId);\n' +
-'    console.log("[AddLead] replaceCardWithLead completed | new card exists:",!!_g("card-"+getSafeId(d.lead.id)));\n' +
-'    showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
-'  }else{\n' +
-'    console.log("[AddLead] No lead in response or ok=false:",JSON.stringify(d));\n' +
-'    overlay.querySelector("span").textContent="No contacts found";\n' +
-'    setTimeout(function(){if(overlay.parentNode)overlay.remove();},2000);\n' +
-'  }\n' +
+'  if(!d.ok){overlay.querySelector("span").textContent="Error: "+(d.error||"Failed");return;}\n' +
+'  var pollId=d.leadId||placeholderId;\n' +
+'  // Poll for enrichment completion\n' +
+'  var startTime=Date.now();\n' +
+'  var pollTimer=setInterval(async function(){\n' +
+'    try{\n' +
+'      var elapsed=Date.now()-startTime;\n' +
+'      if(elapsed>45000){\n' +
+'        clearInterval(pollTimer);\n' +
+'        // Timeout - fetch final state and show whatever we have\n' +
+'        var tr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
+'        var td=await tr.json();\n' +
+'        if(td.ok&&td.lead){\n' +
+'          var cardId="card-"+getSafeId(placeholderId);\n' +
+'          replaceCardWithLead(td.lead,cardId);\n' +
+'          showToast("Lead added: "+company+" ("+((td.lead.contacts||[]).length)+" contacts)",3000);\n' +
+'        }else{\n' +
+'          overlay.querySelector("span").textContent="Timeout - no contacts found";\n' +
+'          setTimeout(function(){if(overlay.parentNode)overlay.remove();},2000);\n' +
+'        }\n' +
+'        return;\n' +
+'      }\n' +
+'      var pr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
+'      var pd=await pr.json();\n' +
+'      if(!pd.ok||!pd.lead) return;\n' +
+'      var lead=pd.lead;\n' +
+'      var hasContacts=lead.contacts&&lead.contacts.length>0;\n' +
+'      var enrichDone=!!lead.contactsEnrichedAt;\n' +
+'      if(hasContacts||enrichDone){\n' +
+'        clearInterval(pollTimer);\n' +
+'        var cardId="card-"+getSafeId(placeholderId);\n' +
+'        replaceCardWithLead(lead,cardId);\n' +
+'        var cc=(lead.contacts||[]).length;\n' +
+'        showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
+'      }\n' +
+'    }catch(pe){console.error("[AddLead] Poll error:",pe.message);}\n' +
+'  },3000);\n' +
 '  }catch(e){\n' +
-'    console.error("[AddLead] ERROR:",e.message,e.stack);\n' +
+'    console.error("[AddLead] ERROR:",e.message);\n' +
 '    var ov=document.querySelector(".card-loading-overlay");\n' +
 '    if(ov){ov.querySelector("span").textContent="Error: "+e.message;setTimeout(function(){if(ov.parentNode)ov.remove();},3000);}\n' +
 '  }\n' +

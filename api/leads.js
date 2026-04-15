@@ -311,13 +311,20 @@ module.exports = async function handler(req, res) {
         allContacts: []
       };
 
+      // Fetch company logo via Brandfetch
+      if (domain && process.env.BRANDFETCH_CLIENT_ID) {
+        lead.company_logo = 'https://cdn.brandfetch.io/' + encodeURIComponent(domain) + '/w/128/h/128?c=' + process.env.BRANDFETCH_CLIENT_ID;
+      }
+
       // Save immediately so polling can find it
       await redisSet(leadId, lead, 604800);
       console.log('Manual lead created:', company, '| domain:', domain, '| id:', leadId);
 
-      // Step 3: Run Apollo enrichment pipeline inline
+      // Return immediately - enrichment runs async after response
+      res.status(200).json({ ok: true, leadId, lead });
+
+      // Step 3: Run Apollo enrichment pipeline (after response sent)
       try {
-        // Org enrichment
         let orgId = null;
         let org = {};
         if (domain) {
@@ -331,7 +338,6 @@ module.exports = async function handler(req, res) {
           }
         }
 
-        // Fallback: company name search
         if (!orgId) {
           try {
             const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
@@ -353,15 +359,13 @@ module.exports = async function handler(req, res) {
           lead.apollo_hq_state = org.state || '';
           if (org.linkedin_url) lead.company_linkedin = org.linkedin_url;
 
-          // Gemini title generation
-          const titlesPrompt = 'Generate 8-12 search keywords representing titles of hiring decision makers for this role. Think broadly.\n\nJob title: ' + jobTitle + '\nCompany: ' + company + '\nDescription: ' + description.substring(0, 1500) + '\n\nReturn only a JSON array of title keyword phrases.';
+          const titlesPrompt = 'Generate 8-12 search keywords representing titles of hiring decision makers for this role. Think broadly.\n\nJob title: ' + jobTitle + '\nCompany: ' + company + '\nDescription: ' + (description || '').substring(0, 1500) + '\n\nReturn only a JSON array of title keyword phrases.';
           const titlesText = await callGemini(titlesPrompt, 1000);
           let personTitles = parseGeminiJson(titlesText);
           if (!Array.isArray(personTitles) || !personTitles.length) {
             personTitles = ['Director', 'VP', 'Manager', 'President', 'General Manager'];
           }
 
-          // Apollo people search (no location filter for manual adds)
           const searchBody = { organization_ids: [orgId], person_titles: personTitles, per_page: 10 };
           const apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
             method: 'POST',
@@ -375,7 +379,6 @@ module.exports = async function handler(req, res) {
             people = apolloData.people || [];
           }
 
-          // Broad title fallback
           if (!people.length) {
             const broadBody = { organization_ids: [orgId], person_titles: ['President','CEO','Owner','COO','Operations Manager','General Manager','Plant Manager','HR Manager','Director','VP','Vice President','Manager'], per_page: 10 };
             const broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
@@ -390,9 +393,8 @@ module.exports = async function handler(req, res) {
           }
 
           if (people.length) {
-            // Gemini validation
             const contactList = people.map((p, i) => i + '. ' + (p.first_name || '') + ' ' + (p.last_name || '') + ' - ' + (p.title || 'Unknown')).join('\n');
-            const valPrompt = 'Given this job posting for ' + jobTitle + ' at ' + company + ', which contacts are most likely hiring decision makers? Return a JSON array of indexes (max 3), or [] if none.\n\nDescription:\n' + description.substring(0, 1500) + '\n\nContacts:\n' + contactList;
+            const valPrompt = 'Given this job posting for ' + jobTitle + ' at ' + company + ', which contacts are most likely hiring decision makers? Return a JSON array of indexes (max 3), or [] if none.\n\nDescription:\n' + (description || '').substring(0, 1500) + '\n\nContacts:\n' + contactList;
             const rankText = await callGemini(valPrompt);
             let selectedIndexes = parseGeminiJson(rankText);
             if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
@@ -406,7 +408,6 @@ module.exports = async function handler(req, res) {
               selectedIndexes = ranked.slice(0, 3).map(r => r.idx);
             }
 
-            // Enrich selected contacts
             const contacts = [];
             for (let j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
               const idx = selectedIndexes[j];
@@ -442,7 +443,6 @@ module.exports = async function handler(req, res) {
               } catch (e) { console.log('Enrich error:', e.message); }
             }
 
-            // Build allContacts
             const apolloIds = {};
             contacts.forEach(c => { if (c.apollo_id) apolloIds[c.apollo_id] = true; });
             const allContacts = [];
@@ -478,14 +478,9 @@ module.exports = async function handler(req, res) {
         lead.contactsEnrichedAt = Date.now();
       }
 
-      // Fetch company logo via Brandfetch
-      if (domain && process.env.BRANDFETCH_CLIENT_ID) {
-        lead.company_logo = 'https://cdn.brandfetch.io/' + encodeURIComponent(domain) + '/w/128/h/128?c=' + process.env.BRANDFETCH_CLIENT_ID;
-      }
-
-      // Save final state
+      // Save enriched state
       await redisSet(leadId, lead, 604800);
-      return res.status(200).json({ ok: true, leadId, lead });
+      return;
     }
 
     return res.status(400).json({ error: 'Invalid action' });
