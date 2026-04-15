@@ -465,7 +465,7 @@ module.exports = async function handler(req, res) {
 '    leads=results[0].leads||[];blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
 '    updateLeadCount();\n' +
 '    renderLeads();\n' +
-'    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||"");});\n' +
+'    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
@@ -1365,44 +1365,31 @@ module.exports = async function handler(req, res) {
 '  // Update leads array\n' +
 '  var idx=leads.findIndex(function(l){return l.id===lead.id;});\n' +
 '  if(idx>=0) leads[idx]=lead; else leads.unshift(lead);\n' +
-'  // Register metadata (normally done by inline script tags)\n' +
+'  // Register metadata\n' +
 '  window._leadJobTitles=window._leadJobTitles||{};\n' +
 '  window._leadCategories=window._leadCategories||{};\n' +
 '  window._leadRedisIds=window._leadRedisIds||{};\n' +
 '  window._leadJobTitles[safeId]=lead.jobTitle||"";\n' +
 '  window._leadCategories[safeId]=lead.category||"engineering";\n' +
 '  window._leadRedisIds[safeId]=lead.id||"";\n' +
-'  // Render new card HTML\n' +
-'  var html=renderCard(lead);\n' +
-'  var temp=document.createElement("div");\n' +
-'  temp.innerHTML=html;\n' +
-'  var newCard=temp.firstChild;\n' +
-'  // Replace old card in DOM\n' +
+'  // Replace via outerHTML\n' +
 '  var oldCard=_g(oldCardId);\n' +
-'  console.log("[AddLead] oldCard lookup:",oldCardId,"| found:",!!oldCard,"| parentNode:",oldCard?!!oldCard.parentNode:false);\n' +
-'  if(oldCard&&oldCard.parentNode) oldCard.parentNode.replaceChild(newCard,oldCard);\n' +
-'  // Force visibility and diagnose\n' +
-'  newCard.style.display="block";\n' +
-'  newCard.style.visibility="visible";\n' +
-'  newCard.style.opacity="1";\n' +
-'  var cs=window.getComputedStyle(newCard);\n' +
-'  console.log("[AddLead] Card after insert | display:",cs.display,"| visibility:",cs.visibility,"| height:",newCard.offsetHeight,"| offsetParent:",!!newCard.offsetParent);\n' +
-'  console.log("[AddLead] Card classes:",newCard.className,"| inline style:",newCard.getAttribute("style")||"none","| hidden class:",newCard.classList.contains("hidden"));\n' +
-'  newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
-'  // Check for duplicate card IDs\n' +
-'  var allWithId=document.querySelectorAll("#card-"+safeId);\n' +
-'  if(allWithId.length>1) console.warn("[AddLead] DUPLICATE card IDs found:",allWithId.length,"elements with id card-"+safeId);\n' +
-'  // Log position in parent\n' +
-'  if(newCard.parentNode){\n' +
-'    var children=Array.from(newCard.parentNode.children);\n' +
-'    var pos=children.indexOf(newCard);\n' +
-'    console.log("[AddLead] Card position in parent:",pos,"of",children.length,"| prevSibling:",newCard.previousElementSibling?newCard.previousElementSibling.id||"(no id)":"null","| nextSibling:",newCard.nextElementSibling?newCard.nextElementSibling.id||"(no id)":"null");\n' +
+'  console.log("[AddLead] oldCard lookup:",oldCardId,"| found:",!!oldCard);\n' +
+'  if(oldCard){\n' +
+'    var html=renderCard(lead);\n' +
+'    oldCard.outerHTML=html;\n' +
 '  }\n' +
-'  // Force reflow\n' +
-'  var _reflow=newCard.parentNode?newCard.parentNode.offsetHeight:0;\n' +
-'  console.log("[AddLead] Container reflow height:",_reflow);\n' +
+'  // Find the new card by its ID (outerHTML killed the old reference)\n' +
+'  var newCard=_g("card-"+safeId);\n' +
+'  console.log("[AddLead] newCard after outerHTML:",!!newCard,"| id:","card-"+safeId);\n' +
+'  if(newCard){\n' +
+'    newCard.style.display="block";\n' +
+'    newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
+'    console.log("[AddLead] Card height:",newCard.offsetHeight,"| children:",newCard.children.length);\n' +
+'  }\n' +
 '  // Fetch logo\n' +
-'  fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",safeId,lead.company_logo_apollo||lead.company_logo||"");\n' +
+'  var logoUrl=lead.company_logo_apollo||lead.company_logo||"";\n' +
+'  fetchLogo(lead.company,lead.company_domain||lead.company_website||"",lead.location||"",safeId,logoUrl);\n' +
 '  updateLeadCount();\n' +
 '}\n' +
 '\n' +
