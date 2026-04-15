@@ -13,7 +13,6 @@ var CALENDLY = {
   "mpeal@impactbusinessgroup.com": "https://calendly.com/mattpeal/15min",
   "pkujawski@impactbusinessgroup.com": "https://calendly.com/pkujawski",
   "sbetteley@impactbusinessgroup.com": "https://calendly.com/sbetteley",
-  "tray@impactbusinessgroup.com": "https://calendly.com/tray-impactbusinessgroup",
   "twangler@impactbusinessgroup.com": "https://calendly.com/twangler-impactbusinessgroup/15min",
   "msapoznikov@impactbusinessgroup.com": "https://calendly.com/msapoznikov"
 };
