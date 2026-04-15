@@ -320,11 +320,11 @@ module.exports = async function handler(req, res) {
       await redisSet(leadId, lead, 604800);
       console.log('Manual lead created:', company, '| domain:', domain, '| id:', leadId);
 
-      // Return immediately - enrichment runs async after response
-      res.status(200).json({ ok: true, leadId, lead });
+      // Run enrichment pipeline with 25s hard timeout, then respond
+      const enrichStart = Date.now();
+      const enrichTimeout = 25000;
 
-      // Step 3: Run Apollo enrichment pipeline (after response sent)
-      try {
+      async function runEnrichment() {
         let orgId = null;
         let org = {};
         if (domain) {
@@ -339,148 +339,153 @@ module.exports = async function handler(req, res) {
         }
 
         if (!orgId) {
-          try {
-            const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
-              method: 'POST',
-              headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ q_organization_name: company, per_page: 5 })
-            });
-            if (nsRes.ok) {
-              const nsData = await nsRes.json();
-              const orgs = nsData.organizations || nsData.accounts || [];
-              if (orgs.length > 0) { orgId = orgs[0].id; org = orgs[0]; }
-            }
-          } catch (e) { console.log('Org name search error:', e.message); }
-        }
-
-        if (orgId) {
-          lead.apollo_org_id = orgId;
-          lead.apollo_hq_city = org.city || '';
-          lead.apollo_hq_state = org.state || '';
-          if (org.linkedin_url) lead.company_linkedin = org.linkedin_url;
-
-          const titlesPrompt = 'Generate 8-12 search keywords representing titles of hiring decision makers for this role. Think broadly.\n\nJob title: ' + jobTitle + '\nCompany: ' + company + '\nDescription: ' + (description || '').substring(0, 1500) + '\n\nReturn only a JSON array of title keyword phrases.';
-          const titlesText = await callGemini(titlesPrompt, 1000);
-          let personTitles = parseGeminiJson(titlesText);
-          if (!Array.isArray(personTitles) || !personTitles.length) {
-            personTitles = ['Director', 'VP', 'Manager', 'President', 'General Manager'];
-          }
-
-          const searchBody = { organization_ids: [orgId], person_titles: personTitles, per_page: 10 };
-          const apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+          const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
             method: 'POST',
             headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify(searchBody)
+            body: JSON.stringify({ q_organization_name: company, per_page: 5 })
           });
-
-          let people = [];
-          if (apolloRes.ok) {
-            const apolloData = await apolloRes.json();
-            people = apolloData.people || [];
+          if (nsRes.ok) {
+            const nsData = await nsRes.json();
+            const orgs = nsData.organizations || nsData.accounts || [];
+            if (orgs.length > 0) { orgId = orgs[0].id; org = orgs[0]; }
           }
+        }
 
-          if (!people.length) {
-            const broadBody = { organization_ids: [orgId], person_titles: ['President','CEO','Owner','COO','Operations Manager','General Manager','Plant Manager','HR Manager','Director','VP','Vice President','Manager'], per_page: 10 };
-            const broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+        if (!orgId) { lead.contactsEnrichedAt = Date.now(); return; }
+
+        lead.apollo_org_id = orgId;
+        lead.apollo_hq_city = org.city || '';
+        lead.apollo_hq_state = org.state || '';
+        if (org.linkedin_url) lead.company_linkedin = org.linkedin_url;
+
+        const titlesPrompt = 'Generate 8-12 search keywords representing titles of hiring decision makers for this role. Think broadly.\n\nJob title: ' + jobTitle + '\nCompany: ' + company + '\nDescription: ' + (description || '').substring(0, 1500) + '\n\nReturn only a JSON array of title keyword phrases.';
+        const titlesText = await callGemini(titlesPrompt, 1000);
+        let personTitles = parseGeminiJson(titlesText);
+        if (!Array.isArray(personTitles) || !personTitles.length) {
+          personTitles = ['Director', 'VP', 'Manager', 'President', 'General Manager'];
+        }
+
+        const searchBody = { organization_ids: [orgId], person_titles: personTitles, per_page: 10 };
+        const apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+          method: 'POST',
+          headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify(searchBody)
+        });
+
+        let people = [];
+        if (apolloRes.ok) {
+          const apolloData = await apolloRes.json();
+          people = apolloData.people || [];
+        }
+
+        if (!people.length) {
+          const broadBody = { organization_ids: [orgId], person_titles: ['President','CEO','Owner','COO','Operations Manager','General Manager','Plant Manager','HR Manager','Director','VP','Vice President','Manager'], per_page: 10 };
+          const broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+            method: 'POST',
+            headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify(broadBody)
+          });
+          if (broadRes.ok) {
+            const broadData = await broadRes.json();
+            people = broadData.people || [];
+          }
+        }
+
+        if (!people.length) { lead.contactsEnrichedAt = Date.now(); return; }
+
+        const contactList = people.map((p, i) => i + '. ' + (p.first_name || '') + ' ' + (p.last_name || '') + ' - ' + (p.title || 'Unknown')).join('\n');
+        const valPrompt = 'Given this job posting for ' + jobTitle + ' at ' + company + ', which contacts are most likely hiring decision makers? Return a JSON array of indexes (max 3), or [] if none.\n\nDescription:\n' + (description || '').substring(0, 1500) + '\n\nContacts:\n' + contactList;
+        const rankText = await callGemini(valPrompt);
+        let selectedIndexes = parseGeminiJson(rankText);
+        if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
+          const senOrder = ['president','ceo','vp','vice president','director','senior manager','manager'];
+          const ranked = people.map((p, i) => {
+            const t = (p.title || '').toLowerCase();
+            let rank = senOrder.length;
+            for (let s = 0; s < senOrder.length; s++) { if (t.includes(senOrder[s])) { rank = s; break; } }
+            return { idx: i, rank };
+          }).sort((a, b) => a.rank - b.rank);
+          selectedIndexes = ranked.slice(0, 3).map(r => r.idx);
+        }
+
+        const contacts = [];
+        for (let j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
+          const idx = selectedIndexes[j];
+          if (idx < 0 || idx >= people.length) continue;
+          const person = people[idx];
+          try {
+            const matchRes = await fetch('https://api.apollo.io/api/v1/people/match', {
               method: 'POST',
               headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify(broadBody)
+              body: JSON.stringify({ id: person.id })
             });
-            if (broadRes.ok) {
-              const broadData = await broadRes.json();
-              people = broadData.people || [];
-            }
-          }
-
-          if (people.length) {
-            const contactList = people.map((p, i) => i + '. ' + (p.first_name || '') + ' ' + (p.last_name || '') + ' - ' + (p.title || 'Unknown')).join('\n');
-            const valPrompt = 'Given this job posting for ' + jobTitle + ' at ' + company + ', which contacts are most likely hiring decision makers? Return a JSON array of indexes (max 3), or [] if none.\n\nDescription:\n' + (description || '').substring(0, 1500) + '\n\nContacts:\n' + contactList;
-            const rankText = await callGemini(valPrompt);
-            let selectedIndexes = parseGeminiJson(rankText);
-            if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
-              const senOrder = ['president','ceo','vp','vice president','director','senior manager','manager'];
-              const ranked = people.map((p, i) => {
-                const t = (p.title || '').toLowerCase();
-                let rank = senOrder.length;
-                for (let s = 0; s < senOrder.length; s++) { if (t.includes(senOrder[s])) { rank = s; break; } }
-                return { idx: i, rank };
-              }).sort((a, b) => a.rank - b.rank);
-              selectedIndexes = ranked.slice(0, 3).map(r => r.idx);
-            }
-
-            const contacts = [];
-            for (let j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
-              const idx = selectedIndexes[j];
-              if (idx < 0 || idx >= people.length) continue;
-              const person = people[idx];
-              try {
-                const matchRes = await fetch('https://api.apollo.io/api/v1/people/match', {
-                  method: 'POST',
-                  headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ id: person.id })
-                });
-                if (!matchRes.ok) continue;
-                const matchData = await matchRes.json();
-                const enriched = matchData.person || matchData;
-                const country = enriched.country || '';
-                if (country && country !== 'United States') continue;
-                contacts.push({
-                  apollo_id: enriched.id || person.id || '',
-                  first_name: enriched.first_name || '',
-                  last_name: enriched.last_name || '',
-                  full_name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
-                  name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
-                  job_title: enriched.title || '',
-                  title: enriched.title || '',
-                  city: toTitleCase(enriched.city || ''),
-                  state: toTitleCase(enriched.state || ''),
-                  country: enriched.country || '',
-                  linkedin: ensureUrl(enriched.linkedin_url || ''),
-                  photo_url: enriched.photo_url || '',
-                  email: null,
-                  source: 'apollo'
-                });
-              } catch (e) { console.log('Enrich error:', e.message); }
-            }
-
-            const apolloIds = {};
-            contacts.forEach(c => { if (c.apollo_id) apolloIds[c.apollo_id] = true; });
-            const allContacts = [];
-            people.forEach(p => {
-              if (p.id && !apolloIds[p.id]) {
-                allContacts.push({
-                  apollo_id: p.id,
-                  first_name: p.first_name || '',
-                  last_name_obfuscated: (p.last_name || '').charAt(0) + '.',
-                  title: p.title || '',
-                  photo_url: p.photo_url || '',
-                  linkedin_url: p.linkedin_url || '',
-                  has_city: !!p.city,
-                  has_state: !!p.state
-                });
-              }
+            if (!matchRes.ok) continue;
+            const matchData = await matchRes.json();
+            const enriched = matchData.person || matchData;
+            const country = enriched.country || '';
+            if (country && country !== 'United States') continue;
+            contacts.push({
+              apollo_id: enriched.id || person.id || '',
+              first_name: enriched.first_name || '',
+              last_name: enriched.last_name || '',
+              full_name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
+              name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
+              job_title: enriched.title || '',
+              title: enriched.title || '',
+              city: toTitleCase(enriched.city || ''),
+              state: toTitleCase(enriched.state || ''),
+              country: enriched.country || '',
+              linkedin: ensureUrl(enriched.linkedin_url || ''),
+              photo_url: enriched.photo_url || '',
+              email: null,
+              source: 'apollo'
             });
-
-            lead.contacts = contacts;
-            lead.allContacts = allContacts;
-            lead.contactsEnrichedAt = Date.now();
-            console.log('Manual lead enriched:', company, '| contacts:', contacts.length, '| allContacts:', allContacts.length);
-          } else {
-            lead.contactsEnrichedAt = Date.now();
-            console.log('Manual lead: no Apollo people for', company);
-          }
-        } else {
-          lead.contactsEnrichedAt = Date.now();
-          console.log('Manual lead: no org ID for', company);
+          } catch (e) { console.log('Enrich error:', e.message); }
         }
-      } catch (e) {
-        console.error('Manual lead enrichment error:', e.message);
+
+        const apolloIds = {};
+        contacts.forEach(c => { if (c.apollo_id) apolloIds[c.apollo_id] = true; });
+        const allContacts = [];
+        people.forEach(p => {
+          if (p.id && !apolloIds[p.id]) {
+            allContacts.push({
+              apollo_id: p.id,
+              first_name: p.first_name || '',
+              last_name_obfuscated: (p.last_name || '').charAt(0) + '.',
+              title: p.title || '',
+              photo_url: p.photo_url || '',
+              linkedin_url: p.linkedin_url || '',
+              has_city: !!p.city,
+              has_state: !!p.state
+            });
+          }
+        });
+
+        lead.contacts = contacts;
+        lead.allContacts = allContacts;
         lead.contactsEnrichedAt = Date.now();
+        console.log('Manual lead enriched:', company, '| contacts:', contacts.length, '| allContacts:', allContacts.length, '| elapsed:', (Date.now() - enrichStart) + 'ms');
       }
 
-      // Save enriched state
+      // Race enrichment against 25s timeout
+      try {
+        await Promise.race([
+          runEnrichment(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('enrichment_timeout')), enrichTimeout))
+        ]);
+      } catch (e) {
+        if (e.message === 'enrichment_timeout') {
+          console.log('Manual lead enrichment timeout after 25s:', company, '| contacts so far:', (lead.contacts || []).length);
+          lead.contactsEnrichedAt = Date.now();
+        } else {
+          console.error('Manual lead enrichment error:', e.message);
+          lead.contactsEnrichedAt = Date.now();
+        }
+      }
+
+      // Save final state and respond
       await redisSet(leadId, lead, 604800);
-      return;
+      return res.status(200).json({ ok: true, leadId, lead });
     }
 
     return res.status(400).json({ error: 'Invalid action' });

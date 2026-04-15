@@ -1389,6 +1389,18 @@ module.exports = async function handler(req, res) {
 '  console.log("[AddLead] Card after insert | display:",cs.display,"| visibility:",cs.visibility,"| height:",newCard.offsetHeight,"| offsetParent:",!!newCard.offsetParent);\n' +
 '  console.log("[AddLead] Card classes:",newCard.className,"| inline style:",newCard.getAttribute("style")||"none","| hidden class:",newCard.classList.contains("hidden"));\n' +
 '  newCard.scrollIntoView({behavior:"smooth",block:"start"});\n' +
+'  // Check for duplicate card IDs\n' +
+'  var allWithId=document.querySelectorAll("#card-"+safeId);\n' +
+'  if(allWithId.length>1) console.warn("[AddLead] DUPLICATE card IDs found:",allWithId.length,"elements with id card-"+safeId);\n' +
+'  // Log position in parent\n' +
+'  if(newCard.parentNode){\n' +
+'    var children=Array.from(newCard.parentNode.children);\n' +
+'    var pos=children.indexOf(newCard);\n' +
+'    console.log("[AddLead] Card position in parent:",pos,"of",children.length,"| prevSibling:",newCard.previousElementSibling?newCard.previousElementSibling.id||"(no id)":"null","| nextSibling:",newCard.nextElementSibling?newCard.nextElementSibling.id||"(no id)":"null");\n' +
+'  }\n' +
+'  // Force reflow\n' +
+'  var _reflow=newCard.parentNode?newCard.parentNode.offsetHeight:0;\n' +
+'  console.log("[AddLead] Container reflow height:",_reflow);\n' +
 '  // Fetch logo\n' +
 '  fetchLogo(lead.company,lead.company_website||lead.employerWebsite||"",lead.location||"",safeId,lead.company_logo_apollo||lead.company_logo||"");\n' +
 '  updateLeadCount();\n' +
