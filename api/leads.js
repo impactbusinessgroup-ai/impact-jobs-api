@@ -339,15 +339,32 @@ module.exports = async function handler(req, res) {
         }
 
         if (!orgId) {
+          // Try with location filter first
+          const locState = (location || '').split(',')[1] ? (location || '').split(',')[1].trim() : '';
+          const searchBody = { q_organization_name: company, per_page: 5 };
+          if (locState) searchBody.organization_locations = [locState];
           const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
             method: 'POST',
             headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ q_organization_name: company, per_page: 5 })
+            body: JSON.stringify(searchBody)
           });
           if (nsRes.ok) {
             const nsData = await nsRes.json();
             const orgs = nsData.organizations || nsData.accounts || [];
             if (orgs.length > 0) { orgId = orgs[0].id; org = orgs[0]; }
+          }
+          // Fallback: retry without location filter
+          if (!orgId && locState) {
+            const nsRes2 = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
+              method: 'POST',
+              headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ q_organization_name: company, per_page: 5 })
+            });
+            if (nsRes2.ok) {
+              const nsData2 = await nsRes2.json();
+              const orgs2 = nsData2.organizations || nsData2.accounts || [];
+              if (orgs2.length > 0) { orgId = orgs2[0].id; org = orgs2[0]; }
+            }
           }
         }
 

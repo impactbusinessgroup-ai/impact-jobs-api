@@ -176,28 +176,45 @@ async function processLead(lead, leadKey, debugLog) {
       console.log('Org enrichment failed for', lead.company, '(' + domain + '), trying company name search');
       dbg.org_enrichment = 'domain_failed';
       try {
+        var locState = extractState(lead.location);
+        var nameSearchBody = { q_organization_name: lead.company, per_page: 5 };
+        if (locState) nameSearchBody.organization_locations = [locState];
+        console.log('Company name search:', lead.company, '| location filter:', locState || '(none)');
         var nameSearchRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
           method: 'POST',
           headers: {
             'x-api-key': process.env.APOLLO_API_KEY,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ q_organization_name: lead.company, per_page: 5 })
+          body: JSON.stringify(nameSearchBody)
         });
-        if (nameSearchRes.ok) {
-          var nameData = await nameSearchRes.json();
-          var orgs = nameData.organizations || nameData.accounts || [];
-          if (orgs.length > 0) {
-            // Take first reasonable match
-            var match = orgs[0];
-            orgId = match.id;
-            org = match;
-            dbg.org_search_fallback = true;
-            dbg.org_search_match = match.name || '';
-            console.log('Company name search found:', match.name, '| org_id:', orgId);
-          } else {
-            console.log('Company name search returned 0 results for', lead.company);
+        var nameData = nameSearchRes.ok ? await nameSearchRes.json() : {};
+        var orgs = nameData.organizations || nameData.accounts || [];
+        // Retry without location if no results
+        if (!orgs.length && locState) {
+          console.log('Company name search retry without location for', lead.company);
+          var nameSearchRes2 = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
+            method: 'POST',
+            headers: {
+              'x-api-key': process.env.APOLLO_API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ q_organization_name: lead.company, per_page: 5 })
+          });
+          if (nameSearchRes2.ok) {
+            var nameData2 = await nameSearchRes2.json();
+            orgs = nameData2.organizations || nameData2.accounts || [];
           }
+        }
+        if (orgs.length > 0) {
+          var match = orgs[0];
+          orgId = match.id;
+          org = match;
+          dbg.org_search_fallback = true;
+          dbg.org_search_match = match.name || '';
+          console.log('Company name search found:', match.name, '| org_id:', orgId);
+        } else {
+          console.log('Company name search returned 0 results for', lead.company);
         }
       } catch (e) {
         console.log('Company name search error:', e.message);
