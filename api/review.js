@@ -1425,19 +1425,26 @@ module.exports = async function handler(req, res) {
 '  var d=await r.json();\n' +
 '  if(!d.ok){overlay.querySelector("span").textContent="Error: "+(d.error||"Failed");return;}\n' +
 '  var pollId=d.leadId||placeholderId;\n' +
+'  console.log("[Poll] Starting poll | leadId:",pollId,"| placeholderId:",placeholderId);\n' +
 '  // Poll for enrichment completion\n' +
 '  var startTime=Date.now();\n' +
+'  var pollAttempt=0;\n' +
 '  var pollTimer=setInterval(async function(){\n' +
 '    try{\n' +
+'      pollAttempt++;\n' +
 '      var elapsed=Date.now()-startTime;\n' +
 '      if(elapsed>45000){\n' +
 '        clearInterval(pollTimer);\n' +
-'        // Timeout - fetch final state and show whatever we have\n' +
+'        console.log("[Poll] stopped | reason: timeout | attempts:",pollAttempt,"| elapsed:",elapsed+"ms");\n' +
 '        var tr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
 '        var td=await tr.json();\n' +
+'        console.log("[Poll] timeout final fetch | ok:",td.ok,"| hasLead:",!!td.lead,"| contacts:",td.lead?(td.lead.contacts||[]).length:"N/A");\n' +
 '        if(td.ok&&td.lead){\n' +
+'          console.log("[Poll] timeout lead object:",JSON.stringify({id:td.lead.id,contacts:(td.lead.contacts||[]).length,enrichedAt:td.lead.contactsEnrichedAt,status:td.lead.status}));\n' +
 '          var cardId="card-"+getSafeId(placeholderId);\n' +
 '          replaceCardWithLead(td.lead,cardId);\n' +
+'          var newC=_g("card-"+getSafeId(td.lead.id));\n' +
+'          console.log("[Poll] after replaceCard | newCard exists:",!!newC,"| innerHTML length:",newC?newC.innerHTML.length:0);\n' +
 '          showToast("Lead added: "+company+" ("+((td.lead.contacts||[]).length)+" contacts)",3000);\n' +
 '        }else{\n' +
 '          overlay.querySelector("span").textContent="Timeout - no contacts found";\n' +
@@ -1447,18 +1454,25 @@ module.exports = async function handler(req, res) {
 '      }\n' +
 '      var pr=await fetch("/api/leads?id="+encodeURIComponent(pollId));\n' +
 '      var pd=await pr.json();\n' +
-'      if(!pd.ok||!pd.lead) return;\n' +
+'      if(!pd.ok||!pd.lead){console.log("[Poll] attempt",pollAttempt,"| leadId:",pollId,"| response: no lead");return;}\n' +
 '      var lead=pd.lead;\n' +
 '      var hasContacts=lead.contacts&&lead.contacts.length>0;\n' +
 '      var enrichDone=!!lead.contactsEnrichedAt;\n' +
+'      console.log("[Poll] attempt",pollAttempt,"| leadId:",pollId,"| contacts:",(lead.contacts||[]).length,"| enrichedAt:",lead.contactsEnrichedAt||"not set","| elapsed:",elapsed+"ms");\n' +
 '      if(hasContacts||enrichDone){\n' +
 '        clearInterval(pollTimer);\n' +
+'        var reason=hasContacts?"contacts_found":"enriched_no_contacts";\n' +
+'        console.log("[Poll] stopped | reason:",reason,"| contacts:",(lead.contacts||[]).length,"| enrichedAt:",lead.contactsEnrichedAt);\n' +
+'        console.log("[Poll] final lead:",JSON.stringify({id:lead.id,company:lead.company,contacts:(lead.contacts||[]).length,allContacts:(lead.allContacts||[]).length,enrichedAt:lead.contactsEnrichedAt,status:lead.status,org_id:lead.apollo_org_id||"none"}));\n' +
 '        var cardId="card-"+getSafeId(placeholderId);\n' +
+'        console.log("[Poll] calling replaceCardWithLead | cardId:",cardId,"| exists:",!!_g(cardId));\n' +
 '        replaceCardWithLead(lead,cardId);\n' +
+'        var newC=_g("card-"+getSafeId(lead.id));\n' +
+'        console.log("[Poll] after replaceCard | newCard exists:",!!newC,"| innerHTML length:",newC?newC.innerHTML.length:0);\n' +
 '        var cc=(lead.contacts||[]).length;\n' +
 '        showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
 '      }\n' +
-'    }catch(pe){console.error("[AddLead] Poll error:",pe.message);}\n' +
+'    }catch(pe){console.error("[Poll] error on attempt",pollAttempt,":",pe.message,pe.stack);}\n' +
 '  },3000);\n' +
 '  }catch(e){\n' +
 '    console.error("[AddLead] ERROR:",e.message);\n' +
