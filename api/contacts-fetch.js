@@ -373,7 +373,11 @@ async function processLead(lead, leadKey) {
         apollo_id: pid,
         first_name: p.first_name || '',
         last_name_obfuscated: (p.last_name || '').charAt(0) + '.',
-        title: p.title || ''
+        title: p.title || '',
+        photo_url: p.photo_url || '',
+        linkedin_url: p.linkedin_url || '',
+        has_city: !!p.city,
+        has_state: !!p.state
       });
     }
   });
