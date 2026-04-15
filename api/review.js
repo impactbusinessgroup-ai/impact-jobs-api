@@ -133,10 +133,7 @@ module.exports = async function handler(req, res) {
 '.modal-row:last-child { border-bottom: none; }\n' +
 '.modal-row-name { font-size: 13px; font-weight: 600; color: #fff; }\n' +
 '.modal-row-title { font-size: 11px; color: rgba(255,255,255,0.45); }\n' +
-'.modal-row-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }\n' +
-'.modal-row-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }\n' +
-'.modal-row-photo-placeholder { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,0.3); }\n' +
-'.modal-row-info { min-width: 0; }\n' +
+'.modal-row-info { flex: 1; min-width: 0; }\n' +
 '.modal-row-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }\n' +
 '.modal-row-location { font-size: 10px; color: rgba(255,255,255,0.35); }\n' +
 '.modal-row-li { display: inline-flex; align-items: center; }\n' +
@@ -1005,15 +1002,13 @@ module.exports = async function handler(req, res) {
 '  var leadLoc=lead.location||"";\n' +
 '  var locParts=leadLoc.split(","); var leadCity=locParts[0]?locParts[0].trim():""; var leadState=locParts[1]?locParts[1].trim():"";\n' +
 '  body.innerHTML=lead.allContacts.map(function(c,i){\n' +
-'    var photoHtml=c.photo_url?\'<img class="modal-row-photo" src="\'+c.photo_url+\'" alt="" onerror="this.style.display=\\\'none\\\'">\':\n' +
-'      \'<div class="modal-row-photo-placeholder">?</div>\';\n' +
 '    var nameStr=(c.first_name||"")+" "+(c.last_name_obfuscated||c.last_name||"");\n' +
 '    var liHtml=c.linkedin_url?\'<a class="modal-row-li" href="\'+c.linkedin_url+\'" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>\':"";\n' +
 '    var locHtml=(c.has_state&&leadState)?\'<span class="modal-row-location">\'+leadCity+(leadState?", "+leadState:"")+\'</span>\':"";\n' +
 '    return \'<div class="modal-row" id="ac-row-\'+safeId+\'-\'+i+\'">\'+\n' +
-'      \'<div class="modal-row-left">\'+photoHtml+\'<div class="modal-row-info"><div class="modal-row-name">\'+nameStr+\'</div><div class="modal-row-title">\'+c.title+\'</div>\'+\n' +
+'      \'<div class="modal-row-info"><div class="modal-row-name">\'+nameStr+\'</div><div class="modal-row-title">\'+c.title+\'</div>\'+\n' +
 '      (liHtml||locHtml?\'<div class="modal-row-meta">\'+liHtml+locHtml+\'</div>\':"")+\n' +
-'      \'</div></div>\'+\n' +
+'      \'</div>\'+\n' +
 '      \'<button class="search-add-btn" onclick="addFromModal(\\\'\'+safeId+\'\\\',\'+i+\')">+ Add</button>\'+\n' +
 '    \'</div>\';\n' +
 '  }).join("");\n' +
