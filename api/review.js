@@ -1435,6 +1435,16 @@ module.exports = async function handler(req, res) {
 '  var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
 '  var d=await r.json();\n' +
 '  if(!d.ok){overlay.querySelector("span").textContent="Error: "+(d.error||"Failed");return;}\n' +
+'  console.log("[AddLead] POST returned | leadId:",d.leadId,"| hasLead:",!!d.lead,"| contacts:",d.lead?(d.lead.contacts||[]).length:"N/A","| enrichedAt:",d.lead?d.lead.contactsEnrichedAt:"N/A");\n' +
+'  // If POST already returned enriched lead, use it directly - no polling needed\n' +
+'  if(d.lead&&(d.lead.contactsEnrichedAt||(d.lead.contacts&&d.lead.contacts.length>0))){\n' +
+'    console.log("[AddLead] Lead already enriched in POST response, skipping poll");\n' +
+'    var cardId="card-"+getSafeId(placeholderId);\n' +
+'    replaceCardWithLead(d.lead,cardId);\n' +
+'    var cc=(d.lead.contacts||[]).length;\n' +
+'    showToast("Lead added: "+company+" ("+cc+" contacts)",3000);\n' +
+'    return;\n' +
+'  }\n' +
 '  var pollId=d.leadId||placeholderId;\n' +
 '  console.log("[Poll] Starting poll | leadId:",pollId,"| placeholderId:",placeholderId);\n' +
 '  // Poll for enrichment completion\n' +
