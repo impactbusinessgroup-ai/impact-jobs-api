@@ -764,6 +764,19 @@ module.exports = async function handler(req, res) {
 '  var container=_g("leads-container");\n' +
 '  if(!leads.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
 '  container.innerHTML=leads.map(function(lead){return renderCard(lead);}).join("");\n' +
+'  // <script> tags embedded via innerHTML do not execute, so populate the per-lead window maps here.\n' +
+'  window._leadJobTitles=window._leadJobTitles||{};\n' +
+'  window._leadCategories=window._leadCategories||{};\n' +
+'  window._leadRedisIds=window._leadRedisIds||{};\n' +
+'  leads.forEach(function(lead){\n' +
+'    var sid=getSafeId(lead.id);\n' +
+'    window._leadJobTitles[sid]=lead.jobTitle||"";\n' +
+'    window._leadCategories[sid]=lead.category||"engineering";\n' +
+'    window._leadRedisIds[sid]=lead.id||"";\n' +
+'    // Also stamp the card element so handlers have a DOM-level fallback.\n' +
+'    var cardEl=_g("card-"+sid);\n' +
+'    if(cardEl) cardEl.setAttribute("data-lead-redis-id",lead.id||"");\n' +
+'  });\n' +
 '  leads.forEach(function(lead){\n' +
 '    if(lead.contacts&&lead.contacts.length>0){\n' +
 '      var safeId=getSafeId(lead.id);\n' +
@@ -1069,6 +1082,9 @@ module.exports = async function handler(req, res) {
 '  if(prospectId) card.setAttribute("data-prospect-id",prospectId);\n' +
 '  if(opts.email) card.setAttribute("data-email",opts.email);\n' +
 '  if(opts.uniqid) card.setAttribute("data-uniqid",opts.uniqid);\n' +
+'  var _lrid=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
+'  if(!_lrid){var _pcard=_g("card-"+safeId);if(_pcard) _lrid=_pcard.getAttribute("data-lead-redis-id")||"";}\n' +
+'  if(_lrid) card.setAttribute("data-lead-redis-id",_lrid);\n' +
 '\n' +
 '  card.innerHTML=\n' +
 '    \'<div class="contact-header">\'+\n' +
@@ -1301,7 +1317,10 @@ module.exports = async function handler(req, res) {
 '  var companyName=card.getAttribute("data-company")||"";\n' +
 '  var location=card.getAttribute("data-location")||"";\n' +
 '  var prospectId=card.getAttribute("data-prospect-id")||"";\n' +
-'  var leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
+'  var leadRedisId=card.getAttribute("data-lead-redis-id")||"";\n' +
+'  if(!leadRedisId){var _pc=_g("card-"+safeId);if(_pc) leadRedisId=_pc.getAttribute("data-lead-redis-id")||"";}\n' +
+'  if(!leadRedisId) leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
+'  if(!leadRedisId){var _l=leads.find(function(l){return getSafeId(l.id)===safeId;});if(_l) leadRedisId=_l.id||"";}\n' +
 '  console.log("[getEmail] card attrs - name:",name,"title:",title,"company:",companyName,"prospectId:",prospectId,"leadRedisId:",leadRedisId);\n' +
 '  try{\n' +
 '    var payload={contactName:name,contactTitle:title,companyName:companyName,location:location,leadId:leadRedisId};\n' +
@@ -1340,18 +1359,31 @@ module.exports = async function handler(req, res) {
 '      if(leadRedisId){\n' +
 '        var lead=leads.find(function(l){return l.id===leadRedisId;});\n' +
 '        console.log("[getEmail] lead found in memory:",!!lead,"has contacts:",!!(lead&&lead.contacts));\n' +
-'        if(lead&&lead.contacts){\n' +
-'          var ci=lead.contacts.findIndex(function(c){return(c.apollo_id||"")===prospectId;});\n' +
-'          console.log("[getEmail] contact index in lead.contacts:",ci,"of",lead.contacts.length);\n' +
-'          if(ci>=0){lead.contacts[ci].email=email;var uid=card.getAttribute("data-uniqid")||"";if(uid)lead.contacts[ci].uniqid=uid;}\n' +
+'        if(lead){\n' +
+'          if(!lead.contacts) lead.contacts=[];\n' +
+'          var ci=-1;\n' +
+'          if(prospectId) ci=lead.contacts.findIndex(function(c){return(c.apollo_id||"")===prospectId;});\n' +
+'          if(ci<0){\n' +
+'            var nameLc=(name||"").trim().toLowerCase();\n' +
+'            if(nameLc) ci=lead.contacts.findIndex(function(c){return((c.full_name||c.name||"").trim().toLowerCase())===nameLc;});\n' +
+'          }\n' +
+'          console.log("[getEmail] contact match index:",ci,"of",lead.contacts.length,"(matched by",(prospectId&&ci>=0&&lead.contacts[ci]&&lead.contacts[ci].apollo_id===prospectId?"apollo_id":"name"),")");\n' +
+'          var uid=card.getAttribute("data-uniqid")||"";\n' +
+'          if(ci>=0){\n' +
+'            lead.contacts[ci].email=email;\n' +
+'            if(uid) lead.contacts[ci].uniqid=uid;\n' +
+'          } else {\n' +
+'            lead.contacts.push({apollo_id:prospectId||("contact_"+Date.now()),full_name:name,name:name,job_title:title,title:title,email:email,uniqid:uid||"",source:"enrich"});\n' +
+'            console.log("[getEmail] appended new contact entry to lead.contacts (no match found)");\n' +
+'          }\n' +
 '          var patchBody={id:leadRedisId,updates:{contacts:lead.contacts}};\n' +
 '          console.log("[getEmail] CALLING PATCH /api/leads with body:",patchBody);\n' +
 '          fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(patchBody)}).then(function(pr){console.log("[getEmail] PATCH /api/leads response status:",pr.status);return pr.json().then(function(pd){console.log("[getEmail] PATCH /api/leads response body:",pd);}).catch(function(je){console.log("[getEmail] PATCH /api/leads response not JSON:",je);});}).catch(function(pe){console.error("[getEmail] PATCH /api/leads FAILED:",pe);});\n' +
 '        } else {\n' +
-'          console.warn("[getEmail] SKIPPING PATCH - lead or lead.contacts missing");\n' +
+'          console.warn("[getEmail] SKIPPING PATCH - lead not in client memory for id:",leadRedisId);\n' +
 '        }\n' +
 '      } else {\n' +
-'        console.warn("[getEmail] SKIPPING PATCH - no leadRedisId");\n' +
+'        console.warn("[getEmail] SKIPPING PATCH - no leadRedisId could be resolved");\n' +
 '      }\n' +
 '    } else {\n' +
 '      console.warn("[getEmail] no email returned from /api/enrich");\n' +
@@ -1877,6 +1909,7 @@ module.exports = async function handler(req, res) {
 '  window._leadRedisIds[safeId]=lead.id||"";\n' +
 '  // Find placeholder card\n' +
 '  var card=_g(oldCardId);\n' +
+'  if(card) card.setAttribute("data-lead-redis-id",lead.id||"");\n' +
 '  console.log("[AddLead] placeholder lookup:",oldCardId,"| found:",!!card);\n' +
 '  if(!card) return;\n' +
 '  // Render the full card into a temp div\n' +
