@@ -88,9 +88,39 @@ function parseGeminiJson(text) {
   try { return JSON.parse(clean); } catch (e) { return null; }
 }
 
+// Canonical AM name -> email lookup. Used to keep assignedAM / assignedAMEmail
+// in sync when a reassign PATCH only sends the display name.
+const AM_EMAIL_MAP = {
+  'mark sapoznikov': 'msapoznikov@impactbusinessgroup.com',
+  'doug koetsier': 'dkoetsier@impactbusinessgroup.com',
+  'paul kujawski': 'pkujawski@impactbusinessgroup.com',
+  'drew kunkel': 'dkunkel@impactbusinessgroup.com',
+  'matt peal': 'mpeal@impactbusinessgroup.com',
+  'lauren sylvester': 'lsylvester@impactbusinessgroup.com',
+  'dan teliczan': 'dteliczan@impactbusinessgroup.com',
+  'curt willbrandt': 'cwillbrandt@impactbusinessgroup.com',
+  'trish wangler': 'twangler@impactbusinessgroup.com',
+  'mark herman': 'mherman@impactbusinessgroup.com',
+  'jamie drajka': 'jdrajka@impactbusinessgroup.com',
+  'drew bentsen': 'dbentsen@impactbusinessgroup.com',
+  'steve betteley': 'sbetteley@impactbusinessgroup.com'
+};
+function amEmailForName(name) {
+  if (!name) return '';
+  return AM_EMAIL_MAP[String(name).trim().toLowerCase()] || '';
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Defensive body parsing: Vercel auto-parses application/json, but a stringified
+  // body (or an unexpected Content-Type) would otherwise make req.body a string and
+  // cause every PATCH action to look like it's missing fields.
+  if (req.body && typeof req.body === 'string') {
+    try { req.body = JSON.parse(req.body); } catch (e) { req.body = {}; }
+  }
+  if (!req.body) req.body = {};
 
   const { method, query } = req;
 
@@ -410,7 +440,20 @@ module.exports = async function handler(req, res) {
 
     // --- Default: generic field update ---
     const updates = body.updates;
-    if (!updates) return res.status(400).json({ error: 'Missing updates or action' });
+    if (!updates) return res.status(400).json({ error: 'Missing updates or action', received: { hasAction: !!action, action: action || null, bodyKeys: Object.keys(body || {}) } });
+
+    // Reassignment: when the client sends only assignedAM (name), look up the
+    // canonical email so both fields stay in sync. Filter is keyed on email.
+    if (updates.assignedAM && !updates.assignedAMEmail) {
+      const mappedEmail = amEmailForName(updates.assignedAM);
+      if (mappedEmail) updates.assignedAMEmail = mappedEmail;
+    }
+    // If assignedAMEmail is provided without a name, attempt the reverse lookup.
+    if (updates.assignedAMEmail && !updates.assignedAM) {
+      const byEmail = Object.keys(AM_EMAIL_MAP).find(n => AM_EMAIL_MAP[n] === String(updates.assignedAMEmail).trim().toLowerCase());
+      if (byEmail) updates.assignedAM = byEmail.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
     const updated = { ...lead, ...updates };
     await redisSet(id, updated, 60 * 60 * 24 * 7);
 
