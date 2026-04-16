@@ -1,5 +1,114 @@
+// --- Analytics helpers (embedded to stay within Hobby plan function limit) ---
+var _aRedisGet = async function(key) {
+  var url = process.env.KV_REST_API_URL + '/get/' + encodeURIComponent(key);
+  var r = await fetch(url, { headers: { Authorization: 'Bearer ' + process.env.KV_REST_API_TOKEN } });
+  var data = await r.json();
+  if (!data.result) return null;
+  try { var v = data.result; while (typeof v === 'string') v = JSON.parse(v); if (v && typeof v.value === 'string') v = JSON.parse(v.value); return v; } catch(e) { return null; }
+};
+var _aRedisSet = async function(key, value) {
+  var url = process.env.KV_REST_API_URL + '/set/' + encodeURIComponent(key);
+  await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + process.env.KV_REST_API_TOKEN, 'Content-Type': 'application/json' }, body: JSON.stringify({ value: JSON.stringify(value) }) });
+};
+var _aRedisKeys = async function(pattern) {
+  var url = process.env.KV_REST_API_URL + '/keys/' + encodeURIComponent(pattern);
+  var r = await fetch(url, { headers: { Authorization: 'Bearer ' + process.env.KV_REST_API_TOKEN } });
+  var data = await r.json(); return data.result || [];
+};
+
+var _A_PROFILES = [
+  { name: 'Doug Koetsier', email: 'dkoetsier@impactbusinessgroup.com', outreachTarget: 80, removalTarget: 15 },
+  { name: 'Paul Kujawski', email: 'pkujawski@impactbusinessgroup.com', outreachTarget: 45, removalTarget: 10 },
+  { name: 'Lauren Sylvester', email: 'lsylvester@impactbusinessgroup.com', outreachTarget: 40, removalTarget: 8 },
+  { name: 'Dan Teliczan', email: 'dteliczan@impactbusinessgroup.com', outreachTarget: 20, removalTarget: 5 },
+  { name: 'Mark Sapoznikov', email: 'msapoznikov@impactbusinessgroup.com', outreachTarget: 5, removalTarget: 2 },
+];
+
+var _SEED_COMPANIES = ['Gentex Corporation','Steelcase Inc','Amway Corporation','Wolverine Worldwide','Meijer Inc','Herman Miller','Spectrum Health','Lacks Enterprises','Autocam Medical','Perrigo Company','Dematic Corp','Bissell Homecare','Roskam Baking','Yanfeng Automotive','Tower Automotive','Shape Corp','GE Aviation','Parker Hannifin','Eaton Corporation','Borg Warner','Whirlpool Corporation','Kellogg Company','Stryker Corporation','Dow Chemical','Consumers Energy','Blue Cross Blue Shield','Haworth Inc','X-Rite Inc','Dura Automotive','Kaydon Corporation','Progressive AE','Deloitte Grand Rapids','Plante Moran','BDO USA','Crowe LLP','Rehmann Group','Raymond James','Fifth Third Bank','Mercantile Bank','Lake Michigan Financial','Tampa General Hospital','Jabil Inc','ConnectWise','KnowBe4','ReliaQuest','Accusoft Corporation','Digital Hands','Greenway Health'];
+var _SEED_FN = ['James','Robert','Michael','William','David','Richard','Joseph','Thomas','Christopher','Daniel','Matthew','Andrew','Joshua','Brandon','Kevin','Jennifer','Amanda','Jessica','Sarah','Megan','Emily','Nicole','Stephanie','Michelle','Laura','Rachel','Heather','Karen','Lisa','Patricia','Brian','Steven','Eric','Jeffrey','Ryan','Jacob','Nathan','Tyler','Rebecca','Samantha','Katherine','Christine','Angela','Melissa','Tiffany'];
+var _SEED_LN = ['Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','VanDyke','DeVries','Vander Wal','Kowalski','Nowak','Schmidt','Fischer','Patel','Singh','Chen','Wang','Kim','Nguyen','Park','Tanaka'];
+var _SEED_T_ENG = ['VP of Engineering','Director of Manufacturing','Plant Manager','Engineering Manager','Director of Operations','Quality Director','Senior Mechanical Engineer','Controls Engineer','Manufacturing Director','Process Engineering Manager','VP of Operations','Facilities Manager','Production Manager','Director of Quality','Chief Engineer'];
+var _SEED_T_IT = ['VP of Technology','Director of IT','CTO','IT Manager','Director of Software Engineering','Senior DevOps Engineer','Cloud Architect','CISO','Director of Data Engineering','VP of Information Systems','Systems Architect','Network Operations Manager','Director of Cybersecurity','Infrastructure Manager','Software Development Manager'];
+var _SEED_T_ACCT = ['Controller','CFO','Director of Finance','Senior Accountant','VP of Finance','Accounting Manager','Financial Planning Director','Tax Director','Audit Manager','Director of Financial Reporting','Treasury Manager','Payroll Director','Assistant Controller','Finance Manager','Chief Accounting Officer'];
+var _CATS = ['engineering','it','accounting'];
+var _OUTREACH_OPTS = [['email'],['linkedin_message'],['linkedin_connect'],['email','linkedin_connect'],['email','linkedin_message'],['linkedin_message','linkedin_connect'],['email','linkedin_message','linkedin_connect']];
+var _REM_REASONS = ['made_contact','wrong_contact_type','existing_contact','not_interested','other'];
+
+function _pr(seed) { var x = Math.sin(seed)*10000; return x - Math.floor(x); }
+function _pk(arr,seed) { return arr[Math.floor(_pr(seed)*arr.length)]; }
+function _gaid(seed) { var c='abcdef0123456789',id=''; for(var i=0;i<24;i++) id+=c[Math.floor(_pr(seed+i*7)*c.length)]; return id; }
+
+function _genSeed() {
+  var entries=[],now=Date.now(),sc=42;
+  for(var a=0;a<_A_PROFILES.length;a++){
+    var am=_A_PROFILES[a];
+    for(var o=0;o<am.outreachTarget;o++){
+      sc+=13;var cat=_pk(_CATS,sc),titles=cat==='it'?_SEED_T_IT:cat==='accounting'?_SEED_T_ACCT:_SEED_T_ENG;
+      var fn=_pk(_SEED_FN,sc+1),ln=_pk(_SEED_LN,sc+2),co=_pk(_SEED_COMPANIES,sc+3),ti=_pk(titles,sc+4),meth=_pk(_OUTREACH_OPTS,sc+5);
+      var da=Math.floor(_pr(sc+6)*60),ed=new Date(now-da*864e5),slug=co.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,40);
+      var ld=new Date(ed.getTime()-Math.floor(_pr(sc+7)*3)*864e5),lds=ld.toISOString().split('T')[0];
+      var mc=_pr(sc+8)<0.12,rs=Math.floor(_pr(sc+9)*4);
+      entries.push({apollo_id:_gaid(sc+10),contact_name:fn+' '+ln,contact_title:ti,lead_category:cat,action_type:'outreach_sent',outreach_methods:meth,removal_reason:null,outreach_result:mc?'made_contact':null,reminder_stage:rs,am_email:am.email,lead_id:'lead:'+lds+':'+slug,date:ed.toISOString()});
+    }
+    for(var r=0;r<am.removalTarget;r++){
+      sc+=17;var cat=_pk(_CATS,sc),titles=cat==='it'?_SEED_T_IT:cat==='accounting'?_SEED_T_ACCT:_SEED_T_ENG;
+      var fn=_pk(_SEED_FN,sc+1),ln=_pk(_SEED_LN,sc+2),co=_pk(_SEED_COMPANIES,sc+3),ti=_pk(titles,sc+4),reason=_pk(_REM_REASONS,sc+5);
+      var da=Math.floor(_pr(sc+6)*60),ed=new Date(now-da*864e5),slug=co.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,40);
+      var ld=new Date(ed.getTime()-Math.floor(_pr(sc+7)*3)*864e5),lds=ld.toISOString().split('T')[0];
+      var rs=Math.floor(_pr(sc+9)*4);
+      entries.push({apollo_id:_gaid(sc+10),contact_name:fn+' '+ln,contact_title:ti,lead_category:cat,action_type:'removal',outreach_methods:[],removal_reason:reason,outreach_result:reason==='made_contact'?'made_contact':null,reminder_stage:rs,am_email:am.email,lead_id:'lead:'+lds+':'+slug,date:ed.toISOString()});
+    }
+  }
+  return entries;
+}
+
+function _weekStart(ds){var d=new Date(ds),day=d.getUTCDay(),diff=d.getUTCDate()-day+(day===0?-6:1);var m=new Date(d);m.setUTCDate(diff);return m.toISOString().split('T')[0];}
+
+function _buildAm(email,name,act,lc){
+  var out=act.filter(function(e){return e.action_type==='outreach_sent';}),rem=act.filter(function(e){return e.action_type==='removal';});
+  var cm=act.filter(function(e){return e.outreach_result==='made_contact';}).length;
+  var obm={email:0,linkedin_message:0,linkedin_connect:0};
+  for(var i=0;i<out.length;i++){var ms=out[i].outreach_methods||[];for(var j=0;j<ms.length;j++)if(obm.hasOwnProperty(ms[j]))obm[ms[j]]++;}
+  var rr={made_contact:0,wrong_contact_type:0,existing_contact:0,not_interested:0,other:0};
+  for(var i=0;i<rem.length;i++){var r=rem[i].removal_reason||'other';if(rr.hasOwnProperty(r))rr[r]++;else rr.other++;}
+  var stg={stage1:0,stage2:0,stage3:0};
+  for(var i=0;i<act.length;i++){var s=act[i].reminder_stage;if(s===1)stg.stage1++;else if(s===2)stg.stage2++;else if(s>=3)stg.stage3++;}
+  var wm={};for(var i=0;i<out.length;i++){var w=_weekStart(out[i].date);wm[w]=(wm[w]||0)+1;}
+  var obw=[],wk=Object.keys(wm).sort();for(var i=0;i<wk.length;i++)obw.push({week:wk[i],count:wm[wk[i]]});
+  var cr=lc>0?Math.round((cm/lc)*100):0;
+  return {name:name,email:email,leadsReceived:lc,outreachSent:out.length,contactsMade:cm,completionRate:cr,outreachByMethod:obm,removalReasons:rr,reminderStages:stg,outreachByWeek:obw};
+}
+
+async function handleAnalytics(req, res) {
+  res.setHeader('Cache-Control','no-store');
+  res.setHeader('Content-Type','application/json');
+  var q=req.query||{},fromDate=q.from||'',toDate=q.to||'',filterAm=q.am||'';
+  var seedDone=await _aRedisGet('analytics_seed_done');
+  if(!seedDone){var se=_genSeed();var el=(await _aRedisGet('contact_activity_log'))||[];await _aRedisSet('contact_activity_log',el.concat(se));await _aRedisSet('analytics_seed_done',{seeded:true,date:new Date().toISOString(),count:se.length});}
+  var all=(await _aRedisGet('contact_activity_log'))||[],filtered=all;
+  if(fromDate){var ft=new Date(fromDate).getTime();filtered=filtered.filter(function(e){return new Date(e.date).getTime()>=ft;});}
+  if(toDate){var tt=new Date(toDate+'T23:59:59.999Z').getTime();filtered=filtered.filter(function(e){return new Date(e.date).getTime()<=tt;});}
+  var lk=await _aRedisKeys('lead:*'),lpa={};
+  for(var i=0;i<lk.length;i++){try{var ld=await _aRedisGet(lk[i]);if(!ld)continue;var ae=ld.assignedAMEmail||'';if(!ae)continue;if(!lpa[ae])lpa[ae]={count:0};lpa[ae].count++;}catch(e){}}
+  var _NAME_MAP={msapoznikov:'Mark Sapoznikov',dkoetsier:'Doug Koetsier',pkujawski:'Paul Kujawski',dkunkel:'Drew Kunkel',mpeal:'Matt Peal',lsylvester:'Lauren Sylvester',dteliczan:'Dan Teliczan',cwillbrandt:'Curt Willbrandt',twangler:'Trish Wangler',mherman:'Mark Herman',jdrajka:'Jamie Drajka',dbentsen:'Drew Bentsen',sbetteley:'Steve Betteley'};
+  function _resolveAmName(emailOrPrefix){var prefix=emailOrPrefix.split('@')[0];return _NAME_MAP[prefix]||prefix;}
+  var amMap={};for(var i=0;i<_A_PROFILES.length;i++)amMap[_A_PROFILES[i].email]=_A_PROFILES[i].name;
+  for(var i=0;i<filtered.length;i++){var em=filtered[i].am_email;if(em&&!amMap[em])amMap[em]=_resolveAmName(em);}
+  var aek=Object.keys(lpa);for(var i=0;i<aek.length;i++)if(!amMap[aek[i]])amMap[aek[i]]=_resolveAmName(aek[i]);
+  var ams=[],ak=Object.keys(amMap);
+  for(var i=0;i<ak.length;i++){var em=ak[i];if(filterAm&&em!==filterAm)continue;var aa=filtered.filter(function(e){return e.am_email===em;});var li=lpa[em]||{count:0};ams.push(_buildAm(em,amMap[em],aa,li.count));}
+  ams.sort(function(a,b){return b.outreachSent-a.outreachSent;});
+  var tl=0,to=0,tc=0;for(var i=0;i<ams.length;i++){tl+=ams[i].leadsReceived;to+=ams[i].outreachSent;tc+=ams[i].contactsMade;}
+  var cr=tl>0?Math.round((tc/tl)*100):0;
+  return res.status(200).json({ok:true,summary:{totalLeads:tl,totalOutreach:to,totalContactsMade:tc,completionRate:cr},ams:ams});
+}
 
 module.exports = async function handler(req, res) {
+  // Route analytics API requests
+  if (req.query && req.query.analytics !== undefined) {
+    return handleAnalytics(req, res);
+  }
+
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Content-Type', 'text/html');
 
@@ -9,6 +118,8 @@ module.exports = async function handler(req, res) {
 '<meta charset="UTF-8">\n' +
 '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
 '<title>iMPact Client Lead Review</title>\n' +
+'<link rel="icon" type="image/png" href="https://impactbusinessgroup.com/wp-content/uploads/2017/04/cropped-Logo512.png">\n' +
+'<link rel="apple-touch-icon" href="https://impactbusinessgroup.com/wp-content/uploads/2017/04/cropped-Logo512.png">\n' +
 '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
 '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">\n' +
 '<style>\n' +
@@ -60,6 +171,10 @@ module.exports = async function handler(req, res) {
 '.pill-acc { background: rgba(99,179,237,0.06); color: #93C5FD; border: 1px solid rgba(147,197,253,0.35); }\n' +
 '.pill-it { background: rgba(255,160,0,0.06); color: #FCD34D; border: 1px solid rgba(252,211,77,0.35); }\n' +
 '.pill-other { background: rgba(168,130,255,0.06); color: #C4B5FD; border: 1px solid rgba(196,181,253,0.35); }\n' +
+'.cat-dd { position: absolute; top: calc(100% + 6px); right: 0; background: #2e2e2e; border: 1px solid #444; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 50; min-width: 140px; overflow: hidden; }\n' +
+'.cat-dd-item { padding: 10px 16px; font-size: 13px; font-family: Raleway, sans-serif; color: #ccc; cursor: pointer; transition: all 0.12s; text-transform: none; letter-spacing: 0.5px; }\n' +
+'.cat-dd-item:hover { background: #3a3a3a; color: #fff; }\n' +
+'.cat-dd-item.cat-dd-sel { color: #E8620A; font-weight: 600; }\n' +
 '.card-top-job-title { font-size: 15px; color: rgba(255,255,255,0.7); font-weight: 500; line-height: 1.3; }\n' +
 '.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.04); background: #1e1e1e; }\n' +
 '.links-bar-left, .links-bar-right { display: flex; gap: 12px; align-items: center; }\n' +
@@ -231,6 +346,23 @@ module.exports = async function handler(req, res) {
 '.outlook-toggle-btn.active { background: rgba(232,98,10,0.4); color: white; }\n' +
 '.custom-tooltip { position: fixed; background: #1a1a1a; color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: Raleway, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 150ms ease; white-space: nowrap; }\n' +
 '.custom-tooltip.visible { opacity: 1; }\n' +
+'.domain-popup { position: absolute; bottom: calc(100% + 8px); left: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 10px; padding: 8px 12px; z-index: 100; box-shadow: 0 6px 24px rgba(0,0,0,0.5); white-space: nowrap; display: flex; align-items: center; gap: 8px; }\n' +
+'.domain-popup-text { font-size: 12px; color: #E8620A; font-weight: 600; }\n' +
+'.domain-popup-edit { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }\n' +
+'.domain-popup-edit:hover { background: rgba(232,98,10,0.15); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
+'.domain-popup-edit svg { width: 12px; height: 12px; }\n' +
+'.domain-edit-box { position: absolute; bottom: calc(100% + 8px); left: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 10px; padding: 10px 12px; z-index: 100; box-shadow: 0 6px 24px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; }\n' +
+'.domain-edit-input { font-family: Raleway, sans-serif; font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; outline: none; width: 180px; }\n' +
+'.domain-edit-input:focus { border-color: rgba(232,98,10,0.5); }\n' +
+'.domain-edit-btn { font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }\n' +
+'.domain-edit-save { background: #444; color: #ccc; }\n' +
+'.domain-edit-save:hover { background: #555; color: #fff; }\n' +
+'.domain-edit-reload { background: #E8620A; color: white; }\n' +
+'.domain-edit-reload:hover { background: #FF7A2F; }\n' +
+'.domain-edit-cancel { background: transparent; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }\n' +
+'.domain-edit-cancel:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }\n' +
+'.domain-edit-loading { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.5); }\n' +
+'.domain-edit-loading .add-spinner { width: 14px; height: 14px; }\n' +
 '.btn-custom-msg { position: relative; overflow: visible; }\n' +
 '.subj-bar-ai { position: relative; overflow: visible; }\n' +
 '.star-burst { position: absolute; z-index: 2; pointer-events: none; opacity: 0; transform: scale(0); transition: none; }\n' +
@@ -239,8 +371,47 @@ module.exports = async function handler(req, res) {
 '.btn-custom-msg:hover { background: rgba(232,98,10,0.2); color: #ff8533; border-color: rgba(232,98,10,0.5); }\n' +
 '.btn-ac-circle { width: 28px; height: 28px; border-radius: 50%; background: #2a2a2a; border: 1px solid #E8620A; color: #E8620A; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }\n' +
 '.btn-ac-circle:hover { box-shadow: 0 0 12px rgba(232,98,10,0.4); background: rgba(232,98,10,0.15); }\n' +
-'.btn-ac-circle.disabled { opacity: 0.4; cursor: not-allowed; border-color: #555555; color: #888888; }\n' +
-'.btn-ac-circle.disabled:hover { box-shadow: none; background: #2a2a2a; }\n' +
+'.btn-ac-circle.has-suggestions { border-color: #22c55e; color: #22c55e; }\n' +
+'.btn-ac-circle.has-suggestions:hover { box-shadow: 0 0 12px rgba(34,197,94,0.4); background: rgba(34,197,94,0.15); }\n' +
+'.fc-search-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }\n' +
+'.fc-search-grid .add-field { margin-bottom: 0; }\n' +
+'.fc-search-grid .add-field:nth-child(5) { grid-column: 1 / -1; }\n' +
+'.fc-dd { position: relative; }\n' +
+'.fc-dd-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 8px 12px; color: rgba(255,255,255,0.6); font-size: 13px; font-family: Raleway, sans-serif; cursor: pointer; transition: border-color 0.15s; min-height: 38px; text-align: left; gap: 6px; }\n' +
+'.fc-dd-btn:hover { border-color: rgba(255,255,255,0.2); }\n' +
+'.fc-dd-btn.open { border-color: rgba(232,98,10,0.5); }\n' +
+'.fc-dd-btn-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n' +
+'.fc-dd-chev { width: 12px; height: 12px; flex-shrink: 0; transition: transform 0.2s; }\n' +
+'.fc-dd-btn.open .fc-dd-chev { transform: rotate(180deg); }\n' +
+'.fc-dd-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #2e2e2e; border: 1px solid #484848; border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.5); z-index: 200; max-height: 220px; overflow-y: auto; padding: 4px; }\n' +
+'.fc-dd-panel.open { display: block; }\n' +
+'.fc-dd-opt { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13px; font-family: Raleway, sans-serif; font-weight: 600; color: #fff; cursor: pointer; border-radius: 6px; transition: background 0.12s; }\n' +
+'.add-field label.fc-dd-opt { text-transform: none; letter-spacing: 0; display: flex; font-size: 13px; color: #fff; margin-bottom: 0; }\n' +
+'.fc-dd-opt:hover { background: #3a3a3a; }\n' +
+'.fc-dd-opt input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; padding: 0; }\n' +
+'.fc-dd-opt .fc-cb { display: inline-block; vertical-align: middle; width: 16px; height: 16px; border: 2px solid #666; border-radius: 3px; background: #1a1a1a; flex-shrink: 0; position: relative; transition: all 0.15s; margin-right: 10px; }\n' +
+'.fc-dd-opt:hover .fc-cb { border-color: #E8620A; }\n' +
+'.fc-dd-opt input[type="checkbox"]:checked + .fc-cb { background: #E8620A; border-color: #E8620A; }\n' +
+'.fc-dd-opt input[type="checkbox"]:checked + .fc-cb::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; border-top: none; border-left: none; transform: rotate(45deg); }\n' +
+'.fc-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }\n' +
+'.fc-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(232,98,10,0.15); color: #E8620A; border: 1px solid rgba(232,98,10,0.3); border-radius: 12px; padding: 2px 8px; font-size: 10px; font-weight: 600; font-family: Raleway, sans-serif; }\n' +
+'.fc-pill-x { cursor: pointer; font-size: 12px; line-height: 1; opacity: 0.6; }\n' +
+'.fc-pill-x:hover { opacity: 1; }\n' +
+'.fc-email-error { font-size: 11px; color: #ef6961; margin-top: 3px; display: none; }\n' +
+'.fc-search-btn { background: #E8620A; color: white; border: none; padding: 8px 24px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: Raleway, sans-serif; transition: all 0.15s; margin-bottom: 12px; }\n' +
+'.fc-search-btn:hover { background: #FF7A2F; }\n' +
+'.fc-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
+'.fc-results { margin-bottom: 16px; }\n' +
+'.fc-empty { text-align: center; padding: 20px; color: rgba(255,255,255,0.3); font-size: 13px; font-style: italic; }\n' +
+'.fc-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }\n' +
+'.fc-section-header { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-family: Oswald, sans-serif; }\n' +
+'.fc-manual-toggle { font-size: 12px; color: #E8620A; cursor: pointer; font-weight: 600; margin-bottom: 10px; display: inline-block; }\n' +
+'.fc-manual-toggle:hover { color: #FF7A2F; }\n' +
+'.fc-manual-form { display: none; margin-bottom: 12px; }\n' +
+'.fc-manual-form.open { display: block; }\n' +
+'.fc-manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }\n' +
+'.fc-manual-grid .add-field { margin-bottom: 0; }\n' +
+'.fc-row-loc { font-size: 10px; color: rgba(255,255,255,0.35); }\n' +
 '.contact-actions .btn, .contact-actions .btn-li, .contact-actions .btn-fetch, .contact-actions .btn-dots { height: 34px; padding: 6px 14px; display: inline-flex; align-items: center; justify-content: center; }\n' +
 '.btn-dots { width: 34px; height: 34px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; letter-spacing: 2px; line-height: 1; }\n' +
 '.btn-dots:hover { background: rgba(255,255,255,0.1); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
@@ -266,13 +437,75 @@ module.exports = async function handler(req, res) {
 '.closeout-dd-item:hover { background: rgba(232,98,10,0.15); color: #fff; }\n' +
 '.section-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }\n' +
 '.section-label-row .section-label { margin-bottom: 0; }\n' +
+/* ===== Analytics Tab Styles ===== */
+'.nav-tabs { display: flex; gap: 0; margin-bottom: 0; }\n' +
+'.nav-tab { font-family: Oswald, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 8px 24px; cursor: pointer; color: rgba(255,255,255,0.45); background: transparent; border: none; border-bottom: 2px solid transparent; transition: all 0.2s; }\n' +
+'.nav-tab:hover { color: rgba(255,255,255,0.7); }\n' +
+'.nav-tab.active { color: #E8620A; border-bottom-color: #E8620A; }\n' +
+'.analytics-container { max-width: 920px; margin: 0 auto; padding: 28px 16px 60px; display: none; }\n' +
+'.analytics-container.visible { display: block; }\n' +
+'.date-filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }\n' +
+'.date-pill { font-family: Raleway, sans-serif; font-size: 12px; font-weight: 600; padding: 7px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s; }\n' +
+'.date-pill:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }\n' +
+'.date-pill.active { background: #E8620A; color: white; border-color: #E8620A; }\n' +
+'.date-custom-inputs { display: none; align-items: center; gap: 8px; }\n' +
+'.date-custom-inputs.visible { display: flex; }\n' +
+'.date-custom-inputs input { font-family: Raleway, sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; outline: none; }\n' +
+'.date-custom-inputs input:focus { border-color: rgba(232,98,10,0.5); }\n' +
+'.stat-cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }\n' +
+'.stat-card { background: #2e2e2e; border-radius: 14px; padding: 20px; border: 1px solid #3a3a3a; }\n' +
+'.stat-card-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-family: Raleway, sans-serif; }\n' +
+'.stat-card-value { font-size: 32px; font-weight: 700; color: #E8620A; font-family: Oswald, sans-serif; line-height: 1; }\n' +
+'.leaderboard { background: #2e2e2e; border-radius: 14px; padding: 20px 24px; border: 1px solid #3a3a3a; margin-bottom: 28px; }\n' +
+'.leaderboard h3 { font-family: Oswald, sans-serif; font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; letter-spacing: 0.5px; }\n' +
+'.lb-row { display: grid; grid-template-columns: 160px 1fr 80px 80px 80px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; border-radius: 6px; padding-left: 8px; padding-right: 8px; }\n' +
+'.lb-row:hover { background: rgba(255,255,255,0.03); }\n' +
+'.lb-row:last-child { border-bottom: none; }\n' +
+'.lb-row.highlighted { background: rgba(232,98,10,0.08); border: 1px solid rgba(232,98,10,0.2); }\n' +
+'.lb-row.selected { background: rgba(232,98,10,0.12); }\n' +
+'.lb-name { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n' +
+'.lb-bar-wrap { height: 22px; background: rgba(255,255,255,0.04); border-radius: 6px; overflow: hidden; }\n' +
+'.lb-bar { height: 100%; background: linear-gradient(90deg, #E8620A, #FF7A2F); border-radius: 6px; transition: width 0.6s ease; min-width: 2px; }\n' +
+'.lb-stat { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; font-weight: 600; font-family: Raleway, sans-serif; }\n' +
+'.lb-stat-val { color: #E8620A; }\n' +
+'.lb-header { display: grid; grid-template-columns: 160px 1fr 80px 80px 80px; gap: 12px; padding: 0 8px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }\n' +
+'.lb-header span { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; font-family: Raleway, sans-serif; }\n' +
+'.lb-header span:nth-child(n+3) { text-align: center; }\n' +
+'.am-detail { background: #2e2e2e; border-radius: 14px; padding: 20px 24px; border: 1px solid #3a3a3a; margin-bottom: 28px; }\n' +
+'.am-detail h3 { font-family: Oswald, sans-serif; font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; letter-spacing: 0.5px; }\n' +
+'.am-progress-wrap { margin-bottom: 20px; }\n' +
+'.am-progress-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 6px; font-weight: 600; }\n' +
+'.am-progress-bar { height: 18px; background: rgba(255,255,255,0.06); border-radius: 9px; overflow: hidden; position: relative; }\n' +
+'.am-progress-fill { height: 100%; background: linear-gradient(90deg, #E8620A, #FF7A2F); border-radius: 9px; transition: width 0.6s ease; }\n' +
+'.am-progress-text { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: white; }\n' +
+'.am-pills-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }\n' +
+'.am-pill-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 20px; text-align: center; flex: 1; min-width: 120px; }\n' +
+'.am-pill-stat-val { font-size: 24px; font-weight: 700; color: #E8620A; font-family: Oswald, sans-serif; }\n' +
+'.am-pill-stat-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 600; }\n' +
+'.am-chart-section { margin-bottom: 20px; }\n' +
+'.am-chart-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); margin-bottom: 10px; font-family: Raleway, sans-serif; text-transform: uppercase; letter-spacing: 0.3px; }\n' +
+'.am-hbar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }\n' +
+'.am-hbar-label { font-size: 11px; color: rgba(255,255,255,0.5); width: 120px; text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n' +
+'.am-hbar-track { flex: 1; height: 16px; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden; }\n' +
+'.am-hbar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; min-width: 2px; }\n' +
+'.am-hbar-val { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); width: 30px; }\n' +
+'.am-funnel { display: flex; gap: 8px; align-items: flex-end; justify-content: center; margin-top: 10px; }\n' +
+'.am-funnel-step { text-align: center; flex: 1; max-width: 120px; }\n' +
+'.am-funnel-bar { background: rgba(232,98,10,0.3); border-radius: 6px 6px 0 0; margin: 0 auto; width: 60px; transition: height 0.6s ease; }\n' +
+'.am-funnel-val { font-size: 16px; font-weight: 700; color: #E8620A; font-family: Oswald, sans-serif; margin-top: 4px; }\n' +
+'.am-funnel-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-top: 2px; }\n' +
+'.am-weekly-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; margin-top: 10px; padding-bottom: 20px; position: relative; }\n' +
+'.am-weekly-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }\n' +
+'.am-weekly-bar { width: 100%; max-width: 40px; background: linear-gradient(180deg, #E8620A, #FF7A2F); border-radius: 4px 4px 0 0; transition: height 0.6s ease; min-height: 2px; }\n' +
+'.am-weekly-label { font-size: 8px; color: rgba(255,255,255,0.3); margin-top: 4px; transform: rotate(-45deg); white-space: nowrap; }\n' +
+'@media (max-width: 768px) { .stat-cards-row { grid-template-columns: repeat(2, 1fr); } .lb-row { grid-template-columns: 100px 1fr 60px; } .lb-header { grid-template-columns: 100px 1fr 60px; } .lb-row > :nth-child(4), .lb-row > :nth-child(5), .lb-header > :nth-child(4), .lb-header > :nth-child(5) { display: none; } }\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
 '\n' +
 '<div class="header">\n' +
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
-'  <div class="header-center">Client Lead Review</div>\n' +
+'  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
 '    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
@@ -361,7 +594,7 @@ module.exports = async function handler(req, res) {
 '  </div>\n' +
 '</div>\n' +
 '\n' +
-'<div class="container">\n' +
+'<div class="container" id="leads-view">\n' +
 '  <div class="queue-bar">\n' +
 '    <div>\n' +
 '      <h2 id=\"greeting-text\">Good morning, Mark</h2>\n' +
@@ -370,6 +603,24 @@ module.exports = async function handler(req, res) {
 '' +
 '  </div>\n' +
 '  <div id="leads-container"><div class="loading">Loading leads...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="analytics-container" id="analytics-view">\n' +
+'  <div class="date-filter-bar">\n' +
+'    <button class="date-pill active" data-range="30" onclick="setDateRange(30,this)">Last 30 Days</button>\n' +
+'    <button class="date-pill" data-range="60" onclick="setDateRange(60,this)">Last 60 Days</button>\n' +
+'    <button class="date-pill" data-range="90" onclick="setDateRange(90,this)">Last 90 Days</button>\n' +
+'    <button class="date-pill" data-range="all" onclick="setDateRange(&apos;all&apos;,this)">All Time</button>\n' +
+'    <button class="date-pill" data-range="custom" onclick="setDateRange(&apos;custom&apos;,this)">Custom Range</button>\n' +
+'    <div class="date-custom-inputs" id="custom-date-inputs">\n' +
+'      <input type="date" id="custom-from" onchange="applyCustomDateRange()">\n' +
+'      <span style="color:rgba(255,255,255,0.3);">to</span>\n' +
+'      <input type="date" id="custom-to" onchange="applyCustomDateRange()">\n' +
+'    </div>\n' +
+'  </div>\n' +
+'  <div class="stat-cards-row" id="analytics-summary"></div>\n' +
+'  <div class="leaderboard" id="analytics-leaderboard"></div>\n' +
+'  <div class="am-detail" id="analytics-am-detail"></div>\n' +
 '</div>\n' +
 '\n' +
 '<script>\n' +
@@ -384,7 +635,8 @@ module.exports = async function handler(req, res) {
 'var SVG_REASSIGN = \'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>\';\n' +
 'var AM_NAMES = ["Doug Koetsier","Paul Kujawski","Matt Peal","Lauren Sylvester","Dan Teliczan","Curt Willbrandt","Trish Wangler","Mark Herman","Jamie Drajka","Drew Bentsen","Steve Betteley"];\n' +
 '\n' +
-'var AM = { name: "Mark Sapoznikov", email: "msapoznikov@impactbusinessgroup.com" };\n' +
+'var _params=new URLSearchParams(window.location.search);\n' +
+'var AM = _params.get("am")==="cwillbrandt" ? { name: "Curt Willbrandt", email: "cwillbrandt@impactbusinessgroup.com" } : { name: "Mark Sapoznikov", email: "msapoznikov@impactbusinessgroup.com" };\n' +
 'var leads = [];\n' +
 'var blocklist = { companies: [], titles: [] };\n' +
 'var contactCounters = {};\n' +
@@ -404,11 +656,48 @@ module.exports = async function handler(req, res) {
 'function companyInitials(name) { var w=name.trim().split(/\\s+/); return w.length===1?w[0].slice(0,2).toUpperCase():(w[0][0]+w[1][0]).toUpperCase(); }\n' +
 'function isCompanyBlocked(c) { return blocklist.companies.some(function(b){return b.toLowerCase()===c.toLowerCase();}); }\n' +
 'function formatPostDate(lead) { var d=lead.createdAt?new Date(lead.createdAt):new Date(); return {month:d.toLocaleString("en-US",{month:"short"}).toUpperCase(),day:d.getDate(),year:d.getFullYear()}; }\n' +
-'function categoryPill(cat) {\n' +
-'  if(cat==="accounting") return \'<span class="pill pill-acc">Accounting</span>\';\n' +
-'  if(cat==="it") return \'<span class="pill pill-it">IT</span>\';\n' +
-'  if(cat==="other") return \'<span class="pill pill-other">Other</span>\';\n' +
-'  return \'<span class="pill pill-eng">Engineering</span>\';\n' +
+'function categoryPill(cat, safeId) {\n' +
+'  var cls="pill-eng",lbl="Engineering";\n' +
+'  if(cat==="accounting"){cls="pill-acc";lbl="Accounting";}\n' +
+'  else if(cat==="it"){cls="pill-it";lbl="IT";}\n' +
+'  else if(cat==="other"){cls="pill-other";lbl="Other";}\n' +
+'  return \'<div class="cat-pill-wrap" style="position:relative;display:inline-block;" id="cat-wrap-\'+safeId+\'"><span class="pill \'+cls+\'" style="cursor:pointer;" onclick="toggleCatDD(\\\'\'+safeId+\'\\\')">\'+lbl+\'</span></div>\';\n' +
+'}\n' +
+'function toggleCatDD(safeId){\n' +
+'  var wrap=_g("cat-wrap-"+safeId); if(!wrap) return;\n' +
+'  var existing=wrap.querySelector(".cat-dd"); if(existing){existing.remove();return;}\n' +
+'  // Close any other open cat dropdowns\n' +
+'  document.querySelectorAll(".cat-dd").forEach(function(d){d.remove();});\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  var curCat=lead?lead.category:"engineering";\n' +
+'  var opts=[["engineering","Engineering"],["it","IT"],["accounting","Accounting"],["other","Other"]];\n' +
+'  var dd=document.createElement("div"); dd.className="cat-dd";\n' +
+'  var h="";\n' +
+'  for(var i=0;i<opts.length;i++){\n' +
+'    var sel=opts[i][0]===curCat?" cat-dd-sel":"";\n' +
+'    h+=\'<div class="cat-dd-item\'+sel+\'" onclick="selectCat(\\\'\'+safeId+\'\\\',\\\'\'+opts[i][0]+\'\\\')\">\'+opts[i][1]+\'</div>\';\n' +
+'  }\n' +
+'  dd.innerHTML=h; wrap.appendChild(dd);\n' +
+'}\n' +
+'async function selectCat(safeId,newCat){\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  if(!lead) return;\n' +
+'  var dd=document.querySelector("#cat-wrap-"+safeId+" .cat-dd"); if(dd) dd.remove();\n' +
+'  if(lead.category===newCat) return;\n' +
+'  lead.category=newCat;\n' +
+'  // Update pill display\n' +
+'  var wrap=_g("cat-wrap-"+safeId); if(wrap){\n' +
+'    var cls="pill-eng",lbl="Engineering";\n' +
+'    if(newCat==="accounting"){cls="pill-acc";lbl="Accounting";}\n' +
+'    else if(newCat==="it"){cls="pill-it";lbl="IT";}\n' +
+'    else if(newCat==="other"){cls="pill-other";lbl="Other";}\n' +
+'    var pill=wrap.querySelector(".pill"); if(pill){pill.className="pill "+cls;pill.textContent=lbl;}\n' +
+'  }\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:lead.id,action:"update_category",category:newCat})});\n' +
+'    var d=await r.json();\n' +
+'    if(d.ok) showToast("Category updated",1500);\n' +
+'  }catch(e){}\n' +
 '}\n' +
 '\n' +
 'function articleFor(title) { var first = title.replace(/^[^a-zA-Z]*/, "").charAt(0).toLowerCase(); return "aeiou".indexOf(first) >= 0 ? "an" : "a"; }\n' +
@@ -458,14 +747,16 @@ module.exports = async function handler(req, res) {
 '  var today=new Date();\n' +
 '  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
 '  var hr=today.getHours(); var greet=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";\n' +
-'  _g("greeting-text").textContent=greet+", Mark";\n' +
+'  _g("greeting-text").textContent=greet+", "+AM.name.split(" ")[0];\n' +
 '  _g("queue-sub").innerHTML="<span style=\\"color:#666\\">Loading leads...</span>";\n' +
 '  try{\n' +
 '    var results=await Promise.all([fetch("/api/leads").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
-'    leads=results[0].leads||[];blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
+'    var allLeads=results[0].leads||[];leads=allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;});blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
 '    updateLeadCount();\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
+'    var scrollTarget=localStorage.getItem("scrollToCard");\n' +
+'    if(scrollTarget){ localStorage.removeItem("scrollToCard"); setTimeout(function(){ var el=document.getElementById(scrollTarget); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); },300); }\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
@@ -515,11 +806,12 @@ module.exports = async function handler(req, res) {
 '  var hasAllContacts=lead.allContacts&&lead.allContacts.length>0;\n' +
 '\n' +
 '  var linksLeft="";\n' +
-'  if(lead.company_domain){\n' +
-'    linksLeft+=\'<a class="link-icon" href="https://\'+lead.company_domain+\'" target="_blank" data-tooltip="Website">\'+SVG_GLOBE+\'</a>\';\n' +
-'  } else if(lead.company_website){\n' +
-'    var wUrl=lead.company_website;if(wUrl.indexOf("http")!==0)wUrl="https://"+wUrl;\n' +
-'    linksLeft+=\'<a class="link-icon" href="\'+wUrl+\'" target="_blank" data-tooltip="Website">\'+SVG_GLOBE+\'</a>\';\n' +
+'  var domainVal=lead.company_domain||lead.company_website||"";\n' +
+'  if(domainVal){\n' +
+'    var domainHref=domainVal;if(domainHref.indexOf("http")!==0)domainHref="https://"+domainHref;\n' +
+'    linksLeft+=\'<div class="domain-wrap" style="position:relative;display:inline-block;" onmouseenter="showDomainPopup(this,\\\'\'+safeId+\'\\\',\\\'\'+domainVal.replace(/\x27/g,"")+ \'\\\')" onmouseleave="hideDomainPopup(this)">\';\n' +
+'    linksLeft+=\'<a class="link-icon" href="\'+domainHref+\'" target="_blank">\'+SVG_GLOBE+\'</a>\';\n' +
+'    linksLeft+=\'</div>\';\n' +
 '  }\n' +
 '  if(lead.company_linkedin){\n' +
 '    var liUrl=lead.company_linkedin;if(liUrl.indexOf("http")!==0)liUrl="https://"+liUrl;\n' +
@@ -546,7 +838,7 @@ module.exports = async function handler(req, res) {
 '          \'<div class="cal-day">\'+dates.day+\'</div>\'+\n' +
 '          \'<div class="cal-year">\'+dates.year+\'</div>\'+\n' +
 '        \'</div>\'+\n' +
-'        categoryPill(cat)+\n' +
+'        categoryPill(cat,safeId)+\n' +
 '      \'</div>\'+\n' +
 '    \'</div>\'+\n' +
 '    ((linksLeft||linksRight)?\'<div class="links-bar"><div class="links-bar-left">\'+linksLeft+\'</div><div class="links-bar-right">\'+linksRight+\'</div></div>\':"")+\n' +
@@ -554,7 +846,7 @@ module.exports = async function handler(req, res) {
 '    (lead.reminder_stage>0?\'<div class="reminder-banner">Follow-up Reminder \'+lead.reminder_stage+\' of 3 - Originally closed \'+(lead.completedAt?new Date(lead.completedAt).toLocaleDateString():"unknown")+(lead.outreach_summary&&lead.outreach_summary.length>0?" - Last outreach: "+lead.outreach_summary[0].attempts[lead.outreach_summary[0].attempts.length-1].methods.join(", ")+" on "+new Date(lead.outreach_summary[0].attempts[lead.outreach_summary[0].attempts.length-1].date).toLocaleDateString():"")+\'</div>\':"")+\n' +
 '      \'<div class="section-label-row">\'+\n' +
 '        \'<div class="section-label">Contacts</div>\'+\n' +
-'        (hasAllContacts?\'<button class="btn-ac-circle" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Additional contacts found on Apollo">+</button>\':\'<button class="btn-ac-circle disabled" data-tooltip="No additional contacts available">+</button>\')+\n' +
+'        \'<button class="btn-ac-circle\'+(hasAllContacts?" has-suggestions":"")+\'" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Find contacts">+</button>\'+\n' +
 '      \'</div>\'+\n' +
 '      \'<div class="contacts-row" id="contacts-\'+safeId+\'"></div>\'+\n' +
 '      \'<div class="composer" id="composer-\'+safeId+\'">\'+\n' +
@@ -1000,6 +1292,7 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'async function getEmail(cid, safeId) {\n' +
+'  console.log("[getEmail] BUTTON CLICKED - cid:",cid,"safeId:",safeId);\n' +
 '  var btn=_g("ge-"+cid);\n' +
 '  btn.textContent="Fetching...";btn.disabled=true;\n' +
 '  var card=_g("cb-"+cid);\n' +
@@ -1009,12 +1302,16 @@ module.exports = async function handler(req, res) {
 '  var location=card.getAttribute("data-location")||"";\n' +
 '  var prospectId=card.getAttribute("data-prospect-id")||"";\n' +
 '  var leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
+'  console.log("[getEmail] card attrs - name:",name,"title:",title,"company:",companyName,"prospectId:",prospectId,"leadRedisId:",leadRedisId);\n' +
 '  try{\n' +
 '    var payload={contactName:name,contactTitle:title,companyName:companyName,location:location,leadId:leadRedisId};\n' +
 '    if(prospectId) payload.apollo_id=prospectId;\n' +
+'    console.log("[getEmail] POST /api/enrich payload:",payload);\n' +
 '    var r=await fetch("/api/enrich",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
 '    var d=await r.json();\n' +
+'    console.log("[getEmail] /api/enrich response status:",r.status,"body:",d);\n' +
 '    var email=d.email||null;\n' +
+'    console.log("[getEmail] extracted email:",email);\n' +
 '    if(email){\n' +
 '      card.setAttribute("data-email",email);\n' +
 '      var epEl=_g("ep-"+cid);if(epEl)epEl.style.display="none";\n' +
@@ -1039,79 +1336,285 @@ module.exports = async function handler(req, res) {
 '        }\n' +
 '        if(uniqid) card.setAttribute("data-uniqid",uniqid);\n' +
 '      }catch(mcErr){console.error("Mailchimp in getEmail:",mcErr);}\n' +
+'      console.log("[getEmail] about to check PATCH conditions - leadRedisId:",leadRedisId);\n' +
 '      if(leadRedisId){\n' +
 '        var lead=leads.find(function(l){return l.id===leadRedisId;});\n' +
+'        console.log("[getEmail] lead found in memory:",!!lead,"has contacts:",!!(lead&&lead.contacts));\n' +
 '        if(lead&&lead.contacts){\n' +
 '          var ci=lead.contacts.findIndex(function(c){return(c.apollo_id||"")===prospectId;});\n' +
+'          console.log("[getEmail] contact index in lead.contacts:",ci,"of",lead.contacts.length);\n' +
 '          if(ci>=0){lead.contacts[ci].email=email;var uid=card.getAttribute("data-uniqid")||"";if(uid)lead.contacts[ci].uniqid=uid;}\n' +
-'          fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadRedisId,updates:{contacts:lead.contacts}})}).catch(function(){});\n' +
+'          var patchBody={id:leadRedisId,updates:{contacts:lead.contacts}};\n' +
+'          console.log("[getEmail] CALLING PATCH /api/leads with body:",patchBody);\n' +
+'          fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(patchBody)}).then(function(pr){console.log("[getEmail] PATCH /api/leads response status:",pr.status);return pr.json().then(function(pd){console.log("[getEmail] PATCH /api/leads response body:",pd);}).catch(function(je){console.log("[getEmail] PATCH /api/leads response not JSON:",je);});}).catch(function(pe){console.error("[getEmail] PATCH /api/leads FAILED:",pe);});\n' +
+'        } else {\n' +
+'          console.warn("[getEmail] SKIPPING PATCH - lead or lead.contacts missing");\n' +
 '        }\n' +
+'      } else {\n' +
+'        console.warn("[getEmail] SKIPPING PATCH - no leadRedisId");\n' +
 '      }\n' +
 '    } else {\n' +
+'      console.warn("[getEmail] no email returned from /api/enrich");\n' +
 '      btn.textContent="Not found";btn.disabled=true;\n' +
 '      var epEl2=_g("ep-"+cid);if(epEl2)epEl2.textContent="Email not found";\n' +
 '    }\n' +
-'  }catch(e){btn.textContent="Failed";btn.disabled=false;}\n' +
+'  }catch(e){console.error("[getEmail] caught exception:",e);btn.textContent="Failed";btn.disabled=false;}\n' +
 '}\n' +
 '\n' +
 'var _acSafeId="";\n' +
 'function openACModal(safeId) {\n' +
 '  _acSafeId=safeId;\n' +
 '  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
-'  if(!lead||!lead.allContacts||!lead.allContacts.length){showToast("No additional contacts available.",2000);return;}\n' +
-'  _g("ac-title").textContent="Additional Contacts - "+lead.company;\n' +
+'  if(!lead){showToast("Lead not found",2000);return;}\n' +
+'  _g("ac-title").textContent="Find Contacts - "+lead.company;\n' +
 '  var body=_g("ac-body");\n' +
-'  var leadLoc=lead.location||"";\n' +
-'  var locParts=leadLoc.split(","); var leadCity=locParts[0]?locParts[0].trim():""; var leadState=locParts[1]?locParts[1].trim():"";\n' +
-'  body.innerHTML=lead.allContacts.map(function(c,i){\n' +
-'    var nameStr=(c.first_name||"")+" "+(c.last_name_obfuscated||c.last_name||"");\n' +
-'    var liHtml=c.linkedin_url?\'<a class="modal-row-li" href="\'+c.linkedin_url+\'" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>\':"";\n' +
-'    var locHtml=(c.has_state&&leadState)?\'<span class="modal-row-location">\'+leadCity+(leadState?", "+leadState:"")+\'</span>\':"";\n' +
-'    return \'<div class="modal-row" id="ac-row-\'+safeId+\'-\'+i+\'">\'+\n' +
-'      \'<div class="modal-row-info"><div class="modal-row-name">\'+nameStr+\'</div><div class="modal-row-title">\'+c.title+\'</div>\'+\n' +
-'      (liHtml||locHtml?\'<div class="modal-row-meta">\'+liHtml+locHtml+\'</div>\':"")+\n' +
-'      \'</div>\'+\n' +
-'      \'<button class="search-add-btn" onclick="addFromModal(\\\'\'+safeId+\'\\\',\'+i+\')">+ Add</button>\'+\n' +
-'    \'</div>\';\n' +
-'  }).join("");\n' +
+'  var leadState=(lead.location||"").split(",")[1]?(lead.location||"").split(",")[1].trim():"";\n' +
+'  var isMI=leadState.match(/^MI$|Michigan/i);\n' +
+'  var isFL=leadState.match(/^FL$|Florida/i);\n' +
+'  var defaultLocLabel=isMI?"Michigan":isFL?"Florida":"Job Location";\n' +
+'  var SVG_CHEV_SM=\'<svg class="fc-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>\';\n' +
+'  var h=\'<div class="fc-search-grid">\';\n' +
+'  h+=\'<div class="add-field"><label>Name</label><input type="text" id="fc-name" placeholder="First and/or last name"></div>\';\n' +
+'  h+=\'<div class="add-field"><label>Title</label><input type="text" id="fc-title" placeholder="e.g. Plant Manager, IT Director"></div>\';\n' +
+'  // Department multi-select\n' +
+'  h+=\'<div class="add-field"><label>Department</label><div class="fc-dd" id="fc-dept-dd"><button type="button" class="fc-dd-btn" onclick="fcToggleDD(\\\'fc-dept-dd\\\')"><span class="fc-dd-btn-text">Any Department</span>\'+SVG_CHEV_SM+\'</button><div class="fc-dd-panel" id="fc-dept-panel">\';\n' +
+'  var depts=[["communications","Communications"],["education","Education"],["engineering","Engineering"],["finance","Finance"],["human_resources","Human Resources"],["information_technology","Information Technology"],["legal","Legal"],["marketing","Marketing"],["medical_health","Medical \\x26 Health"],["operations","Operations"],["owner","Owner"],["real_estate","Real Estate"],["sales","Sales"],["support","Support"]];\n' +
+'  for(var di=0;di<depts.length;di++) h+=\'<label class="fc-dd-opt"><input type="checkbox" value="\'+depts[di][0]+\'" onchange="fcUpdateMulti(\\\'fc-dept-dd\\\',\\\'Any Department\\\')"><span class="fc-cb"></span> \'+depts[di][1]+\'</label>\';\n' +
+'  h+=\'</div><div class="fc-pills" id="fc-dept-pills"></div></div></div>\';\n' +
+'  // Seniority multi-select\n' +
+'  h+=\'<div class="add-field"><label>Seniority</label><div class="fc-dd" id="fc-sen-dd"><button type="button" class="fc-dd-btn" onclick="fcToggleDD(\\\'fc-sen-dd\\\')"><span class="fc-dd-btn-text">Any Level</span>\'+SVG_CHEV_SM+\'</button><div class="fc-dd-panel" id="fc-sen-panel">\';\n' +
+'  var sens=[["owner","Owner"],["founder","Founder"],["c_suite","C-Suite"],["partner","Partner"],["vp","VP"],["head","Head"],["director","Director"],["manager","Manager"],["senior","Senior"]];\n' +
+'  for(var si=0;si<sens.length;si++) h+=\'<label class="fc-dd-opt"><input type="checkbox" value="\'+sens[si][0]+\'" onchange="fcUpdateMulti(\\\'fc-sen-dd\\\',\\\'Any Level\\\')"><span class="fc-cb"></span> \'+sens[si][1]+\'</label>\';\n' +
+'  h+=\'</div><div class="fc-pills" id="fc-sen-pills"></div></div></div>\';\n' +
+'  // Location multi-select\n' +
+'  h+=\'<div class="add-field"><label>Location</label><div class="fc-dd" id="fc-loc-dd"><button type="button" class="fc-dd-btn" onclick="fcToggleDD(\\\'fc-loc-dd\\\')"><span class="fc-dd-btn-text">\'+defaultLocLabel+\'</span>\'+SVG_CHEV_SM+\'</button><div class="fc-dd-panel" id="fc-loc-panel">\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="job_location" checked onchange="fcUpdateLoc()"><span class="fc-cb"></span> \'+defaultLocLabel+\'</label>\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="Michigan" onchange="fcUpdateLoc()"><span class="fc-cb"></span> Michigan</label>\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="Florida" onchange="fcUpdateLoc()"><span class="fc-cb"></span> Florida</label>\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="us_all" onchange="fcUpdateLoc()"><span class="fc-cb"></span> United States (no filter)</label>\';\n' +
+'  h+=\'</div><div class="fc-pills" id="fc-loc-pills"></div></div></div>\';\n' +
+'  h+=\'</div>\';\n' +
+'  h+=\'<button class="fc-search-btn" id="fc-search-btn" onclick="fcSearch(\\\'\'+safeId+\'\\\')">Search</button>\';\n' +
+'  h+=\'<div class="fc-results" id="fc-results"><div class="fc-empty">Search within this company using the filters above</div></div>\';\n' +
+'  h+=\'<div class="fc-divider"></div>\';\n' +
+'  h+=\'<span class="fc-manual-toggle" onclick="this.nextElementSibling.classList.toggle(\\\'open\\\');this.textContent=this.nextElementSibling.classList.contains(\\\'open\\\')?\\\'- Hide manual entry\\\':\\\'+ Add contact manually\\\'">+ Add contact manually</span>\';\n' +
+'  h+=\'<div class="fc-manual-form" id="fc-manual-form">\';\n' +
+'  h+=\'<div class="fc-manual-grid">\';\n' +
+'  h+=\'<div class="add-field"><label>First Name *</label><input type="text" id="fc-m-fname" placeholder="First name"></div>\';\n' +
+'  h+=\'<div class="add-field"><label>Last Name *</label><input type="text" id="fc-m-lname" placeholder="Last name"></div>\';\n' +
+'  h+=\'<div class="add-field"><label>Title *</label><input type="text" id="fc-m-title" placeholder="Job title"></div>\';\n' +
+'  h+=\'<div class="add-field"><label>Email *</label><input type="text" id="fc-m-email" placeholder="Email address"><div class="fc-email-error" id="fc-m-email-err">Email is required</div></div>\';\n' +
+'  h+=\'<div class="add-field"><label>LinkedIn URL</label><input type="text" id="fc-m-linkedin" placeholder="Optional"></div>\';\n' +
+'  h+=\'</div>\';\n' +
+'  h+=\'<button class="fc-search-btn" onclick="fcManualAdd(\\\'\'+safeId+\'\\\')">Add Contact</button>\';\n' +
+'  h+=\'</div>\';\n' +
+'  // Apollo suggestions\n' +
+'  if(lead.allContacts&&lead.allContacts.length){\n' +
+'    h+=\'<div class="fc-divider"></div>\';\n' +
+'    h+=\'<div class="fc-section-header">Apollo Suggestions</div>\';\n' +
+'    h+=\'<div id="fc-suggestions">\';\n' +
+'    var max=Math.min(lead.allContacts.length,10);\n' +
+'    for(var i=0;i<max;i++){\n' +
+'      var c=lead.allContacts[i];\n' +
+'      h+=fcContactRow(safeId,c.apollo_id,c.first_name||"",c.last_name_obfuscated||"",c.title||"",c.linkedin_url||"",c.has_city?c.city||"":"",c.has_state?c.state||"":"","sug-"+i);\n' +
+'    }\n' +
+'    h+=\'</div>\';\n' +
+'  }\n' +
+'  body.innerHTML=h;\n' +
 '  _g("ac-overlay").classList.add("open");\n' +
 '}\n' +
 'function closeACModal(){_g("ac-overlay").classList.remove("open");}\n' +
 '\n' +
-'async function addFromModal(safeId, idx) {\n' +
-'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
-'  if(!lead||!lead.allContacts||!lead.allContacts[idx]) return;\n' +
-'  var ac=lead.allContacts[idx];\n' +
-'  var row=_g("ac-row-"+safeId+"-"+idx);\n' +
-'  var btn=row.querySelector(".search-add-btn");\n' +
-'  btn.textContent="Adding...";btn.disabled=true;\n' +
-'  // Call enrich action=match to get full name + LinkedIn (1 credit)\n' +
-'  try{\n' +
-'    var r=await fetch("/api/enrich",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"match",apollo_id:ac.apollo_id})});\n' +
-'    var d=await r.json();\n' +
-'    if(d.error){btn.textContent="Failed";btn.disabled=false;return;}\n' +
-'    var fullName=d.full_name||ac.first_name+" "+ac.last_name_obfuscated;\n' +
-'    var linkedin=d.linkedin||"";\n' +
-'    if(linkedin&&linkedin.indexOf("http")!==0) linkedin="https://"+linkedin;\n' +
-'    // Add contact card\n' +
-'    addContact(safeId,fullName,d.title||ac.title,lead.company,lead.location||"",ac.apollo_id,{\n' +
-'      suggested:true,city:d.city||"",region:d.state||"",linkedin:linkedin\n' +
+'function fcContactRow(safeId,apolloId,firstName,lastInitial,title,linkedin,city,state,rowId){\n' +
+'  var nameStr=firstName+" "+lastInitial;\n' +
+'  var liHtml=linkedin?\'<a class="modal-row-li" href="\'+linkedin+\'" target="_blank" rel="noopener" title="LinkedIn"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:rgba(255,255,255,0.35);"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>\':"";\n' +
+'  var locHtml=(city||state)?\'<span class="fc-row-loc">\'+[city,state].filter(Boolean).join(", ")+\'</span>\':"";\n' +
+'  return \'<div class="modal-row" id="fc-row-\'+safeId+\'-\'+rowId+\'">\'+\n' +
+'    \'<div class="modal-row-info"><div class="modal-row-name">\'+nameStr+\'</div><div class="modal-row-title">\'+title+\'</div>\'+\n' +
+'    (liHtml||locHtml?\'<div class="modal-row-meta">\'+liHtml+locHtml+\'</div>\':"")+\n' +
+'    \'</div>\'+\n' +
+'    \'<button class="search-add-btn" onclick="fcAddContact(\\\'\'+safeId+\'\\\',\\\'\'+apolloId+\'\\\',\\\'\'+rowId+\'\\\')">+ Add (1 credit)</button>\'+\n' +
+'  \'</div>\';\n' +
+'}\n' +
+'\n' +
+'function fcToggleDD(ddId){\n' +
+'  var dd=_g(ddId); if(!dd) return;\n' +
+'  var btn=dd.querySelector(".fc-dd-btn"); var panel=dd.querySelector(".fc-dd-panel");\n' +
+'  var isOpen=panel.classList.contains("open");\n' +
+'  // Close all open panels first\n' +
+'  document.querySelectorAll(".fc-dd-panel.open").forEach(function(p){p.classList.remove("open");p.parentElement.querySelector(".fc-dd-btn").classList.remove("open");});\n' +
+'  if(!isOpen){ panel.classList.add("open"); btn.classList.add("open"); }\n' +
+'}\n' +
+'function fcGetChecked(ddId){\n' +
+'  var dd=_g(ddId); if(!dd) return [];\n' +
+'  var vals=[]; dd.querySelectorAll("input[type=checkbox]:checked").forEach(function(cb){ vals.push(cb.value); });\n' +
+'  return vals;\n' +
+'}\n' +
+'function fcUpdateMulti(ddId, defaultLabel){\n' +
+'  var dd=_g(ddId); if(!dd) return;\n' +
+'  var checked=fcGetChecked(ddId);\n' +
+'  var btnText=dd.querySelector(".fc-dd-btn-text");\n' +
+'  var pillsDiv=dd.querySelector(".fc-pills");\n' +
+'  if(!checked.length){\n' +
+'    btnText.textContent=defaultLabel;\n' +
+'    if(pillsDiv) pillsDiv.innerHTML="";\n' +
+'  } else {\n' +
+'    btnText.textContent=checked.length+" selected";\n' +
+'    if(pillsDiv){\n' +
+'      var ph=""; dd.querySelectorAll("input[type=checkbox]:checked").forEach(function(cb){\n' +
+'        var lbl=cb.parentElement.textContent.trim();\n' +
+'        ph+=\'<span class="fc-pill">\'+lbl+\'<span class="fc-pill-x" onclick="event.stopPropagation();fcRemovePill(this,\\\'\'+ddId+\'\\\',\\\'\'+cb.value+\'\\\',\\\'\'+defaultLabel+\'\\\')">\\x26times;</span></span>\';\n' +
+'      });\n' +
+'      pillsDiv.innerHTML=ph;\n' +
+'    }\n' +
+'  }\n' +
+'}\n' +
+'function fcUpdateLoc(){\n' +
+'  var dd=_g("fc-loc-dd"); if(!dd) return;\n' +
+'  var checked=fcGetChecked("fc-loc-dd");\n' +
+'  var btnText=dd.querySelector(".fc-dd-btn-text");\n' +
+'  var pillsDiv=dd.querySelector(".fc-pills");\n' +
+'  // If us_all selected, uncheck others\n' +
+'  var lastChanged=null;\n' +
+'  dd.querySelectorAll("input[type=checkbox]").forEach(function(cb){if(document.activeElement===cb||cb.parentElement.matches(":hover"))lastChanged=cb;});\n' +
+'  if(lastChanged&&lastChanged.value==="us_all"&&lastChanged.checked){\n' +
+'    dd.querySelectorAll("input[type=checkbox]").forEach(function(cb){if(cb.value!=="us_all")cb.checked=false;});\n' +
+'    checked=["us_all"];\n' +
+'  } else if(checked.indexOf("us_all")!==-1&&checked.length>1){\n' +
+'    dd.querySelector("input[value=us_all]").checked=false;\n' +
+'    checked=checked.filter(function(v){return v!=="us_all";});\n' +
+'  }\n' +
+'  if(!checked.length){ btnText.textContent="Job Location"; if(pillsDiv) pillsDiv.innerHTML=""; return; }\n' +
+'  btnText.textContent=checked.length+" selected";\n' +
+'  if(pillsDiv){\n' +
+'    var ph=""; dd.querySelectorAll("input[type=checkbox]:checked").forEach(function(cb){\n' +
+'      var lbl=cb.parentElement.textContent.trim();\n' +
+'      ph+=\'<span class="fc-pill">\'+lbl+\'<span class="fc-pill-x" onclick="event.stopPropagation();fcRemoveLocPill(this,\\\'\'+cb.value+\'\\\')">\\x26times;</span></span>\';\n' +
 '    });\n' +
-'    var addCat=(window._leadCategories&&window._leadCategories[safeId])||"engineering";\n' +
-'    logFeedback(d.title||ac.title,addCat,"positive");\n' +
-'    // Save to lead contacts in Redis\n' +
-'    var leadRedisId=(window._leadRedisIds&&window._leadRedisIds[safeId])||"";\n' +
+'    pillsDiv.innerHTML=ph;\n' +
+'  }\n' +
+'}\n' +
+'function fcRemovePill(el,ddId,val,defaultLabel){\n' +
+'  var dd=_g(ddId); if(!dd) return;\n' +
+'  var cb=dd.querySelector("input[value=\\""+val+"\\"]"); if(cb) cb.checked=false;\n' +
+'  fcUpdateMulti(ddId,defaultLabel);\n' +
+'}\n' +
+'function fcRemoveLocPill(el,val){\n' +
+'  var dd=_g("fc-loc-dd"); if(!dd) return;\n' +
+'  var cb=dd.querySelector("input[value=\\""+val+"\\"]"); if(cb) cb.checked=false;\n' +
+'  fcUpdateLoc();\n' +
+'}\n' +
+'// Close dropdowns when clicking outside\n' +
+'document.addEventListener("click",function(e){\n' +
+'  if(!e.target.closest(".fc-dd")){ document.querySelectorAll(".fc-dd-panel.open").forEach(function(p){p.classList.remove("open");p.parentElement.querySelector(".fc-dd-btn").classList.remove("open");}); }\n' +
+'  if(!e.target.closest(".cat-pill-wrap")){ document.querySelectorAll(".cat-dd").forEach(function(d){d.remove();}); }\n' +
+'});\n' +
+'// Event delegation for dynamically rendered contact actions\n' +
+'document.addEventListener("click",function(e){\n' +
+'  var btn=e.target.closest(".btn-confirm-outreach");\n' +
+'  if(btn){\n' +
+'    e.stopPropagation();\n' +
+'    var card=btn.closest(".contact-card");\n' +
+'    if(!card) return;\n' +
+'    var cid=card.getAttribute("data-cid");\n' +
+'    var safeId=card.getAttribute("data-safe-id");\n' +
+'    if(cid&&safeId) confirmOutreach(cid,safeId);\n' +
+'  }\n' +
+'  var fetchBtn=e.target.closest(".btn-fetch");\n' +
+'  if(fetchBtn){\n' +
+'    e.stopPropagation();\n' +
+'    var card2=fetchBtn.closest(".contact-card");\n' +
+'    if(!card2) return;\n' +
+'    var cid2=card2.getAttribute("data-cid");\n' +
+'    var safeId2=card2.getAttribute("data-safe-id");\n' +
+'    if(cid2&&safeId2) getEmail(cid2,safeId2);\n' +
+'  }\n' +
+'});\n' +
+'\n' +
+'async function fcSearch(safeId){\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  if(!lead||!lead.apollo_org_id){showToast("No Apollo org ID - cannot search",2000);return;}\n' +
+'  var btn=_g("fc-search-btn"); btn.disabled=true; btn.textContent="Searching...";\n' +
+'  var results=_g("fc-results"); results.innerHTML=\'<div class="fc-empty">Searching...</div>\';\n' +
+'  var payload={action:"contact_search",org_id:lead.apollo_org_id,per_page:10};\n' +
+'  var titleVal=(_g("fc-title")||{}).value||""; if(titleVal) payload.person_titles=[titleVal];\n' +
+'  var nameVal=(_g("fc-name")||{}).value||""; if(nameVal) payload.q_keywords=nameVal;\n' +
+'  var deptVals=fcGetChecked("fc-dept-dd"); if(deptVals.length) payload.person_departments=deptVals;\n' +
+'  var senVals=fcGetChecked("fc-sen-dd"); if(senVals.length) payload.person_seniorities=senVals;\n' +
+'  var locVals=fcGetChecked("fc-loc-dd");\n' +
+'  var hasUSAll=locVals.indexOf("us_all")!==-1;\n' +
+'  if(!hasUSAll){\n' +
+'    var locs=[];\n' +
+'    for(var li=0;li<locVals.length;li++){\n' +
+'      if(locVals[li]==="job_location"){\n' +
+'        var ls=(lead.location||"").split(",")[1]?(lead.location||"").split(",")[1].trim():"";\n' +
+'        if(ls.match(/^MI$|Michigan/i)) locs.push("Michigan, United States");\n' +
+'        else if(ls.match(/^FL$|Florida/i)) locs.push("Florida, United States");\n' +
+'      } else if(locVals[li]==="Michigan") locs.push("Michigan, United States");\n' +
+'      else if(locVals[li]==="Florida") locs.push("Florida, United States");\n' +
+'    }\n' +
+'    if(locs.length) payload.person_locations=locs;\n' +
+'  }\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});\n' +
+'    var d=await r.json();\n' +
+'    btn.disabled=false; btn.textContent="Search";\n' +
+'    if(!d.ok||!d.people||!d.people.length){ results.innerHTML=\'<div class="fc-empty">No results found</div>\'; return; }\n' +
+'    var h="";\n' +
+'    for(var i=0;i<d.people.length;i++){\n' +
+'      var p=d.people[i];\n' +
+'      h+=fcContactRow(safeId,p.apollo_id,p.first_name,p.last_name_initial,p.title,p.linkedin_url,p.city||"",p.state||"","sr-"+i);\n' +
+'    }\n' +
+'    results.innerHTML=h;\n' +
+'  }catch(e){ btn.disabled=false; btn.textContent="Search"; results.innerHTML=\'<div class="fc-empty">Search error: \'+e.message+\'</div>\'; }\n' +
+'}\n' +
+'\n' +
+'async function fcAddContact(safeId,apolloId,rowId){\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  if(!lead) return;\n' +
+'  var row=_g("fc-row-"+safeId+"-"+rowId);\n' +
+'  var btn=row?row.querySelector(".search-add-btn"):null;\n' +
+'  if(btn){btn.textContent="Adding...";btn.disabled=true;}\n' +
+'  try{\n' +
+'    var r=await fetch("/api/enrich",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"match",apollo_id:apolloId})});\n' +
+'    var d=await r.json();\n' +
+'    if(d.error){if(btn){btn.textContent="Failed";btn.disabled=false;}return;}\n' +
+'    var fullName=d.full_name||d.first_name+" "+(d.last_name||"");\n' +
+'    var linkedin=d.linkedin||""; if(linkedin&&linkedin.indexOf("http")!==0) linkedin="https://"+linkedin;\n' +
+'    addContact(safeId,fullName,d.title||"",lead.company,lead.location||"",apolloId,{\n' +
+'      suggested:true,city:d.city||"",region:d.state||"",linkedin:linkedin,photo_url:d.photo_url||""\n' +
+'    });\n' +
 '    if(!lead.contacts) lead.contacts=[];\n' +
-'    lead.contacts.push({apollo_id:ac.apollo_id,full_name:fullName,name:fullName,first_name:d.first_name||"",last_name:d.last_name||"",job_title:d.title||ac.title,title:d.title||ac.title,city:d.city||"",state:d.state||"",linkedin:linkedin,email:null,source:"apollo"});\n' +
-'    // Remove from allContacts\n' +
-'    lead.allContacts.splice(idx,1);\n' +
+'    lead.contacts.push({apollo_id:apolloId,full_name:fullName,name:fullName,first_name:d.first_name||"",last_name:d.last_name||"",job_title:d.title||"",title:d.title||"",city:d.city||"",state:d.state||"",linkedin:linkedin,email:null,source:"apollo",photo_url:d.photo_url||""});\n' +
+'    // Remove from allContacts if present\n' +
+'    if(lead.allContacts) lead.allContacts=lead.allContacts.filter(function(c){return c.apollo_id!==apolloId;});\n' +
+'    var leadRedisId=lead.id||"";\n' +
 '    if(leadRedisId) fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadRedisId,updates:{contacts:lead.contacts,allContacts:lead.allContacts}})}).catch(function(){});\n' +
-'    row.remove();\n' +
-'    // Update button count\n' +
-'    var acBtn=document.querySelector("#card-"+safeId+" .btn-ac-circle");\n' +
-'    if(acBtn&&!lead.allContacts.length) acBtn.remove();\n' +
-'    if(!lead.allContacts.length) closeACModal();\n' +
-'  }catch(e){btn.textContent="Failed";btn.disabled=false;}\n' +
+'    if(row) row.remove();\n' +
+'    showToast("Contact added: "+fullName,2000);\n' +
+'  }catch(e){if(btn){btn.textContent="Failed";btn.disabled=false;}}\n' +
+'}\n' +
+'\n' +
+'async function fcManualAdd(safeId){\n' +
+'  var lead=leads.find(function(l){return getSafeId(l.id)===safeId;});\n' +
+'  if(!lead) return;\n' +
+'  var fn=(_g("fc-m-fname")||{}).value||""; var ln=(_g("fc-m-lname")||{}).value||"";\n' +
+'  var ti=(_g("fc-m-title")||{}).value||""; var em=(_g("fc-m-email")||{}).value||""; var li=(_g("fc-m-linkedin")||{}).value||"";\n' +
+'  var emailErr=_g("fc-m-email-err"); if(emailErr) emailErr.style.display="none";\n' +
+'  if(!fn||!ln||!ti){showToast("First name, last name and title required",2000);return;}\n' +
+'  if(!em){if(emailErr) emailErr.style.display="block";return;}\n' +
+'  var fullName=fn+" "+ln;\n' +
+'  var manualId="manual_"+Date.now();\n' +
+'  if(li&&li.indexOf("http")!==0) li="https://"+li;\n' +
+'  addContact(safeId,fullName,ti,lead.company,lead.location||"",manualId,{\n' +
+'    suggested:false,city:"",region:"",linkedin:li,email:em\n' +
+'  });\n' +
+'  if(!lead.contacts) lead.contacts=[];\n' +
+'  lead.contacts.push({apollo_id:manualId,full_name:fullName,name:fullName,first_name:fn,last_name:ln,job_title:ti,title:ti,city:"",state:"",linkedin:li,email:em||null,source:"manual"});\n' +
+'  var leadRedisId=lead.id||"";\n' +
+'  if(leadRedisId) fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadRedisId,updates:{contacts:lead.contacts}})}).catch(function(){});\n' +
+'  _g("fc-m-fname").value="";_g("fc-m-lname").value="";_g("fc-m-title").value="";_g("fc-m-email").value="";_g("fc-m-linkedin").value="";\n' +
+'  showToast("Contact added: "+fullName,2000);\n' +
 '}\n' +
 '\n' +
 'function openJD(safeId) {\n' +
@@ -1421,6 +1924,7 @@ module.exports = async function handler(req, res) {
 '  if(d.ok){\n' +
 '    var cc=d.lead?(d.lead.contacts||[]).length:0;\n' +
 '    showToast("Lead added: "+company+" ("+cc+" contacts) - refreshing...",2000);\n' +
+'    if(d.leadId) localStorage.setItem("scrollToCard","card-"+getSafeId(d.leadId));\n' +
 '    setTimeout(function(){window.location.reload();},1000);\n' +
 '  }else{\n' +
 '    showToast("Error: "+(d.error||"Failed to add lead"),3000);\n' +
@@ -1428,6 +1932,261 @@ module.exports = async function handler(req, res) {
 '  }catch(e){\n' +
 '    showToast("Error: "+e.message,3000);\n' +
 '  }\n' +
+'}\n' +
+'\n' +
+'/* ===== Domain Popup/Edit ===== */\n' +
+'var SVG_PENCIL = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>\';\n' +
+'var _domainPopupLock = false;\n' +
+'function showDomainPopup(wrap, safeId, domain) {\n' +
+'  if (_domainPopupLock) return;\n' +
+'  if (wrap.querySelector(".domain-edit-box")) return;\n' +
+'  var existing = wrap.querySelector(".domain-popup");\n' +
+'  if (existing) return;\n' +
+'  var popup = document.createElement("div");\n' +
+'  popup.className = "domain-popup";\n' +
+'  popup.innerHTML = \'<span class="domain-popup-text">\' + domain + \'</span><button class="domain-popup-edit" onclick="event.preventDefault();event.stopPropagation();openDomainEdit(this.closest(\\\'.domain-wrap\\\'),\\\'\' + safeId + \'\\\',\\\'\' + domain + \'\\\')" title="Edit domain">\' + SVG_PENCIL + \'</button>\';\n' +
+'  popup.addEventListener("mouseenter", function(){ wrap._hoverLock=true; });\n' +
+'  popup.addEventListener("mouseleave", function(){ wrap._hoverLock=false; hideDomainPopup(wrap); });\n' +
+'  wrap.appendChild(popup);\n' +
+'}\n' +
+'function hideDomainPopup(wrap) {\n' +
+'  setTimeout(function(){\n' +
+'    if(wrap._hoverLock) return;\n' +
+'    var p = wrap.querySelector(".domain-popup");\n' +
+'    if(p) p.remove();\n' +
+'  }, 150);\n' +
+'}\n' +
+'function openDomainEdit(wrap, safeId, domain) {\n' +
+'  _domainPopupLock = true;\n' +
+'  var popup = wrap.querySelector(".domain-popup");\n' +
+'  if(popup) popup.remove();\n' +
+'  var box = document.createElement("div");\n' +
+'  box.className = "domain-edit-box";\n' +
+'  box.innerHTML = \'<input class="domain-edit-input" id="domain-input-\' + safeId + \'" value="\' + domain + \'"><button class="domain-edit-btn domain-edit-save" onclick="saveDomain(\\\'\' + safeId + \'\\\',false)">Save</button><button class="domain-edit-btn domain-edit-reload" onclick="saveDomain(\\\'\' + safeId + \'\\\',true)">Save &amp; Reload</button><button class="domain-edit-btn domain-edit-cancel" onclick="closeDomainEdit(this.closest(\\\'.domain-wrap\\\'))">Cancel</button>\';\n' +
+'  wrap.appendChild(box);\n' +
+'  var inp = _g("domain-input-" + safeId);\n' +
+'  if(inp) { inp.focus(); inp.select(); }\n' +
+'}\n' +
+'function closeDomainEdit(wrap) {\n' +
+'  var box = wrap.querySelector(".domain-edit-box");\n' +
+'  if(box) box.remove();\n' +
+'  _domainPopupLock = false;\n' +
+'}\n' +
+'async function saveDomain(safeId, reenrich) {\n' +
+'  var inp = _g("domain-input-" + safeId);\n' +
+'  if(!inp) return;\n' +
+'  var newDomain = inp.value.replace(/^https?:\\/\\//, "").replace(/^www\\./, "").replace(/\\/.*$/, "").trim().toLowerCase();\n' +
+'  if(!newDomain) { showToast("Enter a domain", 2000); return; }\n' +
+'  var wrap = inp.closest(".domain-wrap");\n' +
+'  var box = wrap.querySelector(".domain-edit-box");\n' +
+'  // Find lead ID from card\n' +
+'  var card = wrap.closest(".card");\n' +
+'  var leadId = "";\n' +
+'  for(var i=0;i<leads.length;i++){ if("card-"+getSafeId(leads[i].id)===card.id){ leadId=leads[i].id; break; } }\n' +
+'  if(!leadId){ showToast("Lead not found",2000); return; }\n' +
+'  // Show loading state\n' +
+'  if(box) box.innerHTML = \'<div class="domain-edit-loading"><div class="add-spinner"></div><span>\' + (reenrich ? "Saving & re-enriching..." : "Saving...") + \'</span></div>\';\n' +
+'  try {\n' +
+'    var r = await fetch("/api/leads", { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ id: leadId, action: "update_domain", domain: newDomain, reenrich: reenrich }) });\n' +
+'    var d = await r.json();\n' +
+'    if(!d.ok) { showToast("Error: " + (d.error||"Failed"), 3000); closeDomainEdit(wrap); return; }\n' +
+'    // Update local lead data\n' +
+'    for(var i=0;i<leads.length;i++){\n' +
+'      if(leads[i].id===leadId){\n' +
+'        leads[i] = d.lead;\n' +
+'        break;\n' +
+'      }\n' +
+'    }\n' +
+'    // Update the globe link href\n' +
+'    var globe = wrap.querySelector(".link-icon");\n' +
+'    if(globe) globe.href = "https://" + newDomain;\n' +
+'    // Refresh logo\n' +
+'    fetchLogo(d.lead.company, newDomain, d.lead.location||"", safeId, d.lead.company_logo_apollo||d.lead.company_logo||"");\n' +
+'    closeDomainEdit(wrap);\n' +
+'    if(reenrich && d.lead.contacts) {\n' +
+'      // Re-render contacts on the card\n' +
+'      var contactsDiv = _g("contacts-" + safeId);\n' +
+'      if(contactsDiv) contactsDiv.innerHTML = "";\n' +
+'      activeContacts[safeId] = null;\n' +
+'      composerState[safeId] = null;\n' +
+'      d.lead.contacts.forEach(function(c){\n' +
+'        addContact(safeId,c.full_name||c.name||"",c.job_title||c.title||"",d.lead.company,d.lead.location||"",c.apollo_id||"",{\n' +
+'          suggested:true,city:c.city||"",region:c.state||c.region_name||c.region||"",linkedin:c.linkedin||"",\n' +
+'          fromCache:false,email:c.email||"",previousJobs:c.previousJobs||[],uniqid:c.uniqid||"",photo_url:c.photo_url||""\n' +
+'        });\n' +
+'      });\n' +
+'      // Update LinkedIn link if available\n' +
+'      if(d.lead.company_linkedin){\n' +
+'        var liLink = card.querySelector(".links-bar-left .link-icon[style*=\\"0077B5\\"]");\n' +
+'        if(liLink) { var liUrl=d.lead.company_linkedin; if(liUrl.indexOf("http")!==0)liUrl="https://"+liUrl; liLink.href=liUrl; }\n' +
+'      }\n' +
+'      showToast("Company updated - reloading...", 2000);\n' +
+'      localStorage.setItem("scrollToCard", card.id);\n' +
+'      setTimeout(function(){ window.location.reload(); }, 1000);\n' +
+'    } else {\n' +
+'      showToast("Domain updated to " + newDomain, 2000);\n' +
+'    }\n' +
+'  } catch(e) {\n' +
+'    showToast("Error: " + e.message, 3000);\n' +
+'    closeDomainEdit(wrap);\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'/* ===== Tab Switching ===== */\n' +
+'var currentTab = "leads";\n' +
+'function switchTab(tab) {\n' +
+'  currentTab = tab;\n' +
+'  _g("tab-leads").classList.toggle("active", tab === "leads");\n' +
+'  _g("tab-analytics").classList.toggle("active", tab === "analytics");\n' +
+'  _g("leads-view").style.display = tab === "leads" ? "block" : "none";\n' +
+'  _g("analytics-view").classList.toggle("visible", tab === "analytics");\n' +
+'  if (tab === "analytics" && !analyticsLoaded) { loadAnalytics(); }\n' +
+'}\n' +
+'\n' +
+'/* ===== Analytics ===== */\n' +
+'var analyticsLoaded = false;\n' +
+'var analyticsData = null;\n' +
+'var analyticsDateRange = 30;\n' +
+'var selectedAmEmail = AM.email;\n' +
+'\n' +
+'function setDateRange(range, btn) {\n' +
+'  var pills = document.querySelectorAll(".date-pill");\n' +
+'  for (var i = 0; i < pills.length; i++) pills[i].classList.remove("active");\n' +
+'  if (btn) btn.classList.add("active");\n' +
+'  var customInputs = _g("custom-date-inputs");\n' +
+'  if (range === "custom") {\n' +
+'    customInputs.classList.add("visible");\n' +
+'    analyticsDateRange = "custom";\n' +
+'    return;\n' +
+'  }\n' +
+'  customInputs.classList.remove("visible");\n' +
+'  analyticsDateRange = range;\n' +
+'  loadAnalytics();\n' +
+'}\n' +
+'\n' +
+'function applyCustomDateRange() {\n' +
+'  var from = _g("custom-from").value;\n' +
+'  var to = _g("custom-to").value;\n' +
+'  if (from && to) loadAnalytics();\n' +
+'}\n' +
+'\n' +
+'function getDateParams() {\n' +
+'  if (analyticsDateRange === "custom") {\n' +
+'    var f = _g("custom-from").value;\n' +
+'    var t = _g("custom-to").value;\n' +
+'    return f && t ? "&from=" + f + "&to=" + t : "";\n' +
+'  }\n' +
+'  if (analyticsDateRange === "all") return "";\n' +
+'  var now = new Date();\n' +
+'  var from = new Date(now.getTime() - analyticsDateRange * 24 * 60 * 60 * 1000);\n' +
+'  return "&from=" + from.toISOString().split("T")[0];\n' +
+'}\n' +
+'\n' +
+'async function loadAnalytics() {\n' +
+'  try {\n' +
+'    var url = "/api/review?analytics" + getDateParams();\n' +
+'    var r = await fetch(url);\n' +
+'    var data = await r.json();\n' +
+'    if (!data.ok) { console.error("Analytics error", data); return; }\n' +
+'    analyticsData = data;\n' +
+'    analyticsLoaded = true;\n' +
+'    renderAnalyticsSummary(data.summary);\n' +
+'    renderLeaderboard(data.ams);\n' +
+'    var selAm = data.ams.find(function(a){ return a.email === selectedAmEmail; }) || data.ams[0];\n' +
+'    if (selAm) renderAmDetail(selAm);\n' +
+'  } catch (e) { console.error("Analytics load error:", e); }\n' +
+'}\n' +
+'\n' +
+'function renderAnalyticsSummary(s) {\n' +
+'  _g("analytics-summary").innerHTML =\n' +
+'    \'<div class="stat-card"><div class="stat-card-label">Total Leads Received</div><div class="stat-card-value">\' + s.totalLeads + \'</div></div>\' +\n' +
+'    \'<div class="stat-card"><div class="stat-card-label">Total Outreach Sent</div><div class="stat-card-value">\' + s.totalOutreach + \'</div></div>\' +\n' +
+'    \'<div class="stat-card"><div class="stat-card-label">Contacts Made</div><div class="stat-card-value">\' + s.totalContactsMade + \'</div></div>\' +\n' +
+'    \'<div class="stat-card"><div class="stat-card-label">Completion Rate</div><div class="stat-card-value">\' + s.completionRate + \'%</div></div>\';\n' +
+'}\n' +
+'\n' +
+'function renderLeaderboard(ams) {\n' +
+'  var maxOutreach = 0;\n' +
+'  for (var i = 0; i < ams.length; i++) { if (ams[i].outreachSent > maxOutreach) maxOutreach = ams[i].outreachSent; }\n' +
+'  if (maxOutreach === 0) maxOutreach = 1;\n' +
+'  var h = \'<h3>Team Leaderboard</h3>\';\n' +
+'  h += \'<div class="lb-header"><span>Name</span><span>Outreach</span><span>Leads</span><span>Outreach</span><span>Rate</span></div>\';\n' +
+'  for (var i = 0; i < ams.length; i++) {\n' +
+'    var a = ams[i];\n' +
+'    var pct = Math.round((a.outreachSent / maxOutreach) * 100);\n' +
+'    var isHighlighted = a.email === AM.email;\n' +
+'    var isSelected = a.email === selectedAmEmail;\n' +
+'    var cls = "lb-row" + (isHighlighted ? " highlighted" : "") + (isSelected ? " selected" : "");\n' +
+'    h += \'<div class="\' + cls + \'" onclick="selectAm(\\x27\' + a.email + \'\\x27)">\';\n' +
+'    h += \'<div class="lb-name">\' + a.name + \'</div>\';\n' +
+'    h += \'<div class="lb-bar-wrap"><div class="lb-bar" style="width:\' + pct + \'%"></div></div>\';\n' +
+'    h += \'<div class="lb-stat"><span class="lb-stat-val">\' + a.leadsReceived + \'</span></div>\';\n' +
+'    h += \'<div class="lb-stat"><span class="lb-stat-val">\' + a.outreachSent + \'</span></div>\';\n' +
+'    h += \'<div class="lb-stat"><span class="lb-stat-val">\' + a.completionRate + \'%</span></div>\';\n' +
+'    h += \'</div>\';\n' +
+'  }\n' +
+'  _g("analytics-leaderboard").innerHTML = h;\n' +
+'}\n' +
+'\n' +
+'function selectAm(email) {\n' +
+'  selectedAmEmail = email;\n' +
+'  if (analyticsData) {\n' +
+'    renderLeaderboard(analyticsData.ams);\n' +
+'    var am = analyticsData.ams.find(function(a){ return a.email === email; });\n' +
+'    if (am) renderAmDetail(am);\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'function renderAmDetail(am) {\n' +
+'  var h = \'<h3>\' + am.name + \' — Individual Stats</h3>\';\n' +
+'  // Progress bar: leads received vs actioned\n' +
+'  var actioned = am.outreachSent + Object.values(am.removalReasons).reduce(function(s,v){return s+v;},0);\n' +
+'  var pctActioned = am.leadsReceived > 0 ? Math.min(100, Math.round((actioned / am.leadsReceived) * 100)) : 0;\n' +
+'  h += \'<div class="am-progress-wrap"><div class="am-progress-label">Leads Actioned: \' + actioned + \' / \' + am.leadsReceived + \'</div>\';\n' +
+'  h += \'<div class="am-progress-bar"><div class="am-progress-fill" style="width:\' + pctActioned + \'%"></div><div class="am-progress-text">\' + pctActioned + \'%</div></div></div>\';\n' +
+'  // Outreach method pills\n' +
+'  h += \'<div class="am-pills-row">\';\n' +
+'  h += \'<div class="am-pill-stat"><div class="am-pill-stat-val">\' + am.outreachByMethod.email + \'</div><div class="am-pill-stat-label">Email</div></div>\';\n' +
+'  h += \'<div class="am-pill-stat"><div class="am-pill-stat-val">\' + am.outreachByMethod.linkedin_message + \'</div><div class="am-pill-stat-label">LI Message</div></div>\';\n' +
+'  h += \'<div class="am-pill-stat"><div class="am-pill-stat-val">\' + am.outreachByMethod.linkedin_connect + \'</div><div class="am-pill-stat-label">LI Connect</div></div>\';\n' +
+'  h += \'</div>\';\n' +
+'  // Removal reasons chart\n' +
+'  var reasons = am.removalReasons;\n' +
+'  var reasonLabels = {made_contact:"Made Contact",wrong_contact_type:"Wrong Contact Type",existing_contact:"Existing Contact",not_interested:"Not Interested",other:"Other"};\n' +
+'  var reasonColors = {made_contact:"#6EE7C7",wrong_contact_type:"#93C5FD",existing_contact:"#FCD34D",not_interested:"#ef6961",other:"#C4B5FD"};\n' +
+'  var maxReason = 0; var rKeys = Object.keys(reasons);\n' +
+'  for (var i = 0; i < rKeys.length; i++) { if (reasons[rKeys[i]] > maxReason) maxReason = reasons[rKeys[i]]; }\n' +
+'  if (maxReason === 0) maxReason = 1;\n' +
+'  h += \'<div class="am-chart-section"><div class="am-chart-title">Removal Reasons</div>\';\n' +
+'  for (var i = 0; i < rKeys.length; i++) {\n' +
+'    var k = rKeys[i]; var pct = Math.round((reasons[k] / maxReason) * 100);\n' +
+'    h += \'<div class="am-hbar"><div class="am-hbar-label">\' + (reasonLabels[k]||k) + \'</div><div class="am-hbar-track"><div class="am-hbar-fill" style="width:\' + pct + \'%;background:\' + (reasonColors[k]||"#E8620A") + \'"></div></div><div class="am-hbar-val">\' + reasons[k] + \'</div></div>\';\n' +
+'  }\n' +
+'  h += \'</div>\';\n' +
+'  // Reminder stage funnel\n' +
+'  var stages = am.reminderStages;\n' +
+'  var maxStage = Math.max(stages.stage1, stages.stage2, stages.stage3, 1);\n' +
+'  h += \'<div class="am-chart-section"><div class="am-chart-title">Reminder Stage Funnel</div><div class="am-funnel">\';\n' +
+'  var stageData = [{label:"Reminder 1",val:stages.stage1},{label:"Reminder 2",val:stages.stage2},{label:"Reminder 3",val:stages.stage3}];\n' +
+'  for (var i = 0; i < stageData.length; i++) {\n' +
+'    var ht = Math.max(8, Math.round((stageData[i].val / maxStage) * 80));\n' +
+'    h += \'<div class="am-funnel-step"><div class="am-funnel-bar" style="height:\' + ht + \'px;background:rgba(232,98,10,\' + (0.3 + i * 0.2) + \')"></div><div class="am-funnel-val">\' + stageData[i].val + \'</div><div class="am-funnel-label">\' + stageData[i].label + \'</div></div>\';\n' +
+'  }\n' +
+'  h += \'</div></div>\';\n' +
+'  // Weekly outreach chart\n' +
+'  var weeks = am.outreachByWeek || [];\n' +
+'  if (weeks.length > 0) {\n' +
+'    var maxWeek = 0; for (var i = 0; i < weeks.length; i++) { if (weeks[i].count > maxWeek) maxWeek = weeks[i].count; }\n' +
+'    if (maxWeek === 0) maxWeek = 1;\n' +
+'    h += \'<div class="am-chart-section"><div class="am-chart-title">Outreach Activity by Week</div><div class="am-weekly-chart">\';\n' +
+'    for (var i = 0; i < weeks.length; i++) {\n' +
+'      var ht = Math.max(2, Math.round((weeks[i].count / maxWeek) * 100));\n' +
+'      var lbl = weeks[i].week.substring(5);\n' +
+'      h += \'<div class="am-weekly-bar-wrap"><div class="am-weekly-bar" style="height:\' + ht + \'px"></div><div class="am-weekly-label">\' + lbl + \'</div></div>\';\n' +
+'    }\n' +
+'    h += \'</div></div>\';\n' +
+'  }\n' +
+'  _g("analytics-am-detail").innerHTML = h;\n' +
 '}\n' +
 '\n' +
 'init();\n' +
