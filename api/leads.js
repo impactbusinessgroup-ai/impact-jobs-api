@@ -220,6 +220,194 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true, lead });
     }
 
+    // --- update_category: change lead category ---
+    if (action === 'update_category') {
+      const validCats = ['engineering', 'it', 'accounting', 'other'];
+      const newCat = (body.category || '').toLowerCase();
+      if (!validCats.includes(newCat)) return res.status(400).json({ error: 'Invalid category' });
+      lead.category = newCat;
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- update_domain: change company domain and optionally re-enrich ---
+    if (action === 'update_domain') {
+      let rawInput = (body.domain || '').trim();
+      if (!rawInput) return res.status(400).json({ error: 'Missing domain' });
+      if (!/^https?:\/\//i.test(rawInput)) rawInput = 'https://' + rawInput;
+      const newDomain = rawInput.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*$/, '').trim().toLowerCase();
+      if (!newDomain) return res.status(400).json({ error: 'Invalid domain' });
+      lead.company_domain = newDomain;
+      lead.company_website = 'https://' + newDomain;
+      // Clear cached org data so re-enrichment uses new domain
+      delete lead.apollo_org_id;
+      delete lead.apollo_num_locations;
+      delete lead.apollo_hq_city;
+      delete lead.apollo_hq_state;
+      delete lead.apollo_estimated_employees;
+      delete lead.company_linkedin;
+      // Update logo
+      if (process.env.BRANDFETCH_CLIENT_ID) {
+        lead.company_logo = 'https://cdn.brandfetch.io/' + encodeURIComponent(newDomain) + '/w/128/h/128?c=' + process.env.BRANDFETCH_CLIENT_ID;
+      }
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+
+      if (!body.reenrich) {
+        return res.status(200).json({ ok: true, lead });
+      }
+
+      // Re-enrichment pipeline (same as add_lead flow)
+      const enrichStart = Date.now();
+      async function reEnrich() {
+        let orgId = null;
+        let org = {};
+        const orgRes = await fetch('https://api.apollo.io/api/v1/organizations/enrich?domain=' + encodeURIComponent(newDomain), {
+          headers: { 'x-api-key': process.env.APOLLO_API_KEY }
+        });
+        if (orgRes.ok) {
+          const orgData = await orgRes.json();
+          org = orgData.organization || {};
+          orgId = org.id;
+        }
+        if (!orgId) {
+          const locState = (lead.location || '').split(',')[1] ? (lead.location || '').split(',')[1].trim() : '';
+          const searchBody = { q_organization_name: lead.company, per_page: 5 };
+          if (locState) searchBody.organization_locations = [locState];
+          const nsRes = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
+            method: 'POST',
+            headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify(searchBody)
+          });
+          if (nsRes.ok) {
+            const nsData = await nsRes.json();
+            const orgs = nsData.organizations || nsData.accounts || [];
+            if (orgs.length > 0) { orgId = orgs[0].id; org = orgs[0]; }
+          }
+          if (!orgId && locState) {
+            const nsRes2 = await fetch('https://api.apollo.io/api/v1/mixed_companies/search', {
+              method: 'POST',
+              headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ q_organization_name: lead.company, per_page: 5 })
+            });
+            if (nsRes2.ok) {
+              const nsData2 = await nsRes2.json();
+              const orgs2 = nsData2.organizations || nsData2.accounts || [];
+              if (orgs2.length > 0) { orgId = orgs2[0].id; org = orgs2[0]; }
+            }
+          }
+        }
+        if (!orgId) { lead.contactsEnrichedAt = Date.now(); return; }
+        lead.apollo_org_id = orgId;
+        lead.apollo_hq_city = org.city || '';
+        lead.apollo_hq_state = org.state || '';
+        if (org.linkedin_url) lead.company_linkedin = org.linkedin_url;
+
+        const jobTitle = lead.jobTitle || '';
+        const description = lead.description || '';
+        const company = lead.company || '';
+        const titlesPrompt = 'Generate 8-12 search keywords representing titles of hiring decision makers for this role. Think broadly.\n\nJob title: ' + jobTitle + '\nCompany: ' + company + '\nDescription: ' + description.substring(0, 1500) + '\n\nReturn only a JSON array of title keyword phrases.';
+        const titlesText = await callGemini(titlesPrompt, 1000);
+        let personTitles = parseGeminiJson(titlesText);
+        if (!Array.isArray(personTitles) || !personTitles.length) {
+          personTitles = ['Director', 'VP', 'Manager', 'President', 'General Manager'];
+        }
+        const searchBody2 = { organization_ids: [orgId], person_titles: personTitles, per_page: 10 };
+        const apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+          method: 'POST',
+          headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify(searchBody2)
+        });
+        let people = [];
+        if (apolloRes.ok) { const d = await apolloRes.json(); people = d.people || []; }
+        if (!people.length) {
+          const broadBody = { organization_ids: [orgId], person_titles: ['President','CEO','Owner','COO','Operations Manager','General Manager','Plant Manager','HR Manager','Director','VP','Vice President','Manager'], per_page: 10 };
+          const broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+            method: 'POST',
+            headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify(broadBody)
+          });
+          if (broadRes.ok) { const bd = await broadRes.json(); people = bd.people || []; }
+        }
+        if (!people.length) { lead.contactsEnrichedAt = Date.now(); return; }
+        const contactList = people.map((p, i) => i + '. ' + (p.first_name || '') + ' ' + (p.last_name || '') + ' - ' + (p.title || 'Unknown')).join('\n');
+        const valPrompt = 'Given this job posting for ' + jobTitle + ' at ' + company + ', which contacts are most likely hiring decision makers? Return a JSON array of indexes (max 3), or [] if none.\n\nDescription:\n' + description.substring(0, 1500) + '\n\nContacts:\n' + contactList;
+        const rankText = await callGemini(valPrompt);
+        let selectedIndexes = parseGeminiJson(rankText);
+        if (!Array.isArray(selectedIndexes) || !selectedIndexes.length) {
+          const senOrder = ['president','ceo','vp','vice president','director','senior manager','manager'];
+          const ranked = people.map((p, i) => {
+            const t = (p.title || '').toLowerCase();
+            let rank = senOrder.length;
+            for (let s = 0; s < senOrder.length; s++) { if (t.includes(senOrder[s])) { rank = s; break; } }
+            return { idx: i, rank };
+          }).sort((a, b) => a.rank - b.rank);
+          selectedIndexes = ranked.slice(0, 3).map(r => r.idx);
+        }
+        const contacts = [];
+        for (let j = 0; j < selectedIndexes.length && contacts.length < 3; j++) {
+          const idx = selectedIndexes[j];
+          if (idx < 0 || idx >= people.length) continue;
+          const person = people[idx];
+          try {
+            const matchRes = await fetch('https://api.apollo.io/api/v1/people/match', {
+              method: 'POST',
+              headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: person.id })
+            });
+            if (!matchRes.ok) continue;
+            const matchData = await matchRes.json();
+            const enriched = matchData.person || matchData;
+            const country = enriched.country || '';
+            if (country && country !== 'United States') continue;
+            contacts.push({
+              apollo_id: enriched.id || person.id || '',
+              first_name: enriched.first_name || '',
+              last_name: enriched.last_name || '',
+              full_name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
+              name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
+              job_title: enriched.title || '',
+              title: enriched.title || '',
+              city: toTitleCase(enriched.city || ''),
+              state: toTitleCase(enriched.state || ''),
+              country: enriched.country || '',
+              linkedin: ensureUrl(enriched.linkedin_url || ''),
+              photo_url: enriched.photo_url || '',
+              email: null,
+              source: 'apollo'
+            });
+          } catch (e) { console.log('Re-enrich error:', e.message); }
+        }
+        const apolloIds = {};
+        contacts.forEach(c => { if (c.apollo_id) apolloIds[c.apollo_id] = true; });
+        const allContacts = [];
+        people.forEach(p => {
+          if (p.id && !apolloIds[p.id]) {
+            allContacts.push({
+              apollo_id: p.id, first_name: p.first_name || '',
+              last_name_obfuscated: (p.last_name || '').charAt(0) + '.',
+              title: p.title || '', photo_url: p.photo_url || '',
+              linkedin_url: p.linkedin_url || '', has_city: !!p.city, has_state: !!p.state
+            });
+          }
+        });
+        lead.contacts = contacts;
+        lead.allContacts = allContacts;
+        lead.contactsEnrichedAt = Date.now();
+        console.log('Re-enrichment complete:', lead.company, '| contacts:', contacts.length, '| elapsed:', (Date.now() - enrichStart) + 'ms');
+      }
+      try {
+        await Promise.race([
+          reEnrich(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('reenrich_timeout')), 25000))
+        ]);
+      } catch (e) {
+        console.log('Re-enrichment timeout/error:', e.message);
+        lead.contactsEnrichedAt = Date.now();
+      }
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
     // --- Default: generic field update ---
     const updates = body.updates;
     if (!updates) return res.status(400).json({ error: 'Missing updates or action' });
@@ -267,6 +455,39 @@ module.exports = async function handler(req, res) {
         }
       } catch (e) { console.log('Extract error:', e.message); }
       return res.status(200).json({ ok: false, error: 'Could not parse job description' });
+    }
+
+    if (action === 'contact_search') {
+      const { org_id, person_titles, q_keywords, person_departments, person_seniorities, person_locations, per_page } = body;
+      if (!org_id) return res.status(400).json({ error: 'Missing org_id' });
+      const searchBody = { organization_ids: [org_id], per_page: per_page || 10 };
+      if (person_titles && person_titles.length) searchBody.person_titles = person_titles;
+      if (q_keywords) searchBody.q_keywords = q_keywords;
+      if (person_departments && person_departments.length) searchBody.person_departments = person_departments;
+      if (person_seniorities && person_seniorities.length) searchBody.person_seniorities = person_seniorities;
+      if (person_locations && person_locations.length) searchBody.person_locations = person_locations;
+      try {
+        const res2 = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
+          method: 'POST',
+          headers: { 'x-api-key': process.env.APOLLO_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify(searchBody)
+        });
+        if (!res2.ok) return res.status(502).json({ error: 'Apollo search failed' });
+        const data = await res2.json();
+        const people = (data.people || []).map(p => ({
+          apollo_id: p.id || '',
+          first_name: p.first_name || '',
+          last_name_initial: ((p.last_name || '').charAt(0) || '') + '.',
+          title: p.title || '',
+          city: p.city || '',
+          state: p.state || '',
+          linkedin_url: p.linkedin_url || '',
+          photo_url: p.photo_url || ''
+        }));
+        return res.status(200).json({ ok: true, people });
+      } catch (e) {
+        return res.status(500).json({ error: 'Search error: ' + e.message });
+      }
     }
 
     if (action === 'add_lead') {
