@@ -299,7 +299,7 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { position: relative; background: #3a3a3a; border-radius: 16px; margin-bottom: 24px; overflow: visible; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card { position: relative; background: #3a3a3a; border-radius: 16px; margin: 0 0 24px 6px; overflow: visible; box-shadow: -4px 0 0 var(--accent-color, transparent), 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
 '.card > .card-top { border-top-left-radius: 16px; border-top-right-radius: 16px; }\n' +
 '.card-top { background: linear-gradient(135deg, #2a3a5c 0%, #1e2a42 60%, #161e30 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); position: relative; z-index: 1; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
@@ -1436,7 +1436,7 @@ module.exports = async function handler(req, res) {
 '  var notesBtnHtml = unreadCount > 0\n' +
 '    ? \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" data-tooltip="Unread note from admin" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+unreadCount+\'</span></button>\'\n' +
 '    : "";\n' +
-'  return \'<div class="card" id="card-\'+safeId+\'" style="border-left:4px solid \'+statusBorderColor+\';">\'+amBadgeHtml+notesBtnHtml+\n' +
+'  return \'<div class="card" id="card-\'+safeId+\'" style="--accent-color:\'+statusBorderColor+\';">\'+amBadgeHtml+notesBtnHtml+\n' +
 '    \'<div class="card-top">\'+\n' +
 '      \'<div class="card-top-left">\'+\n' +
 '        \'<div class="company-logo-wrap" id="logo-\'+safeId+\'" style="display:none;"></div>\'+\n' +
