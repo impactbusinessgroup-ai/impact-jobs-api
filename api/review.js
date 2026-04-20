@@ -594,10 +594,14 @@ module.exports = async function handler(req, res) {
 '.date-custom-inputs.visible { display: flex; }\n' +
 '.date-custom-inputs input { font-family: Raleway, sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; outline: none; }\n' +
 '.date-custom-inputs input:focus { border-color: rgba(232,98,10,0.5); }\n' +
-'.stat-cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }\n' +
+'.stat-cards-row { display: block; margin-bottom: 28px; }\n' +
 '.stat-card { background: #2e2e2e; border-radius: 14px; padding: 20px; border: 1px solid #3a3a3a; }\n' +
 '.stat-card-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-family: Raleway, sans-serif; }\n' +
 '.stat-card-value { font-size: 32px; font-weight: 700; color: #E8620A; font-family: Oswald, sans-serif; line-height: 1; }\n' +
+'.funnel-wrap { width: 100%; padding: 6px 0 2px; }\n' +
+'.funnel-wrap svg { width: 100%; height: auto; display: block; max-width: 100%; }\n' +
+'.funnel-rate { text-align: center; font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 14px; font-family: Raleway, sans-serif; }\n' +
+'.funnel-rate strong { color: #E8620A; font-weight: 700; font-family: Oswald, sans-serif; font-size: 15px; letter-spacing: 0.5px; }\n' +
 '.leaderboard { background: #2e2e2e; border-radius: 14px; padding: 20px 24px; border: 1px solid #3a3a3a; margin-bottom: 28px; }\n' +
 '.leaderboard h3 { font-family: Oswald, sans-serif; font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; letter-spacing: 0.5px; }\n' +
 '.lb-row { display: grid; grid-template-columns: 160px 1fr 80px 80px 80px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; border-radius: 6px; padding-left: 8px; padding-right: 8px; }\n' +
@@ -3075,6 +3079,7 @@ module.exports = async function handler(req, res) {
 '  Object.keys(_inactivitySelected).forEach(function(id){ if(!visibleIds[id]) delete _inactivitySelected[id]; });\n' +
 '  _g("inactivity-sub").innerHTML = list.length ? \'<span style="color:#FFA000;font-weight:600;">\' + list.length + \' lead\' + (list.length===1?"":"s") + \' in queue</span>\' : \'<span style="color:#666;">No leads in queue</span>\';\n' +
 '  var toolbar = \'<div class="inact-toolbar">\'+\n' +
+'    \'<label class="inact-select-all"><input type="checkbox" id="inact-select-all" onchange="toggleInactivitySelectAll(this)"> Select All</label>\'+\n' +
 '    \'<div class="custom-dd" id="idd-category"><button class="custom-dd-btn" onclick="toggleInactFilterDD(&apos;category&apos;,event)"><span class="custom-dd-label" id="ilbl-category">All Categories</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="ipanel-category"></div></div>\'+\n' +
 '    \'<div class="custom-dd" id="idd-location"><button class="custom-dd-btn" onclick="toggleInactFilterDD(&apos;location&apos;,event)"><span class="custom-dd-label" id="ilbl-location">All Locations</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="ipanel-location"></div></div>\'+\n' +
 '    \'<span class="inact-selected-count" id="inact-selected-count">0 selected</span>\'+\n' +
@@ -3116,10 +3121,20 @@ module.exports = async function handler(req, res) {
 '  if(checked) _inactivitySelected[leadId]=true; else delete _inactivitySelected[leadId];\n' +
 '  _updateInactivityToolbar();\n' +
 '}\n' +
+'function toggleInactivitySelectAll(el) {\n' +
+'  // Only affects currently visible (filtered) rows\n' +
+'  _inactivityList.forEach(function(l){\n' +
+'    if(el.checked) _inactivitySelected[l.id]=true; else delete _inactivitySelected[l.id];\n' +
+'    var sid=getSafeId(l.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
+'    var cb=cardEl.querySelector(".inact-card-checkbox"); if(cb) cb.checked=el.checked;\n' +
+'  });\n' +
+'  _updateInactivityToolbar();\n' +
+'}\n' +
 'function _updateInactivityToolbar() {\n' +
 '  var n = Object.keys(_inactivitySelected).length;\n' +
 '  var ct=_g("inact-selected-count"); if(ct) ct.textContent = n + " selected";\n' +
 '  var btn=_g("inact-reassign-btn"); if(btn) btn.disabled = (n === 0);\n' +
+'  var sa=_g("inact-select-all"); if(sa) sa.checked = (_inactivityList.length > 0 && n >= _inactivityList.length);\n' +
 '}\n' +
 '\n' +
 '/* ===== Bulk reassign modal ===== */\n' +
@@ -3321,12 +3336,60 @@ module.exports = async function handler(req, res) {
 '  } catch (e) { console.error("Analytics load error:", e); }\n' +
 '}\n' +
 '\n' +
+'function _buildFunnelSvg(stats) {\n' +
+'  var W = 900, H = 240;\n' +
+'  var sectionW = 280;\n' +
+'  var baseX = 20;\n' +
+'  var cy = 140;\n' +
+'  var maxH = 140;\n' +
+'  var lr = Number(stats.leadsReceived || 0);\n' +
+'  var os = Number(stats.outreachSent || 0);\n' +
+'  var cm = Number(stats.contactsMade || 0);\n' +
+'  var denom = lr > 0 ? lr : 1;\n' +
+'  var h1L = maxH;\n' +
+'  var h1R = Math.max(34, (os / denom) * maxH);\n' +
+'  var h2L = h1R;\n' +
+'  var h2R = Math.max(22, (cm / denom) * maxH);\n' +
+'  var h3L = h2R;\n' +
+'  var h3R = Math.max(16, h3L * 0.8);\n' +
+'  function trap(x, w, hL, hR, color, num, label) {\n' +
+'    var pts = [x, cy-hL/2, x+w, cy-hR/2, x+w, cy+hR/2, x, cy+hL/2].join(",");\n' +
+'    return \'<polygon points="\'+pts+\'" fill="\'+color+\'"/>\'+\n' +
+'      \'<text x="\'+(x+w/2)+\'" y="\'+(cy-4)+\'" fill="#ffffff" font-family="Oswald, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">\'+num+\'</text>\'+\n' +
+'      \'<text x="\'+(x+w/2)+\'" y="\'+(cy+24)+\'" fill="rgba(255,255,255,0.92)" font-family="Raleway, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1.2">\'+label.toUpperCase()+\'</text>\';\n' +
+'  }\n' +
+'  var conv1 = lr > 0 ? Math.round((os / lr) * 100) : 0;\n' +
+'  var conv2 = os > 0 ? Math.round((cm / os) * 100) : 0;\n' +
+'  function chip(x, pct) {\n' +
+'    var cw = 82, ch = 30;\n' +
+'    var cx = x - cw/2;\n' +
+'    var cyChip = 24;\n' +
+'    return \'<g transform="translate(\'+cx+\',\'+cyChip+\')">\'+\n' +
+'      \'<rect width="\'+cw+\'" height="\'+ch+\'" rx="15" fill="#1a1a1a" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>\'+\n' +
+'      \'<text x="\'+(cw/2 - 8)+\'" y="20" fill="#ffffff" font-family="Raleway, Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle">\'+pct+\'%</text>\'+\n' +
+'      \'<text x="\'+(cw - 14)+\'" y="21" fill="#E8620A" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">\\u2192</text>\'+\n' +
+'      \'<line x1="\'+(cw/2)+\'" y1="\'+ch+\'" x2="\'+(cw/2)+\'" y2="\'+(cy - ch - 8)+\'" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,3"/>\'+\n' +
+'    \'</g>\';\n' +
+'  }\n' +
+'  var svg = \'<svg viewBox="0 0 \'+W+\' \'+H+\'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Funnel">\';\n' +
+'  svg += trap(baseX, sectionW, h1L, h1R, "#0F1E3D", lr, "Leads Received");\n' +
+'  svg += trap(baseX + sectionW, sectionW, h2L, h2R, "#1A4EA2", os, "Outreach Sent");\n' +
+'  svg += trap(baseX + sectionW*2, sectionW, h3L, h3R, "#E8620A", cm, "Contacts Made");\n' +
+'  svg += chip(baseX + sectionW, conv1);\n' +
+'  svg += chip(baseX + sectionW*2, conv2);\n' +
+'  svg += \'</svg>\';\n' +
+'  return svg;\n' +
+'}\n' +
+'function _renderFunnel(containerId, stats) {\n' +
+'  var el = _g(containerId); if(!el) return;\n' +
+'  var lr = Number(stats.leadsReceived || 0);\n' +
+'  var cm = Number(stats.contactsMade || 0);\n' +
+'  var rate = lr > 0 ? Math.round((cm / lr) * 100) : 0;\n' +
+'  el.innerHTML = \'<div class="funnel-wrap">\' + _buildFunnelSvg(stats) + \'<div class="funnel-rate">Overall completion rate: <strong>\' + rate + \'%</strong></div></div>\';\n' +
+'}\n' +
 'function renderAnalyticsSummary(s) {\n' +
-'  _g("analytics-summary").innerHTML =\n' +
-'    \'<div class="stat-card"><div class="stat-card-label">Total Leads Received</div><div class="stat-card-value">\' + s.totalLeads + \'</div></div>\' +\n' +
-'    \'<div class="stat-card"><div class="stat-card-label">Total Outreach Sent</div><div class="stat-card-value">\' + s.totalOutreach + \'</div></div>\' +\n' +
-'    \'<div class="stat-card"><div class="stat-card-label">Contacts Made</div><div class="stat-card-value">\' + s.totalContactsMade + \'</div></div>\' +\n' +
-'    \'<div class="stat-card"><div class="stat-card-label">Completion Rate</div><div class="stat-card-value">\' + s.completionRate + \'%</div></div>\';\n' +
+'  _g("analytics-summary").innerHTML = \'<div id="analytics-funnel"></div>\';\n' +
+'  _renderFunnel("analytics-funnel", { leadsReceived: s.totalLeads, outreachSent: s.totalOutreach, contactsMade: s.totalContactsMade });\n' +
 '}\n' +
 '\n' +
 'function renderLeaderboard(ams) {\n' +
@@ -3362,7 +3425,9 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function renderAmDetail(am) {\n' +
-'  var h = \'<h3>\' + am.name + \' — Individual Stats</h3>\';\n' +
+'  var h = \'<h3>\' + am.name + \' \\u2014 Individual Stats</h3>\';\n' +
+'  var amFunnelId = "am-funnel-" + (am.email || "unknown").replace(/[^a-zA-Z0-9]/g, "_");\n' +
+'  h += \'<div id="\' + amFunnelId + \'" style="margin-bottom:24px;"></div>\';\n' +
 '  // Progress bar: leads received vs actioned\n' +
 '  var actioned = am.outreachSent + Object.values(am.removalReasons).reduce(function(s,v){return s+v;},0);\n' +
 '  var pctActioned = am.leadsReceived > 0 ? Math.min(100, Math.round((actioned / am.leadsReceived) * 100)) : 0;\n' +
@@ -3411,6 +3476,8 @@ module.exports = async function handler(req, res) {
 '    h += \'</div></div>\';\n' +
 '  }\n' +
 '  _g("analytics-am-detail").innerHTML = h;\n' +
+'  var amContactsMade = (am.removalReasons && Number(am.removalReasons.made_contact || 0)) || 0;\n' +
+'  _renderFunnel(amFunnelId, { leadsReceived: am.leadsReceived, outreachSent: am.outreachSent, contactsMade: amContactsMade });\n' +
 '}\n' +
 '\n' +
 'init();\n' +
