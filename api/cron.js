@@ -302,6 +302,9 @@ async function fireReminders() {
 
 // --- Morning email ---
 async function sendMorningEmail() {
+  // Stagger concurrent invocations by up to 3s to reduce race contention
+  await new Promise(r => setTimeout(r, Math.random() * 3000));
+
   const today = new Date();
 
   // Skip on weekends (Saturday=6, Sunday=0) in ET
@@ -323,6 +326,10 @@ async function sendMorningEmail() {
   const dateKey = 'cron_email_sent_' + dateStr;
   const alreadySent = await redisGet(dateKey);
   if (alreadySent) { console.log('Morning email already sent today'); return false; }
+
+  // Reserve the day-level guard immediately so any later instance that
+  // acquires the short lock still short-circuits on the alreadySent check.
+  await redisSet(dateKey, true, 86400);
 
   const keys = await redisKeys('lead:*');
   const AM_LIST = [
@@ -407,7 +414,6 @@ async function sendMorningEmail() {
     sentCount++;
   }
 
-  await redisSet(dateKey, true, 86400);
   console.log('Morning emails sent: ' + sentCount + ' AMs');
   return true;
 }
