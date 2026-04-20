@@ -208,6 +208,7 @@ module.exports = async function handler(req, res) {
 '.custom-dd-chevron { color: #E8620A; font-size: 10px; line-height: 1; margin-left: auto; transition: transform 0.15s; }\n' +
 '.custom-dd.open .custom-dd-chevron { transform: rotate(180deg); }\n' +
 '.custom-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #2e2e2e; border: 1px solid #444; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; display: none; max-height: 320px; overflow-y: auto; padding: 4px 0; }\n' +
+'#panel-am, #panel-status { overflow-x: hidden; width: max-content; min-width: 100%; }\n' +
 '.custom-dd.open .custom-dd-panel { display: block; }\n' +
 '.custom-dd-opt { padding: 10px 16px; color: #fff; font-size: 13px; font-family: Raleway, sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.1s; }\n' +
 '.custom-dd-opt:hover { background: #3a3a3a; color: #fff; }\n' +
