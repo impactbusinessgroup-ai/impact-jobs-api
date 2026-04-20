@@ -135,6 +135,37 @@ module.exports = async function handler(req, res) {
 '.btn-cal { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; }\n' +
 '.btn-cal:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
 '.btn-cal.active-away { color: #cc3333; }\n' +
+'.btn-help { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 16px; }\n' +
+'.btn-help:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
+'.help-modal { max-width: 700px !important; width: 92% !important; }\n' +
+'.help-hero { padding: 22px 26px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); background: linear-gradient(180deg, rgba(232,98,10,0.08), transparent); }\n' +
+'.help-hero h2 { font-family: Oswald, sans-serif; font-size: 22px; font-weight: 600; color: #fff; margin: 0 0 6px; letter-spacing: 0.5px; }\n' +
+'.help-hero p { margin: 0 0 14px; font-size: 13px; color: rgba(255,255,255,0.6); font-family: Raleway, sans-serif; }\n' +
+'.help-tour-btn { background: #E8620A; color: #fff; border: none; padding: 11px 22px; border-radius: 8px; font-family: Raleway, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 10px rgba(232,98,10,0.35); }\n' +
+'.help-tour-btn:hover { background: #cc5200; }\n' +
+'.cheat-grid { padding: 8px 26px 22px; }\n' +
+'.cheat-section { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }\n' +
+'.cheat-section:last-child { border-bottom: none; }\n' +
+'.cheat-section h3 { font-family: Oswald, sans-serif; font-size: 14px; font-weight: 600; color: #E8620A; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px; }\n' +
+'.cheat-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-family: Raleway, sans-serif; font-size: 13px; color: rgba(255,255,255,0.8); cursor: help; position: relative; }\n' +
+'.cheat-item:hover { color: #fff; }\n' +
+'.cheat-item .info-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; flex-shrink: 0; }\n' +
+'.cheat-item:hover .info-icon { background: #E8620A; color: #fff; }\n' +
+'.tour-overlay { display: none; position: fixed; inset: 0; z-index: 9000; pointer-events: none; }\n' +
+'.tour-overlay.active { display: block; pointer-events: auto; }\n' +
+'.tour-spotlight { position: fixed; background: transparent; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(5,10,20,0.72); pointer-events: none; transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease; z-index: 9001; }\n' +
+'.tour-card { position: fixed; z-index: 9002; background: #1a1a1a; border: 1px solid #2f2f2f; border-radius: 12px; padding: 18px 20px 16px; max-width: 340px; min-width: 260px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); font-family: Raleway, sans-serif; color: #fff; transition: top 0.25s ease, left 0.25s ease; }\n' +
+'.tour-card-step { font-size: 10px; font-weight: 700; color: #E8620A; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-family: Oswald, sans-serif; }\n' +
+'.tour-card h4 { font-family: Oswald, sans-serif; font-size: 17px; font-weight: 600; color: #fff; margin: 0 0 8px; letter-spacing: 0.3px; }\n' +
+'.tour-card p { font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.78); margin: 0 0 14px; }\n' +
+'.tour-actions { display: flex; align-items: center; gap: 8px; }\n' +
+'.tour-skip { background: transparent; border: none; color: rgba(255,255,255,0.4); font-size: 12px; font-family: Raleway, sans-serif; cursor: pointer; padding: 6px 8px; margin-right: auto; text-decoration: underline; }\n' +
+'.tour-skip:hover { color: #fff; }\n' +
+'.tour-prev { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }\n' +
+'.tour-prev:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; }\n' +
+'.tour-prev:disabled { opacity: 0.35; cursor: not-allowed; }\n' +
+'.tour-next { background: #E8620A; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }\n' +
+'.tour-next:hover { background: #cc5200; }\n' +
 '.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }\n' +
 '.cal-head { text-align: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; font-family: Raleway, sans-serif; padding: 4px 0; }\n' +
 '.cal-day { text-align: center; padding: 8px 0; font-size: 13px; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.03); border: 1px solid transparent; border-radius: 6px; cursor: pointer; user-select: none; font-family: Raleway, sans-serif; transition: background 0.1s; }\n' +
@@ -701,6 +732,7 @@ module.exports = async function handler(req, res) {
 '      <button class="btn-add-lead has-tooltip" data-tooltip="Add Job Description" onclick="openAddModal()">+</button>\n' +
 '      <button class="btn-archive has-tooltip" data-tooltip="Re-activate skipped &amp; blocked jobs" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
 '      <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Schedule days to skip leads" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
+'      <button class="btn-help has-tooltip" id="btn-help" data-tooltip="Help &amp; Getting Started" onclick="openHelpModal()">?</button>\n' +
 '    </div>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
@@ -883,6 +915,34 @@ module.exports = async function handler(req, res) {
 '    </div>\n' +
 '  </div>\n' +
 '  <div id="inactivity-container"><div class="loading">Loading inactivity queue...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="help-overlay" onclick="if(event.target===this)closeHelpModal()">\n' +
+'  <div class="modal help-modal">\n' +
+'    <div class="modal-header" style="border-bottom:none;padding-bottom:0;"><h3>&nbsp;</h3><button class="modal-close" onclick="closeHelpModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body" style="padding:0;">\n' +
+'      <div class="help-hero">\n' +
+'        <h2>Welcome to your lead dashboard</h2>\n' +
+'        <p>A quick reference for working leads efficiently.</p>\n' +
+'        <button class="help-tour-btn" onclick="closeHelpModal();startGuidedTour();">Take the Guided Tour</button>\n' +
+'      </div>\n' +
+'      <div class="cheat-grid" id="cheat-grid"></div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="tour-overlay" id="tour-overlay">\n' +
+'  <div class="tour-spotlight" id="tour-spotlight"></div>\n' +
+'  <div class="tour-card" id="tour-card">\n' +
+'    <div class="tour-card-step" id="tour-card-step"></div>\n' +
+'    <h4 id="tour-card-heading"></h4>\n' +
+'    <p id="tour-card-body"></p>\n' +
+'    <div class="tour-actions">\n' +
+'      <button class="tour-skip" onclick="endGuidedTour(true)">Skip</button>\n' +
+'      <button class="tour-prev" id="tour-prev-btn" onclick="tourPrev()">Previous</button>\n' +
+'      <button class="tour-next" id="tour-next-btn" onclick="tourNext()">Next</button>\n' +
+'    </div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="modal-overlay" id="cal-overlay" onclick="if(event.target===this)closeCalendarModal()">\n' +
@@ -1125,6 +1185,7 @@ module.exports = async function handler(req, res) {
 '    if(scrollTarget){ localStorage.removeItem("scrollToCard"); setTimeout(function(){ var el=document.getElementById(scrollTarget); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); },300); }\n' +
 '    refreshArchiveBadge();\n' +
 '    restoreActiveTabFromSession();\n' +
+'    maybeAutoLaunchTour();\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
@@ -1326,6 +1387,149 @@ module.exports = async function handler(req, res) {
 '  "drew bentsen": "dbentsen@impactbusinessgroup.com",\n' +
 '  "steve betteley": "sbetteley@impactbusinessgroup.com"\n' +
 '};\n' +
+'\n' +
+'/* ===== Help modal + guided tour ===== */\n' +
+'var _cheatSections = [\n' +
+'  { title: "Working a lead", items: [\n' +
+'    ["Click a contact tile to activate it", "Activating a contact loads their info into the email composer below so you can write a message to that specific person."],\n' +
+'    ["Get Email reveals a verified email address", "Uses one Apollo credit per reveal. Only click when you\\u2019re ready to reach out."],\n' +
+'    ["Custom Message generates an AI-personalized email", "Uses Gemini to draft a personalized outreach email referencing the company, role, and a matched IBG case study. Edit as needed before sending."],\n' +
+'    ["Email and LinkedIn tabs switch between message types", "Use the Email tab to send via Outlook. Use the LinkedIn tab to copy a shorter message for LinkedIn outreach."]\n' +
+'  ]},\n' +
+'  { title: "Contact actions", items: [\n' +
+'    ["Blue checkmark on each tile opens the action menu", "From here you can log an outreach action or remove a contact with a reason."],\n' +
+'    ["Log outreach: Email, LinkedIn Message, or LinkedIn Connect", "Check any or all of the three methods you used. This records the outreach and updates analytics."],\n' +
+'    ["Remove reasons: Made Contact, Wrong Contact Type, Existing Contact, Not Interested, Other", "Use Made Contact when you successfully connected. Others remove the contact without counting as a successful connection."]\n' +
+'  ]},\n' +
+'  { title: "Finding more contacts", items: [\n' +
+'    ["Plus button searches Apollo for more contacts at the company", "Search by name, title, department, seniority, or location. Scoped to the company\\u2019s Apollo record."],\n' +
+'    ["Manual Entry adds a contact you already have", "Enter first name, last name, title, email, and optional LinkedIn. Useful for contacts you found outside Apollo."]\n' +
+'  ]},\n' +
+'  { title: "Closing a lead", items: [\n' +
+'    ["Complete Lead turns green when every contact has been actioned", "Every contact on the card must have either outreach logged or be removed before you can complete the lead."],\n' +
+'    ["Completing a lead starts the 3-day follow-up cycle", "The lead is archived and reappears on your dashboard after 3 business days as a follow-up reminder."]\n' +
+'  ]},\n' +
+'  { title: "Skip vs Block", items: [\n' +
+'    ["Skip dismisses this one lead only", "The company stays in the system. Future leads from the same company will still appear."],\n' +
+'    ["Block dismisses the lead AND adds the company to a blocklist", "No future leads from this company will come through. Use for companies you\\u2019ve permanently decided not to pursue."],\n' +
+'    ["Both require a reason", "Reasons help the team understand patterns and improve filtering over time."]\n' +
+'  ]},\n' +
+'  { title: "Reassign", items: [\n' +
+'    ["Hand the lead to a different AM", "Use when a lead is better suited to another AM\\u2019s specialty. Choose the AM, add an optional note, and the lead moves to their dashboard."]\n' +
+'  ]},\n' +
+'  { title: "Follow-up reminders", items: [\n' +
+'    ["Completed leads return every 3 business days, up to 3 times", "This keeps you touching base with prospects who haven\\u2019t responded yet."],\n' +
+'    ["Close Out permanently closes a lead", "After the 3rd reminder, you can Close Out or Add 3-day Reminder if you want more time."]\n' +
+'  ]},\n' +
+'  { title: "Header icons", items: [\n' +
+'    ["Calendar: set out-of-office days", "Add date ranges when you\\u2019re away. Leads won\\u2019t be routed to you on those days."],\n' +
+'    ["Undo: restore skipped or blocked leads", "Brings back leads you dismissed in the last 1, 3, or 7 days."],\n' +
+'    ["Plus: manually add a job lead", "For leads you found outside the system that you want to work through the dashboard."],\n' +
+'    ["Question mark: open this help any time", "Includes the cheat sheet and a button to re-launch the guided tour."]\n' +
+'  ]},\n' +
+'  { title: "Card status colors", items: [\n' +
+'    ["Green border: new lead, no outreach yet", "Freshly enriched and waiting for you to act on it."],\n' +
+'    ["Grey border: outreach in progress", "At least one contact has been actioned."],\n' +
+'    ["Blue border: follow-up reminder stage 1 or 2", "You\\u2019ve completed this lead and it\\u2019s back for follow-up."],\n' +
+'    ["Orange border: follow-up reminder stage 3 or later", "Final reminder stages. Decide whether to follow up once more or close out."]\n' +
+'  ]}\n' +
+'];\n' +
+'function _renderCheatSheet() {\n' +
+'  var el = _g("cheat-grid"); if(!el) return;\n' +
+'  el.innerHTML = _cheatSections.map(function(sec){\n' +
+'    var items = sec.items.map(function(it){\n' +
+'      return \'<div class="cheat-item has-tooltip" data-tooltip="\'+escHtml(it[1])+\'"><span>\'+escHtml(it[0])+\'</span><span class="info-icon">i</span></div>\';\n' +
+'    }).join("");\n' +
+'    return \'<div class="cheat-section"><h3>\'+escHtml(sec.title)+\'</h3>\'+items+\'</div>\';\n' +
+'  }).join("");\n' +
+'}\n' +
+'function openHelpModal() {\n' +
+'  _renderCheatSheet();\n' +
+'  _g("help-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeHelpModal() { _g("help-overlay").classList.remove("open"); }\n' +
+'\n' +
+'var _tourSteps = [\n' +
+'  { target: function(){ return document.querySelector("#leads-container .card"); }, heading: "This is a lead card", body: "Each card is a company that\\u2019s actively hiring. The colored bar on the left shows its status. Let\\u2019s walk through how to work one." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .card .contacts-row"); }, heading: "Contacts", body: "These are hiring managers we found at the company. Click any tile to activate it for outreach." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .btn-fetch"); }, heading: "Get Email", body: "Click this to reveal a verified email address. Uses one Apollo credit per reveal." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .composer"); }, heading: "Email composer", body: "Write your outreach here. Click Custom Message for an AI-personalized draft, or edit the default template directly." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .btn-check"); }, heading: "Log outreach", body: "When you\\u2019ve reached out or want to remove a contact, click the checkmark. Log what method you used, or remove with a reason." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .btn-ac-circle"); }, heading: "Find more contacts", body: "Need more people at this company? Search Apollo or add a contact manually." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .card-footer"); }, heading: "Footer actions", body: "Skip dismisses this lead. Block adds the company to a permanent blocklist. Reassign sends it to another AM. Complete Lead closes it out once all contacts are actioned." },\n' +
+'  { target: function(){ return document.querySelector("#leads-container .card"); }, heading: "Follow-up cycle", body: "Completed leads reappear every 3 business days up to 3 times as reminders. The border color tells you the stage." },\n' +
+'  { target: function(){ return _g("btn-help"); }, heading: "You\\u2019re set", body: "Click the question mark any time to reopen this tour or the cheat sheet." }\n' +
+'];\n' +
+'var _tourIdx = 0;\n' +
+'function _tourAuthKey() {\n' +
+'  var tk = (_params.get("token")||"").trim();\n' +
+'  return "tour_seen_" + (tk || AM.email || "anon");\n' +
+'}\n' +
+'function maybeAutoLaunchTour() {\n' +
+'  try {\n' +
+'    if (localStorage.getItem(_tourAuthKey())) return;\n' +
+'  } catch(e) { return; }\n' +
+'  // Small delay so leads have painted before we try to highlight them\n' +
+'  setTimeout(function(){ startGuidedTour(); }, 600);\n' +
+'}\n' +
+'function startGuidedTour() {\n' +
+'  if (currentTab !== "leads") { try { switchTab("leads"); } catch(e){} }\n' +
+'  _tourIdx = 0;\n' +
+'  _g("tour-overlay").classList.add("active");\n' +
+'  _renderTourStep();\n' +
+'}\n' +
+'function endGuidedTour(fromSkip) {\n' +
+'  _g("tour-overlay").classList.remove("active");\n' +
+'  try { localStorage.setItem(_tourAuthKey(), new Date().toISOString()); } catch(e) {}\n' +
+'}\n' +
+'function tourNext() {\n' +
+'  if (_tourIdx >= _tourSteps.length - 1) { endGuidedTour(false); return; }\n' +
+'  _tourIdx++; _renderTourStep();\n' +
+'}\n' +
+'function tourPrev() { if (_tourIdx > 0) { _tourIdx--; _renderTourStep(); } }\n' +
+'function _renderTourStep() {\n' +
+'  var step = _tourSteps[_tourIdx]; if(!step) return;\n' +
+'  var el = null;\n' +
+'  try { el = step.target(); } catch(e) { el = null; }\n' +
+'  _g("tour-card-step").textContent = "Step " + (_tourIdx+1) + " of " + _tourSteps.length;\n' +
+'  _g("tour-card-heading").textContent = step.heading;\n' +
+'  _g("tour-card-body").textContent = step.body;\n' +
+'  _g("tour-prev-btn").disabled = (_tourIdx === 0);\n' +
+'  _g("tour-next-btn").textContent = (_tourIdx === _tourSteps.length - 1) ? "Finish" : "Next";\n' +
+'  var spotlight = _g("tour-spotlight");\n' +
+'  var card = _g("tour-card");\n' +
+'  if (!el) {\n' +
+'    spotlight.style.display = "none";\n' +
+'    card.style.top = "50%"; card.style.left = "50%"; card.style.transform = "translate(-50%,-50%)";\n' +
+'    return;\n' +
+'  }\n' +
+'  // Bring the target into view first so geometry is stable\n' +
+'  try { el.scrollIntoView({behavior:"smooth", block:"center", inline:"center"}); } catch(e) {}\n' +
+'  setTimeout(function(){\n' +
+'    var r = el.getBoundingClientRect();\n' +
+'    var pad = 8;\n' +
+'    spotlight.style.display = "block";\n' +
+'    spotlight.style.top = (r.top - pad) + "px";\n' +
+'    spotlight.style.left = (r.left - pad) + "px";\n' +
+'    spotlight.style.width = (r.width + pad*2) + "px";\n' +
+'    spotlight.style.height = (r.height + pad*2) + "px";\n' +
+'    // Place card below the spotlight if there\\u2019s room; else above; else to the right; else center\n' +
+'    card.style.transform = "none";\n' +
+'    var cardW = 340, cardH = card.offsetHeight || 180, margin = 14;\n' +
+'    var top, left;\n' +
+'    if (r.bottom + margin + cardH < window.innerHeight) { top = r.bottom + margin; left = Math.min(Math.max(8, r.left), window.innerWidth - cardW - 8); }\n' +
+'    else if (r.top - margin - cardH > 0) { top = r.top - margin - cardH; left = Math.min(Math.max(8, r.left), window.innerWidth - cardW - 8); }\n' +
+'    else if (r.right + margin + cardW < window.innerWidth) { top = Math.max(8, Math.min(r.top, window.innerHeight - cardH - 8)); left = r.right + margin; }\n' +
+'    else { top = Math.max(8, (window.innerHeight - cardH) / 2); left = Math.max(8, (window.innerWidth - cardW) / 2); }\n' +
+'    card.style.top = top + "px";\n' +
+'    card.style.left = left + "px";\n' +
+'  }, 280);\n' +
+'}\n' +
+'document.addEventListener("keydown", function(e){\n' +
+'  if (e.key !== "Escape") return;\n' +
+'  if (_g("tour-overlay") && _g("tour-overlay").classList.contains("active")) { endGuidedTour(true); return; }\n' +
+'  if (_g("help-overlay") && _g("help-overlay").classList.contains("open")) { closeHelpModal(); return; }\n' +
+'});\n' +
 '\n' +
 'function updateAmScoreboard() {\n' +
 '  if(AM.role === "admin") return;\n' +
