@@ -300,6 +300,59 @@ async function fireReminders() {
   return reminded;
 }
 
+// --- Morning email HTML builder (Outlook-safe, tables + inline styles only) ---
+function buildMorningEmailHtml(ctx) {
+  var ORANGE = '#E8620A';
+  var NAVY = '#0F1E3D';
+  var DARK_BOX = '#1a1a1a';
+  var PAGE_BG = '#e8e8e8';
+  var CARD_BG = '#ffffff';
+  var LABEL_GREY = '#888888';
+  var BODY_FONT = 'Arial, Helvetica, sans-serif';
+
+  function statBox(num, label) {
+    return '<td align="center" valign="middle" width="25%" style="padding:0 4px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + DARK_BOX + ';border-radius:10px;">' +
+        '<tr><td align="center" style="padding:20px 6px;">' +
+          '<div style="font-size:30px;font-weight:700;color:' + ORANGE + ';font-family:' + BODY_FONT + ';line-height:1;">' + num + '</div>' +
+          '<div style="font-size:10px;font-weight:600;color:' + LABEL_GREY + ';text-transform:uppercase;letter-spacing:0.6px;font-family:' + BODY_FONT + ';padding-top:10px;">' + label + '</div>' +
+        '</td></tr>' +
+      '</table>' +
+    '</td>';
+  }
+
+  return '' +
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + PAGE_BG + ';">' +
+      '<tr><td align="center" style="padding:24px 12px;">' +
+        '<table width="600" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + CARD_BG + ';border-radius:12px;overflow:hidden;">' +
+          '<tr><td align="center" style="background:' + NAVY + ';padding:24px;">' +
+            '<img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" width="160" alt="iMPact Business Group" style="display:block;border:0;outline:none;text-decoration:none;">' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:30px 24px 6px;">' +
+            '<div style="font-size:24px;font-weight:700;color:#1a1a1a;font-family:' + BODY_FONT + ';">Good morning, ' + ctx.firstName + '</div>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 26px;">' +
+            '<div style="font-size:13px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">' + ctx.todayLabel + '</div>' +
+          '</td></tr>' +
+          '<tr><td style="padding:0 20px 28px;">' +
+            '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>' +
+              statBox(ctx.newToday, 'New Today') +
+              statBox(ctx.totalPending, 'Total Pending') +
+              statBox(ctx.followupsDue, 'Follow-ups Due') +
+              statBox(ctx.totalContacts, 'Total Contacts') +
+            '</tr></table>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 34px;">' +
+            '<a href="' + ctx.reviewUrl + '" style="display:inline-block;background:' + ORANGE + ';color:#ffffff;font-size:15px;font-weight:700;padding:14px 36px;border-radius:8px;text-decoration:none;font-family:' + BODY_FONT + ';">Review My Leads</a>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:18px 24px 24px;border-top:1px solid #eeeeee;">' +
+            '<div style="font-size:12px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">iMPact Business Group | Grand Rapids, MI &amp; Tampa, FL</div>' +
+          '</td></tr>' +
+        '</table>' +
+      '</td></tr>' +
+    '</table>';
+}
+
 // --- Morning email ---
 async function sendMorningEmail() {
   // Stagger concurrent invocations by up to 3s to reduce race contention
@@ -331,33 +384,20 @@ async function sendMorningEmail() {
   // acquires the short lock still short-circuits on the alreadySent check.
   await redisSet(dateKey, true, 86400);
 
-  const keys = await redisKeys('lead:*');
-  const AM_LIST = [
-    { email: 'msapoznikov@impactbusinessgroup.com', name: 'Mark', reviewUrl: 'https://impact-jobs-api.vercel.app/review' },
-    { email: 'cwillbrandt@impactbusinessgroup.com', name: 'Curt', reviewUrl: 'https://impact-jobs-api.vercel.app/review?am=cwillbrandt' },
+  const APPROVED_AMS = [
+    { email: 'msapoznikov@impactbusinessgroup.com', fullName: 'Mark Sapoznikov' },
+    { email: 'cwillbrandt@impactbusinessgroup.com', fullName: 'Curt Willbrandt' },
   ];
+  const REVIEW_URL = 'https://impact-jobs-api.vercel.app/review';
 
+  const keys = await redisKeys('lead:*');
   const allLeads = [];
-  const allFollowups = [];
   for (const key of keys) {
     const lead = await redisGet(key);
-    if (!lead) continue;
-    if ((lead.status === 'new' || lead.status === 'pending') && lead.contacts && lead.contacts.length > 0) {
-      allLeads.push(lead);
-    }
-    if (lead.status === 'awaiting_followup') {
-      const lastDate = lead.last_reminder_date || lead.completedAt;
-      if (lastDate && businessDaysBetween(new Date(lastDate), today) >= 3) allFollowups.push(lead);
-    }
+    if (lead) allLeads.push(lead);
   }
 
-  if (!allLeads.length && !allFollowups.length) { console.log('No leads for morning email'); return false; }
-
-  const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
-  const monthName = today.toLocaleDateString('en-US', { month: 'long' });
-  const dateNum = today.getDate();
-
-  const CAT_COLORS = { engineering: '#E8620A', it: '#3B82F6', accounting: '#10B981', other: '#8B5CF6' };
+  const todayLabel = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -365,52 +405,49 @@ async function sendMorningEmail() {
   });
 
   let sentCount = 0;
-  for (const am of AM_LIST) {
-    const newLeads = allLeads.filter(l => (l.assignedAMEmail || '') === am.email);
-    const followupCount = allFollowups.filter(l => (l.assignedAMEmail || '') === am.email).length;
-    if (!newLeads.length && !followupCount) continue;
+  for (const am of APPROVED_AMS) {
+    const amEmailLower = am.email.toLowerCase();
+    const mine = allLeads.filter(l => (l.assignedAMEmail || '').toLowerCase() === amEmailLower);
+    const pending = mine.filter(l =>
+      (l.status === 'new' || l.status === 'pending') &&
+      Array.isArray(l.contacts) && l.contacts.length > 0
+    );
 
-    let totalContacts = 0;
-    const catCounts = { engineering: 0, it: 0, accounting: 0, other: 0 };
-    for (const lead of newLeads) {
-      const cat = lead.category || 'engineering';
-      catCounts[cat] = (catCounts[cat] || 0) + 1;
-      totalContacts += (lead.contacts || []).length;
-    }
+    if (!pending.length) { console.log('No pending leads for ' + am.email + ', skipping'); continue; }
 
-    const leadCards = newLeads.map(function(lead) {
-      const cat = lead.category || 'engineering';
-      const catColor = CAT_COLORS[cat] || '#E8620A';
-      const contactCount = (lead.contacts || []).length;
-      const posted = lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-      return '<tr><td style="padding:0 0 12px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;border-left:4px solid ' + catColor + ';"><tr><td style="padding:14px 16px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:15px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + (lead.jobTitle || '') + '</td></tr><tr><td style="font-size:13px;color:' + catColor + ';font-weight:600;padding-top:2px;font-family:Arial,sans-serif;">' + (lead.company || '') + '</td></tr><tr><td style="font-size:12px;color:#999;padding-top:4px;font-family:Arial,sans-serif;">' + (lead.location || '') + (posted ? ' &middot; Posted ' + posted : '') + '</td></tr><tr><td style="padding-top:8px;"><table cellpadding="0" cellspacing="0"><tr><td style="font-size:11px;color:#666;font-family:Arial,sans-serif;">' + contactCount + ' contact' + (contactCount !== 1 ? 's' : '') + ' found</td><td style="padding-left:12px;"><span style="display:inline-block;font-size:10px;font-weight:700;color:' + catColor + ';background:' + catColor + '15;padding:2px 8px;border-radius:10px;text-transform:uppercase;font-family:Arial,sans-serif;">' + cat + '</span></td></tr></table></td></tr></table></td></tr></table></td></tr>';
-    }).join('');
+    const newToday = pending.filter(l =>
+      l.date === dateStr ||
+      (typeof l.id === 'string' && l.id.indexOf('lead:' + dateStr + ':') === 0)
+    ).length;
+    const totalPending = pending.length;
+    const totalContacts = pending.reduce((s, l) => s + l.contacts.length, 0);
+    const followupsDue = mine.filter(l => {
+      if (l.status !== 'awaiting_followup') return false;
+      const lastDate = l.last_reminder_date || l.completedAt;
+      if (!lastDate) return false;
+      return businessDaysBetween(new Date(lastDate), today) >= 3;
+    }).length;
 
-    const followupRow = followupCount > 0 ? '<tr><td style="padding:0 0 20px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#FFA000;border-radius:8px;"><tr><td style="padding:12px 20px;text-align:center;font-size:14px;font-weight:600;color:#1a1a1a;font-family:Arial,sans-serif;">You have ' + followupCount + ' lead' + (followupCount !== 1 ? 's' : '') + ' to follow up on today</td></tr></table></td></tr>' : '';
-
-    const html = '<table width="100%" cellpadding="0" cellspacing="0" style="background:#e8e8e8;"><tr><td align="center" style="padding:20px 0;"><table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;">' +
-      '<tr><td style="background:#0F1E3D;padding:16px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td><img src="https://impactbusinessgroup.com/wp-content/uploads/2017/04/cropped-Logo512.png" width="40" height="40" style="display:block;" alt="iMPact"></td><td style="text-align:right;font-size:12px;color:rgba(255,255,255,0.5);font-family:Arial,sans-serif;">' + dayName + ', ' + monthName + ' ' + dateNum + '</td></tr></table></td></tr>' +
-      '<tr><td style="background:#1A4EA2;padding:28px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:24px;font-weight:700;color:white;font-family:Arial,sans-serif;">Good morning, ' + am.name + '</td></tr><tr><td style="font-size:14px;color:rgba(255,255,255,0.75);padding-top:6px;font-family:Arial,sans-serif;">Your new leads for today are ready for review</td></tr></table></td></tr>' +
-      '<tr><td style="padding:20px 24px;">' + followupRow +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;border-radius:8px;margin-bottom:20px;"><tr>' +
-      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + newLeads.length + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">New Leads</div></td>' +
-      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + totalContacts + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Contacts</div></td>' +
-      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#E8620A;font-family:Arial,sans-serif;">' + (catCounts.engineering || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Engineering</div></td>' +
-      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#3B82F6;font-family:Arial,sans-serif;">' + (catCounts.it || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">IT</div></td>' +
-      '<td style="text-align:center;padding:14px 0;width:20%;"><div style="font-size:22px;font-weight:700;color:#10B981;font-family:Arial,sans-serif;">' + (catCounts.accounting || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Accounting</div></td>' +
-      '</tr></table>' +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;font-family:Arial,sans-serif;">Today\'s Leads</td></tr></table>' +
-      '<table width="100%" cellpadding="0" cellspacing="0">' + leadCards + '</table>' +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="padding-top:8px;"><tr><td align="center"><a href="' + am.reviewUrl + '" style="display:inline-block;background:#E8620A;color:white;font-size:15px;font-weight:700;padding:14px 40px;border-radius:8px;text-decoration:none;font-family:Arial,sans-serif;">Review All Leads</a></td></tr></table>' +
-      '</td></tr></table></td></tr></table>';
+    const firstName = (am.fullName || '').split(' ')[0] || '';
+    const html = buildMorningEmailHtml({
+      firstName,
+      todayLabel,
+      newToday,
+      totalPending,
+      followupsDue,
+      totalContacts,
+      reviewUrl: REVIEW_URL,
+    });
 
     await transporter.sendMail({
       from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
       to: am.email,
-      subject: 'iMPact Lead Review - ' + newLeads.length + ' New Leads - ' + dayName + ', ' + monthName + ' ' + dateNum,
+      subject: 'iMPact Lead Review, ' + todayLabel,
       html,
     });
-    console.log('Morning email sent to ' + am.name + ' with ' + newLeads.length + ' leads');
+    console.log('Morning email sent to ' + am.email +
+      ' (newToday=' + newToday + ', pending=' + totalPending +
+      ', followups=' + followupsDue + ', contacts=' + totalContacts + ')');
     sentCount++;
   }
 
