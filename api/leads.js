@@ -131,6 +131,51 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, lead });
   }
 
+  // GET -- skipped + blocked archive for the current AM within a time window
+  if (method === 'GET' && query.view === 'archive') {
+    const amEmail = String(query.am || '').toLowerCase();
+    const days = Math.max(1, parseInt(query.days, 10) || 1);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    const keys = await redisKeys('lead:*');
+    const blockedRaw = await redisGet('blocklist:companies');
+    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : []).map(c =>
+      (c || '').toLowerCase().trim()
+    );
+
+    const skipped = [];
+    const blocked = [];
+    for (const key of keys) {
+      try {
+        const lead = await redisGet(key);
+        if (!lead || !lead.company) continue;
+        if (amEmail && (lead.assignedAMEmail || '').toLowerCase() !== amEmail) continue;
+
+        const createdMs = typeof lead.createdAt === 'number'
+          ? lead.createdAt
+          : (lead.createdAt ? Date.parse(lead.createdAt) : 0);
+        const skippedMs = lead.skippedAt ? Date.parse(lead.skippedAt) : createdMs;
+        const companyLower = lead.company.toLowerCase();
+        const isBlocked = blockedCompanies.some(bc =>
+          companyLower === bc || companyLower.includes(bc) || bc.includes(companyLower)
+        );
+
+        if (lead.status === 'skipped' && skippedMs >= cutoff) {
+          skipped.push({ ...lead, _dateMs: skippedMs });
+        } else if (isBlocked && createdMs >= cutoff) {
+          blocked.push({ ...lead, _dateMs: createdMs });
+        }
+      } catch (e) {
+        console.error('Archive read error for', key, e.message);
+      }
+    }
+
+    skipped.sort((a, b) => b._dateMs - a._dateMs);
+    blocked.sort((a, b) => b._dateMs - a._dateMs);
+
+    return res.status(200).json({ ok: true, skipped, blocked });
+  }
+
   // GET -- return leads for dashboard (new, pending, in_progress, and reminder leads)
   if (method === 'GET') {
     const keys = await redisKeys('lead:*');
@@ -239,6 +284,28 @@ module.exports = async function handler(req, res) {
       lead.closedAt = new Date().toISOString();
       await redisSet(id, lead, 60 * 60 * 24 * 14);
       return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- retrieve: move skipped lead back to pending ---
+    if (action === 'retrieve') {
+      lead.status = 'pending';
+      lead.retrievedAt = new Date().toISOString();
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- unblock: remove company from blocklist and restore lead to pending ---
+    if (action === 'unblock') {
+      const company = lead.company || '';
+      const blocked = (await redisGet('blocklist:companies')) || [];
+      const filtered = (Array.isArray(blocked) ? blocked : []).filter(c =>
+        (c || '').toLowerCase() !== company.toLowerCase()
+      );
+      await redisSet('blocklist:companies', filtered);
+      lead.status = 'pending';
+      lead.unblockedAt = new Date().toISOString();
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, lead, blocklist: filtered });
     }
 
     // --- add_reminder: reset reminder date, keep stage at 3 ---

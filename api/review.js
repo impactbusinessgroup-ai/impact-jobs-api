@@ -131,6 +131,32 @@ module.exports = async function handler(req, res) {
 '.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
 '.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 8px rgba(34,197,94,0.3); }\n' +
 '.btn-add-lead:hover { background: #16a34a; transform: scale(1.08); }\n' +
+'.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1f1f1f; border: 1px solid #333; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
+'.btn-archive:hover { background: #2a2a2a; transform: scale(1.08); border-color: #555; }\n' +
+'.btn-archive-badge { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #E8620A; color: #fff; font-size: 10px; font-weight: 700; font-family: Arial,sans-serif; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }\n' +
+'.archive-pills { display: flex; gap: 8px; margin-bottom: 18px; }\n' +
+'.archive-pill { padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: Raleway, sans-serif; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; cursor: pointer; transition: all 0.15s; }\n' +
+'.archive-pill:hover { background: rgba(255,255,255,0.08); color: #fff; }\n' +
+'.archive-pill.active { background: #E8620A; color: #fff; border-color: #E8620A; }\n' +
+'.archive-section-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.6px; font-family: Oswald, sans-serif; margin: 18px 0 10px; }\n' +
+'.archive-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; margin-bottom: 8px; }\n' +
+'.archive-row-main { flex: 1; min-width: 0; }\n' +
+'.archive-row-company { font-size: 13px; font-weight: 600; color: #fff; font-family: Oswald, sans-serif; }\n' +
+'.archive-row-title { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n' +
+'.archive-row-meta { display: flex; gap: 10px; align-items: center; margin-top: 4px; }\n' +
+'.archive-cat-pill { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; }\n' +
+'.archive-cat-engineering { background: rgba(232,98,10,0.15); color: #E8620A; }\n' +
+'.archive-cat-it { background: rgba(59,130,246,0.15); color: #3B82F6; }\n' +
+'.archive-cat-accounting { background: rgba(16,185,129,0.15); color: #10B981; }\n' +
+'.archive-cat-other { background: rgba(139,92,246,0.15); color: #8B5CF6; }\n' +
+'.archive-date { font-size: 11px; color: rgba(255,255,255,0.35); }\n' +
+'.btn-archive-action { padding: 7px 14px; font-size: 12px; font-weight: 600; font-family: Raleway, sans-serif; background: #22c55e; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }\n' +
+'.btn-archive-action:hover { background: #16a34a; }\n' +
+'.btn-archive-action:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
+'.archive-empty { padding: 14px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; }\n' +
+'.btn-check { width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; box-shadow: 0 2px 6px rgba(59,130,246,0.35); }\n' +
+'.btn-check:hover { background: #2563eb; transform: scale(1.08); }\n' +
+'.contact-actions .btn-check { height: 28px; width: 28px; }\n' +
 '.add-modal { max-width: 620px; }\n' +
 '.add-modal .modal-body { padding: 20px 24px; }\n' +
 '.add-field { margin-bottom: 14px; }\n' +
@@ -508,6 +534,7 @@ module.exports = async function handler(req, res) {
 '  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
 '    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
+'    <button class="btn-archive" onclick="openArchiveModal()" title="View skipped &amp; blocked"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-6.7L3 9"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
 '  </div>\n' +
@@ -553,6 +580,23 @@ module.exports = async function handler(req, res) {
 '      <button class="modal-close" onclick="closeReassignModal()">&#x2715;</button>\n' +
 '    </div>\n' +
 '    <div class="modal-body" id="reassign-body"></div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="archive-overlay" onclick="if(event.target===this)closeArchiveModal()">\n' +
+'  <div class="modal">\n' +
+'    <div class="modal-header">\n' +
+'      <h3>Skipped &amp; Blocked</h3>\n' +
+'      <button class="modal-close" onclick="closeArchiveModal()">&#x2715;</button>\n' +
+'    </div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="archive-pills">\n' +
+'        <button class="archive-pill active" id="arch-pill-1" onclick="loadArchive(1)">Last 24 Hours</button>\n' +
+'        <button class="archive-pill" id="arch-pill-3" onclick="loadArchive(3)">Last 3 Days</button>\n' +
+'        <button class="archive-pill" id="arch-pill-7" onclick="loadArchive(7)">Last 7 Days</button>\n' +
+'      </div>\n' +
+'      <div id="archive-body"><div class="archive-empty">Loading...</div></div>\n' +
+'    </div>\n' +
 '  </div>\n' +
 '</div>\n' +
 '\n' +
@@ -757,6 +801,7 @@ module.exports = async function handler(req, res) {
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
 '    var scrollTarget=localStorage.getItem("scrollToCard");\n' +
 '    if(scrollTarget){ localStorage.removeItem("scrollToCard"); setTimeout(function(){ var el=document.getElementById(scrollTarget); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); },300); }\n' +
+'    refreshArchiveBadge();\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
@@ -1103,7 +1148,7 @@ module.exports = async function handler(req, res) {
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
 '      \'<span class="outreach-badge" id="obd-\'+cid+\'" style="display:none;"></span>\'+\n' +
-'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-dots" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')">&#x2026;</button>\'+\n' +
+'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-check" title="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
 '        \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
 '          \'<div class="contact-dd-section">\'+\n' +
 '            \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
@@ -1688,6 +1733,7 @@ module.exports = async function handler(req, res) {
 '    leads=leads.filter(function(l){return l.company.toLowerCase()!==company.toLowerCase();});\n' +
 '    rm.forEach(function(sid){var c=_g("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
 '    updateLeadCount();\n' +
+'    refreshArchiveBadge();\n' +
 '  });\n' +
 '}\n' +
 '\n' +
@@ -1709,9 +1755,92 @@ module.exports = async function handler(req, res) {
 '    updateLeadCount();\n' +
 '    if(cardHTML&&cardParent){var tmp=document.createElement("div");tmp.innerHTML=cardHTML;var r=tmp.firstChild;r.style.opacity="0";r.style.transition="opacity 0.3s";if(cardNext&&cardNext.parentNode===cardParent)cardParent.insertBefore(r,cardNext);else cardParent.appendChild(r);setTimeout(function(){r.style.opacity="1";},10);fetchLogo(pLead.company,pLead.employerWebsite||"",pLead.location||"",getSafeId(pLead.id));}\n' +
 '  };\n' +
-'  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped"}})});},5200);\n' +
+'  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped",skippedAt:new Date().toISOString()}})}).then(function(){refreshArchiveBadge();});},5200);\n' +
 '}\n' +
 'function undoSkip(){if(window._skipUndo)window._skipUndo();}\n' +
+'\n' +
+'var _archiveDays=1;\n' +
+'function _catClass(c){var m={engineering:"archive-cat-engineering",it:"archive-cat-it",accounting:"archive-cat-accounting",other:"archive-cat-other"};return m[c]||"archive-cat-other";}\n' +
+'function _fmtArchiveDate(ms){if(!ms)return"";var d=new Date(ms);return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}\n' +
+'function openArchiveModal(){_g("archive-overlay").classList.add("open");loadArchive(_archiveDays);}\n' +
+'function closeArchiveModal(){_g("archive-overlay").classList.remove("open");}\n' +
+'async function loadArchive(days){\n' +
+'  _archiveDays=days;\n' +
+'  [1,3,7].forEach(function(d){var el=_g("arch-pill-"+d);if(el)el.classList.toggle("active",d===days);});\n' +
+'  var body=_g("archive-body");body.innerHTML=\'<div class="archive-empty">Loading...</div>\';\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads?view=archive&am="+encodeURIComponent(AM.email)+"&days="+days);\n' +
+'    var d=await r.json();\n' +
+'    renderArchive(d.skipped||[],d.blocked||[]);\n' +
+'  }catch(e){body.innerHTML=\'<div class="archive-empty">Failed to load.</div>\';}\n' +
+'}\n' +
+'function renderArchive(skipped,blocked){\n' +
+'  var h="";\n' +
+'  h+=\'<div class="archive-section-title">Skipped</div>\';\n' +
+'  if(!skipped.length){h+=\'<div class="archive-empty">Nothing skipped in this period</div>\';}\n' +
+'  else{h+=skipped.map(function(l){return _archiveRow(l,"skipped");}).join("");}\n' +
+'  h+=\'<div class="archive-section-title">Blocked</div>\';\n' +
+'  if(!blocked.length){h+=\'<div class="archive-empty">Nothing blocked in this period</div>\';}\n' +
+'  else{h+=blocked.map(function(l){return _archiveRow(l,"blocked");}).join("");}\n' +
+'  _g("archive-body").innerHTML=h;\n' +
+'}\n' +
+'function _archiveRow(l,kind){\n' +
+'  var safeId=getSafeId(l.id);\n' +
+'  var cat=l.category||"other";\n' +
+'  var companyEsc=escHtml(l.company||"");\n' +
+'  var titleEsc=escHtml(cleanJobTitle(l.jobTitle||""));\n' +
+'  var date=_fmtArchiveDate(l._dateMs||l.createdAt||0);\n' +
+'  var btn=kind==="skipped"\n' +
+'    ? \'<button class="btn-archive-action" id="arch-act-\'+safeId+\'" onclick="undoSkipFromArchive(\\\'\'+l.id+\'\\\')">Undo Skip</button>\'\n' +
+'    : \'<button class="btn-archive-action" id="arch-act-\'+safeId+\'" onclick="unblockFromArchive(\\\'\'+l.id+\'\\\')">Unblock</button>\';\n' +
+'  return \'<div class="archive-row" id="arch-row-\'+safeId+\'">\'+\n' +
+'    \'<div class="archive-row-main">\'+\n' +
+'      \'<div class="archive-row-company">\'+companyEsc+\'</div>\'+\n' +
+'      \'<div class="archive-row-title">\'+titleEsc+\'</div>\'+\n' +
+'      \'<div class="archive-row-meta"><span class="archive-cat-pill \'+_catClass(cat)+\'">\'+cat+\'</span><span class="archive-date">\'+date+\'</span></div>\'+\n' +
+'    \'</div>\'+\n' +
+'    btn+\n' +
+'  \'</div>\';\n' +
+'}\n' +
+'async function undoSkipFromArchive(leadId){\n' +
+'  var safeId=getSafeId(leadId);\n' +
+'  var btn=_g("arch-act-"+safeId);if(btn){btn.disabled=true;btn.textContent="Restoring...";}\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:"retrieve"})});\n' +
+'    var d=await r.json();if(!d.ok)throw new Error(d.error||"failed");\n' +
+'    var row=_g("arch-row-"+safeId);if(row)row.remove();\n' +
+'    if(d.lead)_prependLead(d.lead);\n' +
+'    refreshArchiveBadge();\n' +
+'    showToast("Skip undone",2000);\n' +
+'  }catch(e){if(btn){btn.disabled=false;btn.textContent="Undo Skip";}showToast("Failed to undo skip",3000);}\n' +
+'}\n' +
+'async function unblockFromArchive(leadId){\n' +
+'  var safeId=getSafeId(leadId);\n' +
+'  var btn=_g("arch-act-"+safeId);if(btn){btn.disabled=true;btn.textContent="Unblocking...";}\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:"unblock"})});\n' +
+'    var d=await r.json();if(!d.ok)throw new Error(d.error||"failed");\n' +
+'    if(Array.isArray(d.blocklist))blocklist.companies=d.blocklist;\n' +
+'    var row=_g("arch-row-"+safeId);if(row)row.remove();\n' +
+'    if(d.lead)_prependLead(d.lead);\n' +
+'    refreshArchiveBadge();\n' +
+'    showToast("Company unblocked",2000);\n' +
+'  }catch(e){if(btn){btn.disabled=false;btn.textContent="Unblock";}showToast("Failed to unblock",3000);}\n' +
+'}\n' +
+'function _prependLead(lead){\n' +
+'  if(!lead||leads.some(function(l){return l.id===lead.id;}))return;\n' +
+'  leads.unshift(lead);updateLeadCount();\n' +
+'  if(typeof renderLeads==="function")renderLeads();\n' +
+'}\n' +
+'async function refreshArchiveBadge(){\n' +
+'  try{\n' +
+'    var r=await fetch("/api/leads?view=archive&am="+encodeURIComponent(AM.email)+"&days=1");\n' +
+'    var d=await r.json();\n' +
+'    var count=((d.skipped||[]).length)+((d.blocked||[]).length);\n' +
+'    var b=_g("archive-badge");if(!b)return;\n' +
+'    if(count>0){b.textContent=count>99?"99+":count;b.style.display="flex";}else{b.style.display="none";}\n' +
+'  }catch(e){}\n' +
+'}\n' +
 '\n' +
 'function completeLead(safeId, realId) {\n' +
 '  var btn=document.querySelector("#card-"+safeId+" .btn-glass-complete");\n' +

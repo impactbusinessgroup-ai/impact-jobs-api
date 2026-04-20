@@ -549,6 +549,15 @@ module.exports = async function handler(req, res) {
         }
       }
 
+      const locationStr = `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, '');
+      const isMichigan = /michigan/i.test(locationStr) || /,\s*MI\b/i.test(locationStr);
+      let assignedAM = 'Mark Sapoznikov';
+      let assignedAMEmail = 'msapoznikov@impactbusinessgroup.com';
+      if (category === 'it' && isMichigan) {
+        assignedAM = 'Curt Willbrandt';
+        assignedAMEmail = 'cwillbrandt@impactbusinessgroup.com';
+      }
+
       const lead = {
         id: leadId,
         date: today,
@@ -556,7 +565,7 @@ module.exports = async function handler(req, res) {
         company: employer,
         normalizedCompany: normalized,
         normalizedTitle: normalizedTitle,
-        location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, ''),
+        location: locationStr,
         description: description.slice(0, 2000),
         source: 'jsearch',
         jobUrl: job.job_apply_link || '',
@@ -565,6 +574,9 @@ module.exports = async function handler(req, res) {
         category,
         status: 'new',
         contacts: [],
+        assignedAM,
+        assignedAMEmail,
+        assignedAt: new Date().toISOString(),
         createdAt: Date.now(),
       };
 
