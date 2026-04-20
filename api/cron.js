@@ -303,19 +303,20 @@ async function fireReminders() {
 // --- Morning email HTML builder (Outlook-safe, tables + inline styles only) ---
 function buildMorningEmailHtml(ctx) {
   var ORANGE = '#E8620A';
+  var BLUE = '#1A4EA2';
+  var GREEN = '#00a86b';
   var NAVY = '#0F1E3D';
-  var DARK_BOX = '#1a1a1a';
   var PAGE_BG = '#e8e8e8';
   var CARD_BG = '#ffffff';
   var LABEL_GREY = '#888888';
   var BODY_FONT = 'Arial, Helvetica, sans-serif';
 
-  function statBox(num, label) {
-    return '<td align="center" valign="middle" width="25%" style="padding:0 4px;">' +
-      '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + DARK_BOX + ';border-radius:10px;">' +
+  function statBox(num, label, bg) {
+    return '<td align="center" valign="middle" width="33%" style="padding:0 4px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + bg + ';border-radius:10px;">' +
         '<tr><td align="center" style="padding:20px 6px;">' +
-          '<div style="font-size:30px;font-weight:700;color:' + ORANGE + ';font-family:' + BODY_FONT + ';line-height:1;">' + num + '</div>' +
-          '<div style="font-size:10px;font-weight:600;color:' + LABEL_GREY + ';text-transform:uppercase;letter-spacing:0.6px;font-family:' + BODY_FONT + ';padding-top:10px;">' + label + '</div>' +
+          '<div style="font-size:30px;font-weight:700;color:#ffffff;font-family:' + BODY_FONT + ';line-height:1;">' + num + '</div>' +
+          '<div style="font-size:10px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:0.6px;font-family:' + BODY_FONT + ';padding-top:10px;">' + label + '</div>' +
         '</td></tr>' +
       '</table>' +
     '</td>';
@@ -336,14 +337,15 @@ function buildMorningEmailHtml(ctx) {
           '</td></tr>' +
           '<tr><td style="padding:0 20px 28px;">' +
             '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>' +
-              statBox(ctx.newToday, 'New Today') +
-              statBox(ctx.totalPending, 'Total Pending') +
-              statBox(ctx.followupsDue, 'Follow-ups Due') +
-              statBox(ctx.totalContacts, 'Total Contacts') +
+              statBox(ctx.newToday, 'New Today', GREEN) +
+              statBox(ctx.totalPending, 'Total Pending', BLUE) +
+              statBox(ctx.followupsDue, 'Follow-ups Due', ORANGE) +
             '</tr></table>' +
           '</td></tr>' +
           '<tr><td align="center" style="padding:0 24px 34px;">' +
-            '<a href="' + ctx.reviewUrl + '" style="display:inline-block;background:' + ORANGE + ';color:#ffffff;font-size:15px;font-weight:700;padding:14px 36px;border-radius:8px;text-decoration:none;font-family:' + BODY_FONT + ';">Review My Leads</a>' +
+            '<table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="' + ORANGE + '" style="border-radius:6px;">' +
+              '<a href="' + ctx.reviewUrl + '" style="display:inline-block;padding:14px 32px;color:#ffffff;font-family:Raleway,Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;">Review My Leads</a>' +
+            '</td></tr></table>' +
           '</td></tr>' +
           '<tr><td align="center" style="padding:18px 24px 24px;border-top:1px solid #eeeeee;">' +
             '<div style="font-size:12px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">iMPact Business Group | Grand Rapids, MI &amp; Tampa, FL</div>' +
@@ -420,7 +422,6 @@ async function sendMorningEmail() {
       (typeof l.id === 'string' && l.id.indexOf('lead:' + dateStr + ':') === 0)
     ).length;
     const totalPending = pending.length;
-    const totalContacts = pending.reduce((s, l) => s + l.contacts.length, 0);
     const followupsDue = mine.filter(l => {
       if (l.status !== 'awaiting_followup') return false;
       const lastDate = l.last_reminder_date || l.completedAt;
@@ -435,7 +436,6 @@ async function sendMorningEmail() {
       newToday,
       totalPending,
       followupsDue,
-      totalContacts,
       reviewUrl: REVIEW_URL,
     });
 
@@ -447,7 +447,7 @@ async function sendMorningEmail() {
     });
     console.log('Morning email sent to ' + am.email +
       ' (newToday=' + newToday + ', pending=' + totalPending +
-      ', followups=' + followupsDue + ', contacts=' + totalContacts + ')');
+      ', followups=' + followupsDue + ')');
     sentCount++;
   }
 
