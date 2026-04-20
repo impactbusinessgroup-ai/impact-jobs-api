@@ -1123,6 +1123,7 @@ module.exports = async function handler(req, res) {
 '    var scrollTarget=localStorage.getItem("scrollToCard");\n' +
 '    if(scrollTarget){ localStorage.removeItem("scrollToCard"); setTimeout(function(){ var el=document.getElementById(scrollTarget); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); },300); }\n' +
 '    refreshArchiveBadge();\n' +
+'    restoreActiveTabFromSession();\n' +
 '  }catch(e){console.error("Init error:",e);_g("leads-container").innerHTML=\'<div class="loading">Error loading leads.</div>\';}\n' +
 '}\n' +
 '\n' +
@@ -2853,6 +2854,7 @@ module.exports = async function handler(req, res) {
 'var currentTab = "leads";\n' +
 'function switchTab(tab) {\n' +
 '  currentTab = tab;\n' +
+'  try { sessionStorage.setItem("activeTab", tab); } catch(e) {}\n' +
 '  _g("tab-leads").classList.toggle("active", tab === "leads");\n' +
 '  _g("tab-analytics").classList.toggle("active", tab === "analytics");\n' +
 '  var inactTab=_g("tab-inactivity"); if(inactTab) inactTab.classList.toggle("active", tab === "inactivity");\n' +
@@ -2863,6 +2865,13 @@ module.exports = async function handler(req, res) {
 '  var sb=_g("am-scoreboard"); if(sb && AM.role !== "admin") sb.style.display = tab === "leads" ? "flex" : "none";\n' +
 '  if (tab === "analytics" && !analyticsLoaded) { loadAnalytics(); }\n' +
 '  if (tab === "inactivity") { renderInactivityView(); }\n' +
+'}\n' +
+'function restoreActiveTabFromSession() {\n' +
+'  var saved = null;\n' +
+'  try { saved = sessionStorage.getItem("activeTab"); } catch(e) { saved = null; }\n' +
+'  if (!saved || saved === "leads") return; // leads is the page default\n' +
+'  if (saved === "inactivity" && AM.role !== "admin") return; // only admins see that tab\n' +
+'  switchTab(saved);\n' +
 '}\n' +
 '\n' +
 '/* ===== Admin filter bar ===== */\n' +
@@ -3097,25 +3106,16 @@ module.exports = async function handler(req, res) {
 '    var html = renderCard(lead);\n' +
 '    var timeline = _buildInactivityTimeline(lead);\n' +
 '    var inject = \'<div class="inactivity-timeline"><strong>Assignment history:</strong> \' + escHtml(timeline) + \'</div>\';\n' +
-'    // (kept for legacy selector targeting; padding rule was removed since the\n' +
-'    //  checkbox is now an inline flex child of .card-top-left)\n' +
 '    html = html.replace(\'<div class="card" id="card-\', \'<div class="card inact-card" id="card-\');\n' +
+'    // Inline the checkbox into .card-top-left so it renders with the rest\n' +
+'    // of the card (was fragile when injected via DOM API after innerHTML).\n' +
+'    var idAttr = escHtml(lead.id);\n' +
+'    var checkedAttr = _inactivitySelected[lead.id] ? " checked" : "";\n' +
+'    var cbHtml = \'<input type="checkbox" class="inact-card-checkbox" data-lead-id="\'+idAttr+\'"\'+checkedAttr+\' onclick="event.stopPropagation()" onchange="toggleInactivityLead(this.getAttribute(&apos;data-lead-id&apos;), this.checked)">\';\n' +
+'    html = html.replace(\'<div class="card-top-left">\', \'<div class="card-top-left">\'+cbHtml);\n' +
 '    return html.replace(/<\\/div>\\s*$/, inject + \'</div>\');\n' +
 '  }).join("");\n' +
-'  // Inject checkboxes after innerHTML write so event listeners stick. Place\n' +
-'  // each checkbox inside .card-top-left, before the logo, so it sits in the\n' +
-'  // header row and does not overlap the logo or notes icon.\n' +
-'  list.forEach(function(lead){\n' +
-'    var sid=getSafeId(lead.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
-'    var headerLeft = cardEl.querySelector(".card-top-left"); if(!headerLeft) return;\n' +
-'    var cb=document.createElement("input"); cb.type="checkbox"; cb.className="inact-card-checkbox";\n' +
-'    cb.setAttribute("data-lead-id", lead.id);\n' +
-'    cb.checked = !!_inactivitySelected[lead.id];\n' +
-'    cb.addEventListener("click", function(e){ e.stopPropagation(); });\n' +
-'    cb.addEventListener("change", function(){ toggleInactivityLead(lead.id, this.checked); });\n' +
-'    headerLeft.insertBefore(cb, headerLeft.firstChild);\n' +
-'  });\n' +
-'  setTimeout(function(){ postRenderLeads(list); }, 150);\n' +
+'  postRenderLeads(list);\n' +
 '  ["category","location"].forEach(function(k){ _renderInactFilterPanel(k); _syncInactFilterTrigger(k); });\n' +
 '  _updateInactivityToolbar();\n' +
 '}\n' +
@@ -3339,44 +3339,54 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function _buildFunnelSvg(stats) {\n' +
-'  var W = 900, H = 240;\n' +
+'  var W = 900, H = 200;\n' +
 '  var sectionW = 280;\n' +
 '  var baseX = 20;\n' +
-'  var cy = 140;\n' +
-'  var maxH = 140;\n' +
+'  var cy = H / 2;\n' +
+'  var maxH = 150;\n' +
 '  var lr = Number(stats.leadsReceived || 0);\n' +
 '  var os = Number(stats.outreachSent || 0);\n' +
 '  var cm = Number(stats.contactsMade || 0);\n' +
 '  var denom = lr > 0 ? lr : 1;\n' +
 '  var h1L = maxH;\n' +
-'  var h1R = Math.max(34, (os / denom) * maxH);\n' +
+'  var h1R = Math.max(42, (os / denom) * maxH);\n' +
 '  var h2L = h1R;\n' +
-'  var h2R = Math.max(22, (cm / denom) * maxH);\n' +
+'  var h2R = Math.max(32, (cm / denom) * maxH);\n' +
 '  var h3L = h2R;\n' +
-'  var h3R = Math.max(16, h3L * 0.8);\n' +
+'  var h3R = Math.max(24, h3L * 0.82);\n' +
+'  // Visible-polygon centering: for a linearly-tapering trapezoid the\n' +
+'  // weighted centroid is shifted toward the taller edge. This keeps\n' +
+'  // the number + label planted inside the colored fill.\n' +
+'  function centroidX(x, w, hL, hR){\n' +
+'    if(hL + hR === 0) return x + w/2;\n' +
+'    return x + w * (hL + 2*hR) / (3 * (hL + hR));\n' +
+'  }\n' +
 '  function trap(x, w, hL, hR, color, num, label) {\n' +
 '    var pts = [x, cy-hL/2, x+w, cy-hR/2, x+w, cy+hR/2, x, cy+hL/2].join(",");\n' +
+'    var tx = centroidX(x, w, hL, hR);\n' +
+'    // For the number to look centered when combined with the label\n' +
+'    // below it, we shift the number up slightly from the centroid.\n' +
 '    return \'<polygon points="\'+pts+\'" fill="\'+color+\'"/>\'+\n' +
-'      \'<text x="\'+(x+w/2)+\'" y="\'+(cy-4)+\'" fill="#ffffff" font-family="Oswald, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">\'+num+\'</text>\'+\n' +
-'      \'<text x="\'+(x+w/2)+\'" y="\'+(cy+24)+\'" fill="rgba(255,255,255,0.92)" font-family="Raleway, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1.2">\'+label.toUpperCase()+\'</text>\';\n' +
+'      \'<text x="\'+tx+\'" y="\'+(cy-4)+\'" fill="#ffffff" font-family="Oswald, Arial, sans-serif" font-size="32" font-weight="700" text-anchor="middle">\'+num+\'</text>\'+\n' +
+'      \'<text x="\'+tx+\'" y="\'+(cy+22)+\'" fill="rgba(255,255,255,0.92)" font-family="Raleway, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1.2">\'+label.toUpperCase()+\'</text>\';\n' +
 '  }\n' +
 '  var conv1 = lr > 0 ? Math.round((os / lr) * 100) : 0;\n' +
 '  var conv2 = os > 0 ? Math.round((cm / os) * 100) : 0;\n' +
 '  function chip(x, pct) {\n' +
-'    var cw = 82, ch = 30;\n' +
+'    var cw = 82, ch = 28;\n' +
 '    var cx = x - cw/2;\n' +
-'    var cyChip = 24;\n' +
+'    var cyChip = cy - ch/2; // centered on funnel midline, overlapping boundary\n' +
 '    return \'<g transform="translate(\'+cx+\',\'+cyChip+\')">\'+\n' +
-'      \'<rect width="\'+cw+\'" height="\'+ch+\'" rx="15" fill="#1a1a1a" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>\'+\n' +
-'      \'<text x="\'+(cw/2 - 8)+\'" y="20" fill="#ffffff" font-family="Raleway, Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle">\'+pct+\'%</text>\'+\n' +
-'      \'<text x="\'+(cw - 14)+\'" y="21" fill="#E8620A" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">\\u2192</text>\'+\n' +
-'      \'<line x1="\'+(cw/2)+\'" y1="\'+ch+\'" x2="\'+(cw/2)+\'" y2="\'+(cy - ch - 8)+\'" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,3"/>\'+\n' +
+'      \'<rect width="\'+cw+\'" height="\'+ch+\'" rx="14" fill="#1a1a1a" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>\'+\n' +
+'      \'<text x="\'+(cw/2 - 8)+\'" y="19" fill="#ffffff" font-family="Raleway, Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle">\'+pct+\'%</text>\'+\n' +
+'      \'<text x="\'+(cw - 14)+\'" y="20" fill="#E8620A" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">\\u2192</text>\'+\n' +
 '    \'</g>\';\n' +
 '  }\n' +
 '  var svg = \'<svg viewBox="0 0 \'+W+\' \'+H+\'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Funnel">\';\n' +
 '  svg += trap(baseX, sectionW, h1L, h1R, "#0F1E3D", lr, "Leads Received");\n' +
 '  svg += trap(baseX + sectionW, sectionW, h2L, h2R, "#1A4EA2", os, "Outreach Sent");\n' +
 '  svg += trap(baseX + sectionW*2, sectionW, h3L, h3R, "#E8620A", cm, "Contacts Made");\n' +
+'  // Chips drawn LAST so they layer on top of the trapezoid fill\n' +
 '  svg += chip(baseX + sectionW, conv1);\n' +
 '  svg += chip(baseX + sectionW*2, conv2);\n' +
 '  svg += \'</svg>\';\n' +
