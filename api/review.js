@@ -1005,6 +1005,8 @@ module.exports = async function handler(req, res) {
 '  if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
 '  if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
 '  container.innerHTML=view.map(function(lead){return renderCard(lead);}).join("");\n' +
+'  // Kick off logo fetch for every rendered card so filter changes repaint logos\n' +
+'  view.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
 '  // <script> tags embedded via innerHTML do not execute, so populate the per-lead window maps here.\n' +
 '  window._leadJobTitles=window._leadJobTitles||{};\n' +
 '  window._leadCategories=window._leadCategories||{};\n' +
@@ -1077,8 +1079,13 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  var amBadgeHtml = (AM.role==="admin" && lead.assignedAM) ? \'<div class="am-badge">\'+escHtml(lead.assignedAM)+\'</div>\' : "";\n' +
 '  var unreadCount = _leadHasUnreadNotes(lead);\n' +
-'  var noteClass = unreadCount>0 ? "notes-icon-btn has-unread" : "notes-icon-btn";\n' +
-'  var notesBtnHtml = \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')" title="Notes"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+(unreadCount>0?unreadCount:"")+\'</span></button>\';\n' +
+'  var noteClass = unreadCount>0 ? "notes-icon-btn has-unread has-tooltip" : "notes-icon-btn has-tooltip";\n' +
+'  // Only show the notes bubble when there is actually an unread note for this AM.\n' +
+'  // The standalone entry point is removed (notes are now authored through the\n' +
+'  // reassign modal). Keeping the unread-indicator lets the receiving AM read it.\n' +
+'  var notesBtnHtml = unreadCount > 0\n' +
+'    ? \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" data-tooltip="Unread note from admin" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+unreadCount+\'</span></button>\'\n' +
+'    : "";\n' +
 '  return \'<div class="card" id="card-\'+safeId+\'">\'+amBadgeHtml+notesBtnHtml+\n' +
 '    \'<div class="card-top">\'+\n' +
 '      \'<div class="card-top-left">\'+\n' +
@@ -2147,23 +2154,33 @@ module.exports = async function handler(req, res) {
 'function openReassignModal(safeId, realId) {\n' +
 '  _reassignSafeId=safeId;_reassignRealId=realId;\n' +
 '  var lead=leads.find(function(l){return l.id===realId;});\n' +
+'  if(!lead && AM.role==="admin") lead=(allLeadsCache||[]).find(function(l){return l.id===realId;});\n' +
 '  _g("reassign-title").textContent="Reassign Lead"+(lead?" - "+lead.company:"");\n' +
 '  var body=_g("reassign-body");\n' +
-'  body.innerHTML=AM_NAMES.map(function(name){\n' +
+'  var list = AM_NAMES.map(function(name){\n' +
 '    return \'<div class="reassign-item"><span>\'+ name +\'</span><button class="reassign-btn" onclick="reassignLead(\\\'\'+name.replace(/\x27/g,"\\\\\\x27")+\'\\\')">Reassign</button></div>\';\n' +
 '  }).join("");\n' +
+'  var noteField = \'<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">\'+\n' +
+'    \'<label style="display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-family:Raleway,sans-serif;">Add a note for the AM (optional)</label>\'+\n' +
+'    \'<textarea id="reassign-note" rows="3" placeholder="e.g. This is an existing client - check SmartSearch before reaching out" style="width:100%;background:#1f1f1f;border:1px solid #333;color:#fff;padding:8px 10px;border-radius:6px;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>\'+\n' +
+'  \'</div>\';\n' +
+'  body.innerHTML = list + noteField;\n' +
 '  _g("reassign-overlay").classList.add("open");\n' +
 '}\n' +
 'function closeReassignModal(){_g("reassign-overlay").classList.remove("open");}\n' +
 '\n' +
 'function reassignLead(amName) {\n' +
+'  var noteEl=_g("reassign-note");\n' +
+'  var note = noteEl ? (noteEl.value||"").trim() : "";\n' +
 '  closeReassignModal();\n' +
-'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,updates:{assignedAM:amName}})}).catch(function(){});\n' +
+'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,updates:{assignedAM:amName}})}).then(function(){\n' +
+'    if(note){ fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,action:"add_note",message:note,authorEmail:AM.email,authorName:AM.name||""})}).catch(function(){}); }\n' +
+'  }).catch(function(){});\n' +
 '  var card=_g("card-"+_reassignSafeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==_reassignRealId;});\n' +
 '  updateLeadCount();\n' +
-'  showToast("Lead reassigned to "+amName,3000);\n' +
+'  showToast("Lead reassigned to "+amName+(note?" with a note":""),3000);\n' +
 '}\n' +
 '\n' +
 'function setOutlookPref(pref){\n' +
@@ -2180,6 +2197,7 @@ module.exports = async function handler(req, res) {
 '  var tip=document.createElement("div");tip.className="custom-tooltip";document.body.appendChild(tip);\n' +
 '  function show(e){\n' +
 '    var el=e.target.closest("[data-tooltip]");if(!el)return;\n' +
+'    if(el.classList && el.classList.contains("has-tooltip"))return;\n' +
 '    var text=el.getAttribute("data-tooltip");if(!text)return;\n' +
 '    tip.textContent=text;\n' +
 '    var rect=el.getBoundingClientRect();\n' +
