@@ -162,8 +162,9 @@ module.exports = async function handler(req, res) {
 '.btn-check { width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; box-shadow: 0 2px 6px rgba(59,130,246,0.35); }\n' +
 '.btn-check:hover { background: #2563eb; transform: scale(1.08); }\n' +
 '.contact-actions .btn-check { height: 28px; width: 28px; }\n' +
-'.contact-check-corner { position: absolute; top: 10px; right: 10px; z-index: 5; }\n' +
-'.contact-check-corner .contact-dd { top: calc(100% + 6px); bottom: auto; right: 0; }\n' +
+'.contact-check-corner { position: absolute; bottom: 10px; right: 10px; z-index: 5; }\n' +
+'.contact-check-corner .contact-dd { bottom: calc(100% + 6px); top: auto; right: 0; }\n' +
+'.contact-actions { padding-right: 40px; }\n' +
 '.reason-pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }\n' +
 '.reason-pill { padding: 8px 14px; font-size: 12px; font-weight: 600; font-family: Raleway, sans-serif; color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; cursor: pointer; transition: all 0.15s; user-select: none; }\n' +
 '.reason-pill:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }\n' +
