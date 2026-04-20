@@ -182,9 +182,16 @@ async function getBalancedAM(category, location, excludeAM, allLeads) {
 
 // --- Lead inactivity rerouting ---
 async function checkInactiveLeads() {
+  const now = new Date();
+  // Skip on weekends (Saturday=6, Sunday=0) in ET
+  const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const dow = etNow.getDay();
+  if (dow === 0 || dow === 6) {
+    console.log('Skipping inactivity rerouting on weekend (day ' + dow + ')');
+    return 0;
+  }
   const keys = await redisKeys('lead:*');
   let rerouted = 0;
-  const now = new Date();
 
   // Load all leads for balanced assignment
   const allLeads = [];
@@ -290,76 +297,90 @@ async function sendMorningEmail() {
   if (alreadySent) { console.log('Morning email already sent today'); return false; }
 
   const keys = await redisKeys('lead:*');
-  const newLeads = [];
-  let followupCount = 0;
-  let totalContacts = 0;
-  const catCounts = { engineering: 0, it: 0, accounting: 0, other: 0 };
+  const AM_LIST = [
+    { email: 'msapoznikov@impactbusinessgroup.com', name: 'Mark', reviewUrl: 'https://impact-jobs-api.vercel.app/review' },
+    { email: 'cwillbrandt@impactbusinessgroup.com', name: 'Curt', reviewUrl: 'https://impact-jobs-api.vercel.app/review?am=cwillbrandt' },
+  ];
 
+  const allLeads = [];
+  const allFollowups = [];
   for (const key of keys) {
     const lead = await redisGet(key);
     if (!lead) continue;
     if ((lead.status === 'new' || lead.status === 'pending') && lead.contacts && lead.contacts.length > 0) {
-      newLeads.push(lead);
-      const cat = lead.category || 'engineering';
-      catCounts[cat] = (catCounts[cat] || 0) + 1;
-      totalContacts += lead.contacts.length;
+      allLeads.push(lead);
     }
     if (lead.status === 'awaiting_followup') {
       const lastDate = lead.last_reminder_date || lead.completedAt;
-      if (lastDate && businessDaysBetween(new Date(lastDate), today) >= 3) followupCount++;
+      if (lastDate && businessDaysBetween(new Date(lastDate), today) >= 3) allFollowups.push(lead);
     }
   }
 
-  if (!newLeads.length && !followupCount) { console.log('No leads for morning email'); return false; }
+  if (!allLeads.length && !allFollowups.length) { console.log('No leads for morning email'); return false; }
 
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const monthName = today.toLocaleDateString('en-US', { month: 'long' });
   const dateNum = today.getDate();
 
   const CAT_COLORS = { engineering: '#E8620A', it: '#3B82F6', accounting: '#10B981', other: '#8B5CF6' };
-  const CAT_BORDER = { engineering: '#E8620A', it: '#3B82F6', accounting: '#10B981', other: '#8B5CF6' };
-
-  const leadCards = newLeads.map(function(lead) {
-    const cat = lead.category || 'engineering';
-    const borderColor = CAT_BORDER[cat] || '#E8620A';
-    const catColor = CAT_COLORS[cat] || '#E8620A';
-    const contactCount = (lead.contacts || []).length;
-    const posted = lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-    return '<tr><td style="padding:0 0 12px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;border-left:4px solid ' + borderColor + ';"><tr><td style="padding:14px 16px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:15px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + (lead.jobTitle || '') + '</td></tr><tr><td style="font-size:13px;color:' + catColor + ';font-weight:600;padding-top:2px;font-family:Arial,sans-serif;">' + (lead.company || '') + '</td></tr><tr><td style="font-size:12px;color:#999;padding-top:4px;font-family:Arial,sans-serif;">' + (lead.location || '') + (posted ? ' &middot; Posted ' + posted : '') + '</td></tr><tr><td style="padding-top:8px;"><table cellpadding="0" cellspacing="0"><tr><td style="font-size:11px;color:#666;font-family:Arial,sans-serif;">' + contactCount + ' contact' + (contactCount !== 1 ? 's' : '') + ' found</td><td style="padding-left:12px;"><span style="display:inline-block;font-size:10px;font-weight:700;color:' + catColor + ';background:' + catColor + '15;padding:2px 8px;border-radius:10px;text-transform:uppercase;font-family:Arial,sans-serif;">' + cat + '</span></td></tr></table></td></tr></table></td></tr></table></td></tr>';
-  }).join('');
-
-  const followupRow = followupCount > 0 ? '<tr><td style="padding:0 0 20px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#FFA000;border-radius:8px;"><tr><td style="padding:12px 20px;text-align:center;font-size:14px;font-weight:600;color:#1a1a1a;font-family:Arial,sans-serif;">You have ' + followupCount + ' lead' + (followupCount !== 1 ? 's' : '') + ' to follow up on today</td></tr></table></td></tr>' : '';
-
-  const html = '<table width="100%" cellpadding="0" cellspacing="0" style="background:#e8e8e8;"><tr><td align="center" style="padding:20px 0;"><table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;">' +
-    '<tr><td style="background:#0F1E3D;padding:16px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td><img src="https://impactbusinessgroup.com/wp-content/uploads/2017/04/cropped-Logo512.png" width="40" height="40" style="display:block;" alt="iMPact"></td><td style="text-align:right;font-size:12px;color:rgba(255,255,255,0.5);font-family:Arial,sans-serif;">' + dayName + ', ' + monthName + ' ' + dateNum + '</td></tr></table></td></tr>' +
-    '<tr><td style="background:#1A4EA2;padding:28px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:24px;font-weight:700;color:white;font-family:Arial,sans-serif;">Good morning, Mark</td></tr><tr><td style="font-size:14px;color:rgba(255,255,255,0.75);padding-top:6px;font-family:Arial,sans-serif;">Your new leads for today are ready for review</td></tr></table></td></tr>' +
-    '<tr><td style="padding:20px 24px;">' + followupRow +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;border-radius:8px;margin-bottom:20px;"><tr>' +
-    '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + newLeads.length + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">New Leads</div></td>' +
-    '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + totalContacts + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Contacts</div></td>' +
-    '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#E8620A;font-family:Arial,sans-serif;">' + (catCounts.engineering || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Engineering</div></td>' +
-    '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#3B82F6;font-family:Arial,sans-serif;">' + (catCounts.it || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">IT</div></td>' +
-    '<td style="text-align:center;padding:14px 0;width:20%;"><div style="font-size:22px;font-weight:700;color:#10B981;font-family:Arial,sans-serif;">' + (catCounts.accounting || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Accounting</div></td>' +
-    '</tr></table>' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;font-family:Arial,sans-serif;">Today\'s Leads</td></tr></table>' +
-    '<table width="100%" cellpadding="0" cellspacing="0">' + leadCards + '</table>' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="padding-top:8px;"><tr><td align="center"><a href="https://impact-jobs-api.vercel.app/review" style="display:inline-block;background:#E8620A;color:white;font-size:15px;font-weight:700;padding:14px 40px;border-radius:8px;text-decoration:none;font-family:Arial,sans-serif;">Review All Leads</a></td></tr></table>' +
-    '</td></tr></table></td></tr></table>';
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
   });
 
-  await transporter.sendMail({
-    from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
-    to: 'msapoznikov@impactbusinessgroup.com',
-    subject: 'iMPact Lead Review - ' + newLeads.length + ' New Leads - ' + dayName + ', ' + monthName + ' ' + dateNum,
-    html,
-  });
+  let sentCount = 0;
+  for (const am of AM_LIST) {
+    const newLeads = allLeads.filter(l => (l.assignedAMEmail || '') === am.email);
+    const followupCount = allFollowups.filter(l => (l.assignedAMEmail || '') === am.email).length;
+    if (!newLeads.length && !followupCount) continue;
+
+    let totalContacts = 0;
+    const catCounts = { engineering: 0, it: 0, accounting: 0, other: 0 };
+    for (const lead of newLeads) {
+      const cat = lead.category || 'engineering';
+      catCounts[cat] = (catCounts[cat] || 0) + 1;
+      totalContacts += (lead.contacts || []).length;
+    }
+
+    const leadCards = newLeads.map(function(lead) {
+      const cat = lead.category || 'engineering';
+      const catColor = CAT_COLORS[cat] || '#E8620A';
+      const contactCount = (lead.contacts || []).length;
+      const posted = lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      return '<tr><td style="padding:0 0 12px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;border-left:4px solid ' + catColor + ';"><tr><td style="padding:14px 16px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:15px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + (lead.jobTitle || '') + '</td></tr><tr><td style="font-size:13px;color:' + catColor + ';font-weight:600;padding-top:2px;font-family:Arial,sans-serif;">' + (lead.company || '') + '</td></tr><tr><td style="font-size:12px;color:#999;padding-top:4px;font-family:Arial,sans-serif;">' + (lead.location || '') + (posted ? ' &middot; Posted ' + posted : '') + '</td></tr><tr><td style="padding-top:8px;"><table cellpadding="0" cellspacing="0"><tr><td style="font-size:11px;color:#666;font-family:Arial,sans-serif;">' + contactCount + ' contact' + (contactCount !== 1 ? 's' : '') + ' found</td><td style="padding-left:12px;"><span style="display:inline-block;font-size:10px;font-weight:700;color:' + catColor + ';background:' + catColor + '15;padding:2px 8px;border-radius:10px;text-transform:uppercase;font-family:Arial,sans-serif;">' + cat + '</span></td></tr></table></td></tr></table></td></tr></table></td></tr>';
+    }).join('');
+
+    const followupRow = followupCount > 0 ? '<tr><td style="padding:0 0 20px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#FFA000;border-radius:8px;"><tr><td style="padding:12px 20px;text-align:center;font-size:14px;font-weight:600;color:#1a1a1a;font-family:Arial,sans-serif;">You have ' + followupCount + ' lead' + (followupCount !== 1 ? 's' : '') + ' to follow up on today</td></tr></table></td></tr>' : '';
+
+    const html = '<table width="100%" cellpadding="0" cellspacing="0" style="background:#e8e8e8;"><tr><td align="center" style="padding:20px 0;"><table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:12px;overflow:hidden;">' +
+      '<tr><td style="background:#0F1E3D;padding:16px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td><img src="https://impactbusinessgroup.com/wp-content/uploads/2017/04/cropped-Logo512.png" width="40" height="40" style="display:block;" alt="iMPact"></td><td style="text-align:right;font-size:12px;color:rgba(255,255,255,0.5);font-family:Arial,sans-serif;">' + dayName + ', ' + monthName + ' ' + dateNum + '</td></tr></table></td></tr>' +
+      '<tr><td style="background:#1A4EA2;padding:28px 24px;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="font-size:24px;font-weight:700;color:white;font-family:Arial,sans-serif;">Good morning, ' + am.name + '</td></tr><tr><td style="font-size:14px;color:rgba(255,255,255,0.75);padding-top:6px;font-family:Arial,sans-serif;">Your new leads for today are ready for review</td></tr></table></td></tr>' +
+      '<tr><td style="padding:20px 24px;">' + followupRow +
+      '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;border-radius:8px;margin-bottom:20px;"><tr>' +
+      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + newLeads.length + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">New Leads</div></td>' +
+      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Arial,sans-serif;">' + totalContacts + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Contacts</div></td>' +
+      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#E8620A;font-family:Arial,sans-serif;">' + (catCounts.engineering || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Engineering</div></td>' +
+      '<td style="text-align:center;padding:14px 0;border-right:1px solid #e0e0e0;width:20%;"><div style="font-size:22px;font-weight:700;color:#3B82F6;font-family:Arial,sans-serif;">' + (catCounts.it || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">IT</div></td>' +
+      '<td style="text-align:center;padding:14px 0;width:20%;"><div style="font-size:22px;font-weight:700;color:#10B981;font-family:Arial,sans-serif;">' + (catCounts.accounting || 0) + '</div><div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,sans-serif;">Accounting</div></td>' +
+      '</tr></table>' +
+      '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:1px solid #e0e0e0;font-family:Arial,sans-serif;">Today\'s Leads</td></tr></table>' +
+      '<table width="100%" cellpadding="0" cellspacing="0">' + leadCards + '</table>' +
+      '<table width="100%" cellpadding="0" cellspacing="0" style="padding-top:8px;"><tr><td align="center"><a href="' + am.reviewUrl + '" style="display:inline-block;background:#E8620A;color:white;font-size:15px;font-weight:700;padding:14px 40px;border-radius:8px;text-decoration:none;font-family:Arial,sans-serif;">Review All Leads</a></td></tr></table>' +
+      '</td></tr></table></td></tr></table>';
+
+    await transporter.sendMail({
+      from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
+      to: am.email,
+      subject: 'iMPact Lead Review - ' + newLeads.length + ' New Leads - ' + dayName + ', ' + monthName + ' ' + dateNum,
+      html,
+    });
+    console.log('Morning email sent to ' + am.name + ' with ' + newLeads.length + ' leads');
+    sentCount++;
+  }
 
   await redisSet(dateKey, true, 86400);
-  console.log('Morning email sent with ' + newLeads.length + ' leads');
+  console.log('Morning emails sent: ' + sentCount + ' AMs');
   return true;
 }
 
