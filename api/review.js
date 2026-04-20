@@ -547,6 +547,47 @@ module.exports = async function handler(req, res) {
 '.am-weekly-bar { width: 100%; max-width: 40px; background: linear-gradient(180deg, #E8620A, #FF7A2F); border-radius: 4px 4px 0 0; transition: height 0.6s ease; min-height: 2px; }\n' +
 '.am-weekly-label { font-size: 8px; color: rgba(255,255,255,0.3); margin-top: 4px; transform: rotate(-45deg); white-space: nowrap; }\n' +
 '@media (max-width: 768px) { .stat-cards-row { grid-template-columns: repeat(2, 1fr); } .lb-row { grid-template-columns: 100px 1fr 60px; } .lb-header { grid-template-columns: 100px 1fr 60px; } .lb-row > :nth-child(4), .lb-row > :nth-child(5), .lb-header > :nth-child(4), .lb-header > :nth-child(5) { display: none; } }\n' +
+'@media (max-width: 768px) {\n' +
+'  body { font-size: 13px; }\n' +
+'  .header { flex-direction: column; height: auto; padding: 12px 16px; gap: 10px; position: sticky; top: 0; }\n' +
+'  .header-logo { height: 28px; }\n' +
+'  .header-center { position: static; transform: none; order: 2; }\n' +
+'  .header-center .nav-tabs { flex-wrap: wrap; justify-content: center; gap: 4px; }\n' +
+'  .header > div:last-child { order: 3; width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }\n' +
+'  .header-meta { font-size: 11px; }\n' +
+'  .outlook-toggle { font-size: 11px; }\n' +
+'  .lead-card, .card { max-width: 100% !important; width: 100%; padding: 14px; margin: 0 0 14px 0; }\n' +
+'  .contacts-row, .contacts-wrap, #contacts-container { flex-direction: column; }\n' +
+'  .contact-card { max-width: 100%; min-width: 0; width: 100%; }\n' +
+'  .composer, .email-composer, .li-composer { width: 100%; max-width: 100%; }\n' +
+'  .composer-head, .subject-row { flex-wrap: wrap; gap: 6px; }\n' +
+'  .composer input, .composer textarea, .subject-row input { width: 100%; min-width: 0; box-sizing: border-box; }\n' +
+'  .lead-footer, .card-footer, .footer-actions { flex-wrap: wrap; gap: 8px; }\n' +
+'  .lead-footer .btn-glass, .card-footer .btn-glass, .footer-actions .btn-glass { flex: 1 1 calc(50% - 4px); min-width: 0; padding: 10px 12px; font-size: 12px; }\n' +
+'  .modal-overlay .modal { width: calc(100% - 20px); max-width: calc(100% - 20px); max-height: calc(100vh - 40px); margin: 20px 10px; overflow-y: auto; }\n' +
+'  .modal-body { padding: 14px 16px; }\n' +
+'  .modal-header { padding: 14px 16px 10px; }\n' +
+'  .stat-cards-row, .stats-row { grid-template-columns: 1fr !important; gap: 10px; }\n' +
+'  .leaderboard, .lb-wrap, .analytics-row { overflow-x: auto; -webkit-overflow-scrolling: touch; }\n' +
+'  .fc-filters, .filters, .fc-row { flex-direction: column; gap: 8px; }\n' +
+'  .fc-field, .fc-filters input, .fc-filters select { width: 100%; box-sizing: border-box; }\n' +
+'  .archive-pills { flex-wrap: wrap; }\n' +
+'  .archive-row { flex-wrap: wrap; }\n' +
+'  .archive-row .btn-archive-action { width: 100%; }\n' +
+'  .reason-pill-row { justify-content: center; }\n' +
+'  .greeting { font-size: 18px; }\n' +
+'  .queue-head h2, .queue-sub { font-size: 14px; }\n' +
+'  .contact-check-corner { bottom: 8px; right: 8px; }\n' +
+'  .contact-actions { padding-right: 44px; }\n' +
+'}\n' +
+'@media (max-width: 480px) {\n' +
+'  body { font-size: 12px; }\n' +
+'  .header { padding: 10px 12px; }\n' +
+'  .lead-card, .card { padding: 12px; border-radius: 10px; }\n' +
+'  .lead-footer .btn-glass, .card-footer .btn-glass, .footer-actions .btn-glass { flex: 1 1 100%; }\n' +
+'  .nav-tab { font-size: 11px; padding: 6px 10px; }\n' +
+'  .stat-cards-row { gap: 8px; }\n' +
+'}\n' +
 '</style>\n' +
 '</head>\n' +
 '<body>\n' +
@@ -741,7 +782,25 @@ module.exports = async function handler(req, res) {
 'var AM_NAMES = ["Doug Koetsier","Paul Kujawski","Matt Peal","Lauren Sylvester","Dan Teliczan","Curt Willbrandt","Trish Wangler","Mark Herman","Jamie Drajka","Drew Bentsen","Steve Betteley"];\n' +
 '\n' +
 'var _params=new URLSearchParams(window.location.search);\n' +
-'var AM = _params.get("am")==="cwillbrandt" ? { name: "Curt Willbrandt", email: "cwillbrandt@impactbusinessgroup.com" } : { name: "Mark Sapoznikov", email: "msapoznikov@impactbusinessgroup.com" };\n' +
+'var AM = { name: "Mark Sapoznikov", email: "msapoznikov@impactbusinessgroup.com", role: "admin" };\n' +
+'var AUTH_READY = false;\n' +
+'async function resolveAuth(){\n' +
+'  var tk=(_params.get("token")||"").trim();\n' +
+'  if(tk){\n' +
+'    try{\n' +
+'      var r=await fetch("/api/leads?action=validate_token&token="+encodeURIComponent(tk));\n' +
+'      var d=await r.json();\n' +
+'      if(d && d.ok && d.email){ AM={ name:d.name||"", email:d.email, role:d.role||"am" }; AUTH_READY=true; return true; }\n' +
+'    }catch(e){ console.error("Token validation error:",e); }\n' +
+'    return false;\n' +
+'  }\n' +
+'  if(_params.get("am")==="cwillbrandt"){ AM={ name:"Curt Willbrandt", email:"cwillbrandt@impactbusinessgroup.com", role:"am" }; AUTH_READY=true; return true; }\n' +
+'  if(_params.get("am")==="msapoznikov"){ AM={ name:"Mark Sapoznikov", email:"msapoznikov@impactbusinessgroup.com", role:"admin" }; AUTH_READY=true; return true; }\n' +
+'  return false;\n' +
+'}\n' +
+'function renderAccessDenied(){\n' +
+'  document.body.innerHTML = \'<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f1419;font-family:Raleway,Arial,sans-serif;padding:24px;"><div style="max-width:420px;text-align:center;"><img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" style="width:180px;margin:0 auto 28px;display:block;" alt="iMPact"><h1 style="color:#fff;font-family:Oswald,sans-serif;font-size:28px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">Access Denied</h1><p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.6;margin:0;">Please contact your administrator for access.</p></div></div>\';\n' +
+'}\n' +
 'var leads = [];\n' +
 'var blocklist = { companies: [], titles: [] };\n' +
 'var contactCounters = {};\n' +
@@ -849,14 +908,16 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'async function init() {\n' +
+'  var ok=await resolveAuth();\n' +
+'  if(!ok){ renderAccessDenied(); return; }\n' +
 '  var today=new Date();\n' +
 '  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
 '  var hr=today.getHours(); var greet=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";\n' +
-'  _g("greeting-text").textContent=greet+", "+AM.name.split(" ")[0];\n' +
+'  _g("greeting-text").textContent=greet+", "+(AM.name?AM.name.split(" ")[0]:"");\n' +
 '  _g("queue-sub").innerHTML="<span style=\\"color:#666\\">Loading leads...</span>";\n' +
 '  try{\n' +
 '    var results=await Promise.all([fetch("/api/leads").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
-'    var allLeads=results[0].leads||[];leads=allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;});blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
+'    var allLeads=results[0].leads||[];leads=(AM.role==="admin")?allLeads:allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;});blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
 '    updateLeadCount();\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +

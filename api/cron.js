@@ -236,12 +236,33 @@ async function checkInactiveLeads() {
     const key = lead._key;
 
     const newEmail = AM_EMAIL_MAP[newAM] || '';
-    lead.assignment_history.push({ am_name: lead.assignedAM || '', am_email: lead.assignedAMEmail || '', assigned_at: assignedAt, reassign_reason: 'inactivity_2bd' });
+    const prevAM = lead.assignedAM || '';
+    const prevEmail = lead.assignedAMEmail || '';
+    lead.assignment_history.push({ am_name: prevAM, am_email: prevEmail, assigned_at: assignedAt, reassign_reason: 'inactivity_2bd' });
     lead.assignedAM = newAM;
     lead.assignedAMEmail = newEmail;
     lead.assignedAt = now.toISOString();
 
     await redisSet(key, lead, 60 * 60 * 24 * 14);
+
+    // Log reassignment for the 1pm reassignment email
+    try {
+      const actLog = (await redisGet('contact_activity_log')) || [];
+      actLog.push({
+        action_type: 'reassigned',
+        from_am: prevEmail,
+        from_am_name: prevAM,
+        to_am: newEmail,
+        to_am_name: newAM,
+        reason: 'inactivity',
+        lead_id: key,
+        company: lead.company || '',
+        job_title: lead.jobTitle || '',
+        category: lead.category || '',
+        date: now.toISOString(),
+      });
+      await redisSet('contact_activity_log', actLog);
+    } catch (e) { console.error('cron reassign log error:', e.message); }
 
     // Update Mailchimp rep for company contacts
     try {
@@ -455,6 +476,160 @@ async function sendMorningEmail() {
   return true;
 }
 
+// --- 1pm reassignment email ---
+function buildReassignmentEmailHtml(ctx) {
+  var ORANGE = '#E8620A';
+  var NAVY = '#0F1E3D';
+  var PAGE_BG = '#e8e8e8';
+  var CARD_BG = '#ffffff';
+  var LABEL_GREY = '#888888';
+  var BODY_FONT = 'Arial, Helvetica, sans-serif';
+
+  var rows = ctx.rows.map(function(r) {
+    return '<tr>' +
+      '<td style="padding:10px 10px;border-bottom:1px solid #eeeeee;font-family:' + BODY_FONT + ';font-size:13px;color:#1a1a1a;font-weight:600;">' + r.company + '</td>' +
+      '<td style="padding:10px 10px;border-bottom:1px solid #eeeeee;font-family:' + BODY_FONT + ';font-size:13px;color:#333;">' + r.jobTitle + '</td>' +
+      '<td style="padding:10px 10px;border-bottom:1px solid #eeeeee;font-family:' + BODY_FONT + ';font-size:12px;color:#666;text-transform:uppercase;letter-spacing:0.3px;">' + r.category + '</td>' +
+      '<td style="padding:10px 10px;border-bottom:1px solid #eeeeee;font-family:' + BODY_FONT + ';font-size:12px;color:#666;">' + r.from + '</td>' +
+      '<td style="padding:10px 10px;border-bottom:1px solid #eeeeee;font-family:' + BODY_FONT + ';font-size:12px;color:#666;">' + r.reason + '</td>' +
+    '</tr>';
+  }).join('');
+
+  return '' +
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + PAGE_BG + ';">' +
+      '<tr><td align="center" style="padding:24px 12px;">' +
+        '<table width="680" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + CARD_BG + ';border-radius:12px;overflow:hidden;">' +
+          '<tr><td align="center" style="background:' + NAVY + ';padding:24px;">' +
+            '<img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" width="160" alt="iMPact Business Group" style="display:block;border:0;">' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:28px 24px 8px;">' +
+            '<div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:' + BODY_FONT + ';">' + ctx.headline + '</div>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 20px;">' +
+            '<div style="font-size:13px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">' + ctx.todayLabel + '</div>' +
+          '</td></tr>' +
+          '<tr><td style="padding:0 24px 24px;">' +
+            '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="border:1px solid #eeeeee;border-radius:8px;overflow:hidden;">' +
+              '<tr style="background:#f5f5f5;">' +
+                '<th align="left" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:' + BODY_FONT + ';">Company</th>' +
+                '<th align="left" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:' + BODY_FONT + ';">Job Title</th>' +
+                '<th align="left" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:' + BODY_FONT + ';">Category</th>' +
+                '<th align="left" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:' + BODY_FONT + ';">Previously</th>' +
+                '<th align="left" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:' + BODY_FONT + ';">Reason</th>' +
+              '</tr>' +
+              rows +
+            '</table>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 32px;">' +
+            '<table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="' + ORANGE + '" style="border-radius:6px;">' +
+              '<a href="' + ctx.reviewUrl + '" style="display:inline-block;padding:14px 32px;color:#ffffff;font-family:Raleway,Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;">Review My Leads</a>' +
+            '</td></tr></table>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:18px 24px 24px;border-top:1px solid #eeeeee;">' +
+            '<div style="font-size:12px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">iMPact Business Group | Grand Rapids, MI &amp; Tampa, FL</div>' +
+          '</td></tr>' +
+        '</table>' +
+      '</td></tr>' +
+    '</table>';
+}
+
+async function sendReassignmentEmail() {
+  const now = new Date();
+  const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const dow = etNow.getDay();
+  if (dow === 0 || dow === 6) {
+    console.log('Skipping reassignment email on weekend');
+    return false;
+  }
+
+  const dateStr = now.toISOString().split('T')[0];
+  const dedupKey = 'reassignment_email_sent_' + dateStr;
+  const already = await redisGet(dedupKey);
+  if (already) { console.log('Reassignment email already sent today'); return false; }
+
+  const log = (await redisGet('contact_activity_log')) || [];
+  const todays = (Array.isArray(log) ? log : []).filter(e => {
+    if (!e || e.action_type !== 'reassigned') return false;
+    const d = (e.date || '').slice(0, 10);
+    return d === dateStr;
+  });
+  if (!todays.length) { console.log('No reassignments today; skipping reassignment email'); return false; }
+
+  await redisSet(dedupKey, true, 86400);
+
+  const byTo = {};
+  for (const e of todays) {
+    const to = (e.to_am || '').toLowerCase();
+    if (!to) continue;
+    (byTo[to] = byTo[to] || []).push(e);
+  }
+
+  const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const REVIEW_URL = 'https://impact-jobs-api.vercel.app/review';
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+  });
+
+  const firstNameFromEmail = em => {
+    const key = Object.keys(AM_EMAIL_MAP).find(n => AM_EMAIL_MAP[n] === em);
+    if (key) return key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1))[0];
+    return em.split('@')[0];
+  };
+  const reasonLabel = r => r === 'inactivity' ? 'Inactivity rerouting' : 'Manual reassign';
+
+  let sent = 0;
+  for (const to of Object.keys(byTo)) {
+    const entries = byTo[to];
+    const firstName = firstNameFromEmail(to);
+    const rows = entries.map(e => ({
+      company: e.company || '',
+      jobTitle: e.job_title || '',
+      category: (e.category || '').toUpperCase() || 'OTHER',
+      from: e.from_am_name || e.from_am || 'N/A',
+      reason: reasonLabel(e.reason || 'manual'),
+    }));
+    const headline = 'Hi ' + firstName + ', you have ' + entries.length + ' lead' + (entries.length !== 1 ? 's' : '') + ' reassigned to you today';
+    const html = buildReassignmentEmailHtml({ headline, todayLabel, rows, reviewUrl: REVIEW_URL });
+    await transporter.sendMail({
+      from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
+      to,
+      subject: 'iMPact Lead Reassignments, ' + todayLabel,
+      html,
+    });
+    console.log('Reassignment email sent to ' + to + ' (' + entries.length + ' leads)');
+    sent++;
+  }
+
+  // Summary to admins
+  const summaryRecipients = ['msapoznikov@impactbusinessgroup.com', 'mpeal@impactbusinessgroup.com'];
+  const summaryRows = todays.map(e => ({
+    company: e.company || '',
+    jobTitle: e.job_title || '',
+    category: (e.category || '').toUpperCase() || 'OTHER',
+    from: (e.from_am_name || e.from_am || 'N/A') + ' &rarr; ' + (e.to_am_name || e.to_am || ''),
+    reason: reasonLabel(e.reason || 'manual'),
+  }));
+  const summaryHtml = buildReassignmentEmailHtml({
+    headline: 'Reassignment summary: ' + todays.length + ' lead' + (todays.length !== 1 ? 's' : '') + ' reassigned today',
+    todayLabel,
+    rows: summaryRows,
+    reviewUrl: REVIEW_URL,
+  });
+  for (const rcpt of summaryRecipients) {
+    await transporter.sendMail({
+      from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
+      to: rcpt,
+      subject: 'iMPact Reassignment Summary, ' + todayLabel,
+      html: summaryHtml,
+    });
+    console.log('Reassignment summary sent to ' + rcpt);
+    sent++;
+  }
+
+  return sent > 0;
+}
+
 // --- Main handler ---
 module.exports = async function handler(req, res) {
   // Disable caching
@@ -508,5 +683,18 @@ module.exports = async function handler(req, res) {
     }
   } catch (e) { console.error('Morning email error:', e.message); }
 
-  return res.status(200).json({ ok: true, checked: keys.length, alerted, rerouted, reminded, emailSent });
+  // --- 1pm reassignment email (Mon-Fri, 12:55-13:05 ET window, or force_reassign=true) ---
+  let reassignEmailSent = false;
+  try {
+    const forceReassign = req.query && req.query.force_reassign === 'true';
+    const etNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const hr = etNow.getHours();
+    const min = etNow.getMinutes();
+    const inWindow = (hr === 12 && min >= 55) || (hr === 13 && min <= 5);
+    if (forceReassign || inWindow) {
+      reassignEmailSent = await sendReassignmentEmail();
+    }
+  } catch (e) { console.error('Reassignment email error:', e.message); }
+
+  return res.status(200).json({ ok: true, checked: keys.length, alerted, rerouted, reminded, emailSent, reassignEmailSent });
 };

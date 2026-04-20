@@ -124,6 +124,16 @@ module.exports = async function handler(req, res) {
 
   const { method, query } = req;
 
+  // GET -- validate an AM token and return {email, role, name}
+  if (method === 'GET' && query.action === 'validate_token') {
+    const t = String(query.token || '').trim();
+    if (!t) return res.status(400).json({ ok: false, error: 'missing_token' });
+    if (!/^[A-Za-z0-9]{16,64}$/.test(t)) return res.status(400).json({ ok: false, error: 'invalid_token_format' });
+    const rec = await redisGet('token:' + t);
+    if (!rec || !rec.email) return res.status(401).json({ ok: false, error: 'invalid_token' });
+    return res.status(200).json({ ok: true, email: rec.email, role: rec.role || 'am', name: rec.name || '' });
+  }
+
   // GET -- single lead by id for polling
   if (method === 'GET' && query.id) {
     const lead = await redisGet(query.id);
@@ -526,8 +536,32 @@ module.exports = async function handler(req, res) {
       if (byEmail) updates.assignedAM = byEmail.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
 
+    // Detect reassignment (assignedAMEmail changed) BEFORE applying updates
+    const isReassign = !!updates.assignedAMEmail &&
+      (String(updates.assignedAMEmail).toLowerCase() !== String(lead.assignedAMEmail || '').toLowerCase());
+
     const updated = { ...lead, ...updates };
-    await redisSet(id, updated, 60 * 60 * 24 * 7);
+    await redisSet(id, updated, 60 * 60 * 24 * 14);
+
+    if (isReassign) {
+      try {
+        const log = (await redisGet('contact_activity_log')) || [];
+        log.push({
+          action_type: 'reassigned',
+          from_am: lead.assignedAMEmail || '',
+          from_am_name: lead.assignedAM || '',
+          to_am: updated.assignedAMEmail || '',
+          to_am_name: updated.assignedAM || '',
+          reason: body.reassign_reason || 'manual',
+          lead_id: id,
+          company: lead.company || '',
+          job_title: lead.jobTitle || '',
+          category: lead.category || '',
+          date: new Date().toISOString(),
+        });
+        await redisSet('contact_activity_log', log);
+      } catch (e) { console.error('reassign log error:', e.message); }
+    }
 
     if (updates.status === 'completed') {
       const domain = lead.company_domain || '';
