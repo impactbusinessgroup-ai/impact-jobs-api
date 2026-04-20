@@ -2864,8 +2864,19 @@ module.exports = async function handler(req, res) {
 '  var inactView=_g("inactivity-view"); if(inactView) inactView.style.display = tab === "inactivity" ? "block" : "none";\n' +
 '  var filterBar=_g("admin-filter-bar"); if(filterBar && AM.role==="admin") filterBar.style.display = tab === "leads" ? "flex" : "none";\n' +
 '  var sb=_g("am-scoreboard"); if(sb && AM.role !== "admin") sb.style.display = tab === "leads" ? "flex" : "none";\n' +
+'  // Avoid duplicate DOM ids across tabs: both Leads and Inactivity\n' +
+'  // render cards with identical `card-<safeId>` / `logo-<sid>` /\n' +
+'  // `contacts-<sid>` ids. When both card sets live in the DOM at\n' +
+'  // once, document.getElementById returns the FIRST match, which\n' +
+'  // is the hidden Leads tab (declared before Inactivity in markup).\n' +
+'  // That silently breaks fetchLogo + addContact hydration on the\n' +
+'  // visible Inactivity tab. Clear the inactive tab\'s container on\n' +
+'  // every switch.\n' +
+'  if (tab !== "leads") { var lc = _g("leads-container"); if (lc) lc.innerHTML = ""; }\n' +
+'  if (tab !== "inactivity") { var ic = _g("inactivity-container"); if (ic) ic.innerHTML = ""; }\n' +
 '  if (tab === "analytics" && !analyticsLoaded) { loadAnalytics(); }\n' +
 '  if (tab === "inactivity") { renderInactivityView(); }\n' +
+'  if (tab === "leads") { renderLeads(); }\n' +
 '}\n' +
 'function restoreActiveTabFromSession() {\n' +
 '  var saved = null;\n' +
@@ -3349,12 +3360,19 @@ module.exports = async function handler(req, res) {
 '  var os = Number(stats.outreachSent || 0);\n' +
 '  var cm = Number(stats.contactsMade || 0);\n' +
 '  var denom = lr > 0 ? lr : 1;\n' +
+'  // Visual taper is softened via sqrt + height floors so even the\n' +
+'  // rightmost (narrowest) section has enough vertical room for its\n' +
+'  // 32px number and 11px label. Raw numbers in each section stay\n' +
+'  // accurate; only the SHAPE is compressed.\n' +
 '  var h1L = maxH;\n' +
-'  var h1R = Math.max(42, (os / denom) * maxH);\n' +
+'  var h1R = Math.max(maxH * 0.72, Math.sqrt(os / denom) * maxH);\n' +
+'  if (h1R > h1L) h1R = h1L;\n' +
 '  var h2L = h1R;\n' +
-'  var h2R = Math.max(32, (cm / denom) * maxH);\n' +
+'  var h2R = Math.max(maxH * 0.58, Math.sqrt(cm / denom) * maxH);\n' +
+'  if (h2R > h2L - 6) h2R = h2L - 6;\n' +
 '  var h3L = h2R;\n' +
-'  var h3R = Math.max(24, h3L * 0.82);\n' +
+'  var h3R = Math.max(maxH * 0.48, h2R * 0.82);\n' +
+'  if (h3R > h3L - 4) h3R = h3L - 4;\n' +
 '  // Visible-polygon centering: for a linearly-tapering trapezoid the\n' +
 '  // weighted centroid is shifted toward the taller edge. This keeps\n' +
 '  // the number + label planted inside the colored fill.\n' +
