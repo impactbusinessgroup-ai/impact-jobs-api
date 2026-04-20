@@ -159,11 +159,20 @@ module.exports = async function handler(req, res) {
 '.btn-archive-action:hover { background: #16a34a; }\n' +
 '.btn-archive-action:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
 '.archive-empty { padding: 14px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; }\n' +
-'.admin-filter-bar { display: none; gap: 10px; padding: 14px 24px; background: rgba(26,26,26,0.6); border-bottom: 1px solid #2a2a2a; align-items: center; flex-wrap: wrap; position: sticky; top: 64px; z-index: 40; }\n' +
+'.admin-filter-bar { display: none; gap: 10px; padding: 14px 24px; background: #1a1a1a; border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap; position: sticky; top: 64px; z-index: 100; }\n' +
 '.admin-filter-bar.visible { display: flex; }\n' +
-'.admin-filter-bar select { background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 12px; font-family: Raleway, sans-serif; }\n' +
-'.admin-filter-bar select:focus { outline: 1px solid #E8620A; border-color: #E8620A; }\n' +
 '.admin-filter-bar .filter-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-right: 4px; }\n' +
+'.custom-dd { position: relative; }\n' +
+'.custom-dd-btn { background: #2e2e2e; color: #fff; border: 1px solid #444; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: border-color 0.15s; min-width: 90px; }\n' +
+'.custom-dd-btn:hover { border-color: #666; }\n' +
+'.custom-dd.active .custom-dd-btn { border-color: #E8620A; }\n' +
+'.custom-dd-chevron { color: #E8620A; font-size: 10px; line-height: 1; margin-left: auto; transition: transform 0.15s; }\n' +
+'.custom-dd.open .custom-dd-chevron { transform: rotate(180deg); }\n' +
+'.custom-dd-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #2e2e2e; border: 1px solid #444; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; display: none; max-height: 320px; overflow-y: auto; padding: 4px 0; }\n' +
+'.custom-dd.open .custom-dd-panel { display: block; }\n' +
+'.custom-dd-opt { padding: 10px 16px; color: #fff; font-size: 13px; font-family: Raleway, sans-serif; cursor: pointer; white-space: nowrap; transition: background 0.1s; }\n' +
+'.custom-dd-opt:hover { background: #3a3a3a; color: #fff; }\n' +
+'.custom-dd-opt.selected { color: #E8620A; }\n' +
 '.admin-filter-clear { font-size: 12px; padding: 7px 14px; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border-radius: 6px; cursor: pointer; font-family: Raleway, sans-serif; font-weight: 600; }\n' +
 '.admin-filter-clear:hover { border-color: #E8620A; color: #E8620A; }\n' +
 '.admin-filter-count { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.5); font-family: Raleway, sans-serif; }\n' +
@@ -772,10 +781,14 @@ module.exports = async function handler(req, res) {
 '</div>\n' +
 '\n' +
 '<div class="admin-filter-bar" id="admin-filter-bar">\n' +
-'  <span class="filter-label">AM</span><select id="af-am" onchange="applyAdminFilters()"><option value="">All</option></select>\n' +
-'  <span class="filter-label">Category</span><select id="af-category" onchange="applyAdminFilters()"><option value="">All</option><option value="engineering">Engineering</option><option value="it">IT</option><option value="accounting">Accounting</option><option value="other">Other</option></select>\n' +
-'  <span class="filter-label">Location</span><select id="af-location" onchange="applyAdminFilters()"><option value="">All</option><option value="michigan">Michigan</option><option value="florida">Florida</option><option value="other">Other</option></select>\n' +
-'  <span class="filter-label">Status</span><select id="af-status" onchange="applyAdminFilters()"><option value="">All</option><option value="new">New</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="awaiting_followup">Awaiting Follow-up</option><option value="skipped">Skipped</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="closed">Closed</option></select>\n' +
+'  <span class="filter-label">AM</span>\n' +
+'  <div class="custom-dd" id="dd-am"><button class="custom-dd-btn" onclick="toggleFilterDD(&apos;am&apos;,event)"><span class="custom-dd-label" id="lbl-am">All</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="panel-am"></div></div>\n' +
+'  <span class="filter-label">Category</span>\n' +
+'  <div class="custom-dd" id="dd-category"><button class="custom-dd-btn" onclick="toggleFilterDD(&apos;category&apos;,event)"><span class="custom-dd-label" id="lbl-category">All</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="panel-category"></div></div>\n' +
+'  <span class="filter-label">Location</span>\n' +
+'  <div class="custom-dd" id="dd-location"><button class="custom-dd-btn" onclick="toggleFilterDD(&apos;location&apos;,event)"><span class="custom-dd-label" id="lbl-location">All</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="panel-location"></div></div>\n' +
+'  <span class="filter-label">Status</span>\n' +
+'  <div class="custom-dd" id="dd-status"><button class="custom-dd-btn" onclick="toggleFilterDD(&apos;status&apos;,event)"><span class="custom-dd-label" id="lbl-status">All</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="panel-status"></div></div>\n' +
 '  <button class="admin-filter-clear" onclick="clearAdminFilters()">Clear</button>\n' +
 '  <span class="admin-filter-count" id="admin-filter-count">0 leads</span>\n' +
 '</div>\n' +
@@ -2509,22 +2522,66 @@ module.exports = async function handler(req, res) {
 'var allLeadsCache = [];\n' +
 'var adminViewedSet = {};\n' +
 'var adminFilters = { am: "", category: "", location: "", status: "" };\n' +
+'var _filterDDOptions = {\n' +
+'  am: [{v:"",l:"All"}],\n' +
+'  category: [{v:"",l:"All"},{v:"engineering",l:"Engineering"},{v:"it",l:"IT"},{v:"accounting",l:"Accounting"},{v:"other",l:"Other"}],\n' +
+'  location: [{v:"",l:"All"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"other",l:"Other"}],\n' +
+'  status: [{v:"",l:"All"},{v:"new",l:"New"},{v:"pending",l:"Pending"},{v:"in_progress",l:"In Progress"},{v:"awaiting_followup",l:"Awaiting Follow-up"},{v:"skipped",l:"Skipped"},{v:"blocked",l:"Blocked"},{v:"completed",l:"Completed"},{v:"closed",l:"Closed"}]\n' +
+'};\n' +
+'var _filterKinds = ["am","category","location","status"];\n' +
+'function _filterKey(kind){ return kind==="category"?"category":(kind==="location"?"location":(kind==="status"?"status":"am")); }\n' +
+'function _ddLabelFor(kind, value) {\n' +
+'  var opts = _filterDDOptions[kind] || [];\n' +
+'  for (var i=0;i<opts.length;i++){ if(opts[i].v === (value||"")) return opts[i].l; }\n' +
+'  return "All";\n' +
+'}\n' +
+'function _renderFilterPanel(kind) {\n' +
+'  var panel = _g("panel-"+kind); if(!panel) return;\n' +
+'  var opts = _filterDDOptions[kind] || [];\n' +
+'  var cur = adminFilters[kind] || "";\n' +
+'  panel.innerHTML = opts.map(function(o){\n' +
+'    var sel = (o.v === cur) ? " selected" : "";\n' +
+'    var esc = function(s){ return String(s).replace(/\\\\/g,"\\\\\\\\").replace(/\'/g,"\\\\\'"); };\n' +
+'    return \'<div class="custom-dd-opt\'+sel+\'" onclick="setFilterValue(\\\'\'+kind+\'\\\',\\\'\'+esc(o.v)+\'\\\',\\\'\'+esc(o.l)+\'\\\')">\'+o.l+\'</div>\';\n' +
+'  }).join("");\n' +
+'}\n' +
+'function _syncFilterTrigger(kind) {\n' +
+'  var lbl=_g("lbl-"+kind); if(lbl) lbl.textContent = _ddLabelFor(kind, adminFilters[kind]||"");\n' +
+'  var dd=_g("dd-"+kind); if(dd) dd.classList.toggle("active", !!adminFilters[kind]);\n' +
+'}\n' +
 'function populateAmFilterOptions() {\n' +
-'  var sel=_g("af-am"); if(!sel) return;\n' +
 '  var names = (typeof AM_NAMES !== "undefined" && AM_NAMES) ? AM_NAMES.slice() : [];\n' +
 '  if(names.indexOf("Mark Sapoznikov") === -1) names.unshift("Mark Sapoznikov");\n' +
 '  names.sort();\n' +
-'  for (var i=0;i<names.length;i++){ var o=document.createElement("option"); o.value=names[i]; o.textContent=names[i]; sel.appendChild(o); }\n' +
+'  _filterDDOptions.am = [{v:"",l:"All"}].concat(names.map(function(n){return {v:n,l:n};}));\n' +
+'  _filterKinds.forEach(function(k){ _renderFilterPanel(k); _syncFilterTrigger(k); });\n' +
 '}\n' +
+'function toggleFilterDD(kind, evt) {\n' +
+'  if(evt){ evt.stopPropagation(); evt.preventDefault(); }\n' +
+'  var dd=_g("dd-"+kind); if(!dd) return;\n' +
+'  var wasOpen = dd.classList.contains("open");\n' +
+'  closeAllFilterDDs();\n' +
+'  if(!wasOpen) dd.classList.add("open");\n' +
+'}\n' +
+'function closeAllFilterDDs() {\n' +
+'  _filterKinds.forEach(function(k){ var dd=_g("dd-"+k); if(dd) dd.classList.remove("open"); });\n' +
+'}\n' +
+'function setFilterValue(kind, value, label) {\n' +
+'  adminFilters[kind] = value || "";\n' +
+'  var lbl=_g("lbl-"+kind); if(lbl) lbl.textContent = label || "All";\n' +
+'  var dd=_g("dd-"+kind); if(dd) dd.classList.toggle("active", !!adminFilters[kind]);\n' +
+'  _renderFilterPanel(kind);\n' +
+'  closeAllFilterDDs();\n' +
+'  writeAdminFiltersToUrl();\n' +
+'  renderLeads();\n' +
+'}\n' +
+'document.addEventListener("click", function(e){ if(!e.target.closest(".custom-dd")) closeAllFilterDDs(); });\n' +
 'function readAdminFiltersFromUrl() {\n' +
 '  adminFilters.am=_params.get("f_am")||"";\n' +
 '  adminFilters.category=_params.get("f_cat")||"";\n' +
 '  adminFilters.location=_params.get("f_loc")||"";\n' +
 '  adminFilters.status=_params.get("f_status")||"";\n' +
-'  if(_g("af-am")) _g("af-am").value=adminFilters.am;\n' +
-'  if(_g("af-category")) _g("af-category").value=adminFilters.category;\n' +
-'  if(_g("af-location")) _g("af-location").value=adminFilters.location;\n' +
-'  if(_g("af-status")) _g("af-status").value=adminFilters.status;\n' +
+'  _filterKinds.forEach(function(k){ _renderFilterPanel(k); _syncFilterTrigger(k); });\n' +
 '}\n' +
 'function writeAdminFiltersToUrl() {\n' +
 '  var u=new URL(window.location.href);\n' +
@@ -2552,16 +2609,13 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 'function applyAdminFilters() {\n' +
-'  adminFilters.am=_g("af-am").value;\n' +
-'  adminFilters.category=_g("af-category").value;\n' +
-'  adminFilters.location=_g("af-location").value;\n' +
-'  adminFilters.status=_g("af-status").value;\n' +
+'  // Kept for back-compat; custom dropdowns call setFilterValue directly.\n' +
 '  writeAdminFiltersToUrl();\n' +
 '  renderLeads();\n' +
 '}\n' +
 'function clearAdminFilters() {\n' +
 '  adminFilters={am:"",category:"",location:"",status:""};\n' +
-'  _g("af-am").value="";_g("af-category").value="";_g("af-location").value="";_g("af-status").value="";\n' +
+'  _filterKinds.forEach(function(k){ _renderFilterPanel(k); _syncFilterTrigger(k); });\n' +
 '  writeAdminFiltersToUrl();\n' +
 '  renderLeads();\n' +
 '}\n' +
