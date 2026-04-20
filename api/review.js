@@ -188,11 +188,14 @@ module.exports = async function handler(req, res) {
 '.archive-empty { padding: 14px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; }\n' +
 '.admin-filter-bar { display: none; gap: 10px; padding: 14px 24px; background: #1a1a1a; border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap; position: sticky; top: 64px; z-index: 100; }\n' +
 '.admin-filter-bar.visible { display: flex; }\n' +
-'.am-scoreboard { display: none; gap: 30px; padding: 10px 24px; background: #1e1e1e; border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap; }\n' +
+'.am-scoreboard { display: none; gap: 16px; padding: 22px 24px 16px; background: transparent; border-bottom: none; justify-content: center; align-items: stretch; flex-wrap: wrap; }\n' +
 '.am-scoreboard.visible { display: flex; }\n' +
-'.am-score-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }\n' +
-'.am-score-num { font-size: 20px; font-weight: 700; color: #E8620A; line-height: 1; font-family: Oswald, sans-serif; }\n' +
-'.am-score-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.7px; font-family: Raleway, sans-serif; }\n' +
+'.am-score-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 140px; padding: 16px 28px; background: #1e2a3a; border: 1px solid #2a3a4a; border-top-width: 3px; border-radius: 12px; }\n' +
+'.am-score-stat[data-kind="new-today"] { border-top-color: #00a86b; box-shadow: 0 0 12px rgba(0,168,107,0.15); }\n' +
+'.am-score-stat[data-kind="total-pending"] { border-top-color: #1A4EA2; box-shadow: 0 0 12px rgba(26,78,162,0.15); }\n' +
+'.am-score-stat[data-kind="followups"] { border-top-color: #E8620A; box-shadow: 0 0 12px rgba(232,98,10,0.15); }\n' +
+'.am-score-num { font-size: 28px; font-weight: 700; color: #E8620A; line-height: 1; font-family: Oswald, sans-serif; }\n' +
+'.am-score-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-family: Raleway, sans-serif; }\n' +
 '.ooo-banner { display: none; background: rgba(204,51,51,0.12); border-bottom: 1px solid #cc3333; color: #ff8e8e; font-family: Raleway, sans-serif; font-size: 13px; font-weight: 600; padding: 12px 24px; text-align: center; }\n' +
 '.ooo-banner.visible { display: block; }\n' +
 '.admin-filter-bar .filter-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-right: 4px; }\n' +
@@ -296,7 +299,8 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { position: relative; background: #3a3a3a; border-radius: 18px; margin-bottom: 24px; overflow: visible; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card { position: relative; background: #3a3a3a; border-radius: 16px; margin-bottom: 24px; overflow: visible; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card > .card-top { border-top-left-radius: 16px; border-top-right-radius: 16px; }\n' +
 '.card-top { background: linear-gradient(135deg, #2a3a5c 0%, #1e2a42 60%, #161e30 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); position: relative; z-index: 1; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 80px; height: 80px; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
@@ -835,9 +839,9 @@ module.exports = async function handler(req, res) {
 '\n' +
 '<div class="ooo-banner" id="ooo-banner">You are currently marked as Out of Office. New leads will not be assigned to you today.</div>\n' +
 '<div class="am-scoreboard" id="am-scoreboard">\n' +
-'  <div class="am-score-stat"><div class="am-score-num" id="score-new-today">0</div><div class="am-score-label">New Today</div></div>\n' +
-'  <div class="am-score-stat"><div class="am-score-num" id="score-total-pending">0</div><div class="am-score-label">Total Pending</div></div>\n' +
-'  <div class="am-score-stat"><div class="am-score-num" id="score-followups">0</div><div class="am-score-label">Follow-ups Due</div></div>\n' +
+'  <div class="am-score-stat" data-kind="new-today"><div class="am-score-num" id="score-new-today">0</div><div class="am-score-label">New Today</div></div>\n' +
+'  <div class="am-score-stat" data-kind="total-pending"><div class="am-score-num" id="score-total-pending">0</div><div class="am-score-label">Total Pending</div></div>\n' +
+'  <div class="am-score-stat" data-kind="followups"><div class="am-score-num" id="score-followups">0</div><div class="am-score-label">Follow-ups Due</div></div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="admin-filter-bar" id="admin-filter-bar">\n' +
@@ -1432,7 +1436,7 @@ module.exports = async function handler(req, res) {
 '  var notesBtnHtml = unreadCount > 0\n' +
 '    ? \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" data-tooltip="Unread note from admin" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+unreadCount+\'</span></button>\'\n' +
 '    : "";\n' +
-'  return \'<div class="card" id="card-\'+safeId+\'" style="border-left:3px solid \'+statusBorderColor+\';">\'+amBadgeHtml+notesBtnHtml+\n' +
+'  return \'<div class="card" id="card-\'+safeId+\'" style="border-left:4px solid \'+statusBorderColor+\';">\'+amBadgeHtml+notesBtnHtml+\n' +
 '    \'<div class="card-top">\'+\n' +
 '      \'<div class="card-top-left">\'+\n' +
 '        \'<div class="company-logo-wrap" id="logo-\'+safeId+\'" style="display:none;"></div>\'+\n' +
