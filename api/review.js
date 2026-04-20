@@ -179,6 +179,23 @@ module.exports = async function handler(req, res) {
 '.am-badge { position: absolute; top: 12px; right: 64px; background: rgba(26,78,162,0.18); color: #8AB4F0; border: 1px solid rgba(26,78,162,0.35); padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; font-family: Oswald, sans-serif; letter-spacing: 0.5px; text-transform: uppercase; pointer-events: none; }\n' +
 '.inactivity-timeline { margin-top: 12px; padding: 10px 12px; background: rgba(255,160,0,0.06); border: 1px solid rgba(255,160,0,0.2); border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.65; font-family: Raleway, sans-serif; }\n' +
 '.inactivity-timeline strong { color: #FFA000; font-weight: 700; }\n' +
+'.inact-toolbar { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; flex-wrap: wrap; }\n' +
+'.inact-select-all { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #fff; font-family: Raleway, sans-serif; cursor: pointer; user-select: none; }\n' +
+'.inact-select-all input { width: 16px; height: 16px; accent-color: #E8620A; cursor: pointer; }\n' +
+'.inact-selected-count { font-size: 12px; color: rgba(255,255,255,0.55); font-family: Raleway, sans-serif; }\n' +
+'.inact-reassign-btn { margin-left: auto; background: #E8620A; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }\n' +
+'.inact-reassign-btn:hover { background: #cc5200; }\n' +
+'.inact-reassign-btn:disabled { opacity: 0.45; cursor: not-allowed; background: #666; }\n' +
+'.inact-card-checkbox { position: absolute; top: 14px; left: 14px; width: 18px; height: 18px; z-index: 6; accent-color: #E8620A; cursor: pointer; background: #2e2e2e; }\n' +
+'.card.inact-card { padding-left: 44px; }\n' +
+'.bulk-reassign-list { max-height: 220px; overflow-y: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 12px; margin: 12px 0; }\n' +
+'.bulk-reassign-row { font-size: 12px; color: rgba(255,255,255,0.75); padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); font-family: Raleway, sans-serif; }\n' +
+'.bulk-reassign-row:last-child { border-bottom: none; }\n' +
+'.bulk-reassign-row strong { color: #fff; font-weight: 600; }\n' +
+'.bulk-reassign-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 6px; font-family: Raleway, sans-serif; }\n' +
+'.bulk-reassign-select { width: 100%; background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 10px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 13px; box-sizing: border-box; }\n' +
+'.bulk-reassign-note { width: 100%; background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 10px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 13px; box-sizing: border-box; resize: vertical; min-height: 72px; }\n' +
+'.bulk-reassign-progress { font-size: 12px; color: rgba(255,255,255,0.55); margin: 10px 0 0; font-family: Raleway, sans-serif; min-height: 16px; }\n' +
 '.archive-row.viewed { opacity: 0.45; filter: grayscale(0.3); }\n' +
 '.btn-archive-mark { padding: 6px 10px; font-size: 11px; font-weight: 600; font-family: Raleway, sans-serif; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; cursor: pointer; margin-right: 6px; }\n' +
 '.btn-archive-mark:hover { background: rgba(255,255,255,0.1); color: #fff; }\n' +
@@ -812,6 +829,25 @@ module.exports = async function handler(req, res) {
 '    </div>\n' +
 '  </div>\n' +
 '  <div id="inactivity-container"><div class="loading">Loading inactivity queue...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="bulk-reassign-overlay" onclick="if(event.target===this)closeBulkReassignModal()">\n' +
+'  <div class="modal" style="max-width:520px;">\n' +
+'    <div class="modal-header"><h3 id="bulk-reassign-title">Reassign leads</h3><button class="modal-close" onclick="closeBulkReassignModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="bulk-reassign-label">Selected leads</div>\n' +
+'      <div class="bulk-reassign-list" id="bulk-reassign-list"></div>\n' +
+'      <div class="bulk-reassign-label">Reassign to</div>\n' +
+'      <select class="bulk-reassign-select" id="bulk-reassign-am"><option value="">Select an AM...</option></select>\n' +
+'      <div class="bulk-reassign-label">Add a note for the AMs (optional)</div>\n' +
+'      <textarea class="bulk-reassign-note" id="bulk-reassign-note" placeholder="e.g. These were all sitting with Matt. Please action this week."></textarea>\n' +
+'      <div class="bulk-reassign-progress" id="bulk-reassign-progress"></div>\n' +
+'      <div class="confirm-actions" style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">\n' +
+'        <button class="btn-glass" onclick="closeBulkReassignModal()">Cancel</button>\n' +
+'        <button class="btn-glass btn-glass-skip-orange" id="bulk-reassign-confirm" onclick="submitBulkReassign()">Reassign All</button>\n' +
+'      </div>\n' +
+'    </div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="modal-overlay" id="notes-overlay" onclick="if(event.target===this)closeNotesModal()">\n' +
@@ -2193,13 +2229,24 @@ module.exports = async function handler(req, res) {
 'function reassignLead(amName) {\n' +
 '  var noteEl=_g("reassign-note");\n' +
 '  var note = noteEl ? (noteEl.value||"").trim() : "";\n' +
+'  var leadId = _reassignRealId;\n' +
+'  var fromInactivity = (currentTab === "inactivity");\n' +
 '  closeReassignModal();\n' +
-'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,updates:{assignedAM:amName}})}).then(function(){\n' +
-'    if(note){ fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_reassignRealId,action:"add_note",message:note,authorEmail:AM.email,authorName:AM.name||""})}).catch(function(){}); }\n' +
+'  var lead = (AM.role==="admin" ? (allLeadsCache||leads) : leads).find(function(l){ return l.id===leadId; });\n' +
+'  var updates = { assignedAM: amName };\n' +
+'  if(fromInactivity && lead && lead.status === "new") updates.status = "pending";\n' +
+'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,updates:updates,reassign_reason:"manual"})}).then(function(){\n' +
+'    if(note){ fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:"add_note",message:note,authorEmail:AM.email,authorName:AM.name||""})}).catch(function(){}); }\n' +
 '  }).catch(function(){});\n' +
 '  var card=_g("card-"+_reassignSafeId);\n' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
-'  leads=leads.filter(function(l){return l.id!==_reassignRealId;});\n' +
+'  leads=leads.filter(function(l){return l.id!==leadId;});\n' +
+'  if(fromInactivity){\n' +
+'    _reassignedFromQueue[leadId] = true;\n' +
+'    delete _inactivitySelected[leadId];\n' +
+'    if(lead){ lead.assignedAM = amName; lead.assignedAMEmail = ""; if(updates.status) lead.status = updates.status; }\n' +
+'    setTimeout(function(){ renderInactivityView(); }, 320);\n' +
+'  }\n' +
 '  updateLeadCount();\n' +
 '  showToast("Lead reassigned to "+amName+(note?" with a note":""),3000);\n' +
 '}\n' +
@@ -2629,6 +2676,27 @@ module.exports = async function handler(req, res) {
 '  if(!Array.isArray(l.assignment_history)) return false;\n' +
 '  return l.assignment_history.some(function(h){ return (h.reassign_reason||"").indexOf("inactivity") !== -1; });\n' +
 '}\n' +
+'function _clientBizDaysBetween(a, b) {\n' +
+'  var count=0; var d=new Date(a);\n' +
+'  while(d < b){ d.setDate(d.getDate()+1); var day=d.getDay(); if(day !== 0 && day !== 6) count++; }\n' +
+'  return count;\n' +
+'}\n' +
+'var _reassignedFromQueue = {};\n' +
+'function _inactivityQueueEligible(l) {\n' +
+'  if(!_hasInactivityHistory(l)) return false;\n' +
+'  if(_reassignedFromQueue[l.id]) return false;\n' +
+'  var st = l.status || "";\n' +
+'  if(st !== "new" && st !== "pending" && st !== "in_progress") return false;\n' +
+'  var currentEmail = (l.assignedAMEmail||"").toLowerCase();\n' +
+'  if(currentEmail === "mpeal@impactbusinessgroup.com") return true;\n' +
+'  var assignedAtMs = l.assignedAt ? Date.parse(l.assignedAt) : 0;\n' +
+'  if(!assignedAtMs) return false;\n' +
+'  var bizDays = _clientBizDaysBetween(new Date(assignedAtMs), new Date());\n' +
+'  if(bizDays > 4) return false;\n' +
+'  var hasOutreach = l.outreach_log && typeof l.outreach_log === "object" && Object.keys(l.outreach_log).length > 0;\n' +
+'  if(hasOutreach) return false;\n' +
+'  return true;\n' +
+'}\n' +
 'function _buildInactivityTimeline(l) {\n' +
 '  var parts=[];\n' +
 '  (l.assignment_history||[]).forEach(function(h,i){\n' +
@@ -2652,19 +2720,117 @@ module.exports = async function handler(req, res) {
 '  if(l.createdAt){ var c=typeof l.createdAt==="number"?l.createdAt:Date.parse(l.createdAt); if(!isNaN(c) && c>ts) ts=c; }\n' +
 '  return ts;\n' +
 '}\n' +
+'var _inactivitySelected = {};\n' +
+'var _inactivityList = [];\n' +
 'function renderInactivityView() {\n' +
 '  var container=_g("inactivity-container"); if(!container) return;\n' +
 '  var src = (AM.role==="admin" && allLeadsCache.length) ? allLeadsCache : leads;\n' +
-'  var list = src.filter(_hasInactivityHistory).slice().sort(function(a,b){ return _lastActivityMs(a) - _lastActivityMs(b); });\n' +
+'  var list = src.filter(_inactivityQueueEligible).slice().sort(function(a,b){ return _lastActivityMs(a) - _lastActivityMs(b); });\n' +
+'  _inactivityList = list;\n' +
+'  // Drop stale selections (leads that no longer qualify)\n' +
+'  var visibleIds = {}; list.forEach(function(l){ visibleIds[l.id]=true; });\n' +
+'  Object.keys(_inactivitySelected).forEach(function(id){ if(!visibleIds[id]) delete _inactivitySelected[id]; });\n' +
 '  _g("inactivity-sub").innerHTML = list.length ? \'<span style="color:#FFA000;font-weight:600;">\' + list.length + \' lead\' + (list.length===1?"":"s") + \' in queue</span>\' : \'<span style="color:#666;">No leads in queue</span>\';\n' +
 '  if(!list.length){ container.innerHTML = \'<div class="empty"><h3>No leads in inactivity queue</h3></div>\'; return; }\n' +
-'  container.innerHTML = list.map(function(lead){\n' +
+'  var toolbar = \'<div class="inact-toolbar">\'+\n' +
+'    \'<label class="inact-select-all"><input type="checkbox" id="inact-select-all" onchange="toggleInactivitySelectAll(this)"> Select All</label>\'+\n' +
+'    \'<span class="inact-selected-count" id="inact-selected-count">0 selected</span>\'+\n' +
+'    \'<button class="inact-reassign-btn" id="inact-reassign-btn" disabled onclick="openBulkReassignModal()">Reassign Selected</button>\'+\n' +
+'  \'</div>\';\n' +
+'  container.innerHTML = toolbar + list.map(function(lead){\n' +
 '    var html = renderCard(lead);\n' +
 '    var timeline = _buildInactivityTimeline(lead);\n' +
 '    var inject = \'<div class="inactivity-timeline"><strong>Assignment history:</strong> \' + escHtml(timeline) + \'</div>\';\n' +
+'    html = html.replace(\'<div class="card" id="card-\', \'<div class="card inact-card" id="card-\');\n' +
 '    return html.replace(/<\\/div>\\s*$/, inject + \'</div>\');\n' +
 '  }).join("");\n' +
+'  // Inject checkboxes after innerHTML write so the event listeners stick\n' +
+'  list.forEach(function(lead){\n' +
+'    var sid=getSafeId(lead.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
+'    var cb=document.createElement("input"); cb.type="checkbox"; cb.className="inact-card-checkbox";\n' +
+'    cb.setAttribute("data-lead-id", lead.id);\n' +
+'    cb.checked = !!_inactivitySelected[lead.id];\n' +
+'    cb.addEventListener("click", function(e){ e.stopPropagation(); });\n' +
+'    cb.addEventListener("change", function(){ toggleInactivityLead(lead.id, this.checked); });\n' +
+'    cardEl.insertBefore(cb, cardEl.firstChild);\n' +
+'  });\n' +
 '  postRenderLeads(list);\n' +
+'  _updateInactivityToolbar();\n' +
+'}\n' +
+'function toggleInactivityLead(leadId, checked) {\n' +
+'  if(checked) _inactivitySelected[leadId]=true; else delete _inactivitySelected[leadId];\n' +
+'  _updateInactivityToolbar();\n' +
+'}\n' +
+'function toggleInactivitySelectAll(el) {\n' +
+'  _inactivityList.forEach(function(l){\n' +
+'    if(el.checked) _inactivitySelected[l.id]=true; else delete _inactivitySelected[l.id];\n' +
+'    var sid=getSafeId(l.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
+'    var cb=cardEl.querySelector(".inact-card-checkbox"); if(cb) cb.checked=el.checked;\n' +
+'  });\n' +
+'  _updateInactivityToolbar();\n' +
+'}\n' +
+'function _updateInactivityToolbar() {\n' +
+'  var n = Object.keys(_inactivitySelected).length;\n' +
+'  var ct=_g("inact-selected-count"); if(ct) ct.textContent = n + " selected";\n' +
+'  var btn=_g("inact-reassign-btn"); if(btn) btn.disabled = (n === 0);\n' +
+'  var sa=_g("inact-select-all"); if(sa) sa.checked = (n > 0 && n === _inactivityList.length);\n' +
+'}\n' +
+'\n' +
+'/* ===== Bulk reassign modal ===== */\n' +
+'var _bulkReassignInFlight = false;\n' +
+'function openBulkReassignModal() {\n' +
+'  if(!Object.keys(_inactivitySelected).length) return;\n' +
+'  var selectedLeads = _inactivityList.filter(function(l){ return _inactivitySelected[l.id]; });\n' +
+'  _g("bulk-reassign-title").textContent = "Reassign " + selectedLeads.length + " lead" + (selectedLeads.length===1?"":"s");\n' +
+'  var listHtml = selectedLeads.map(function(l){ return \'<div class="bulk-reassign-row"><strong>\'+escHtml(l.company||"")+\'</strong> &mdash; \'+escHtml(cleanJobTitle(l.jobTitle||""))+\'</div>\'; }).join("");\n' +
+'  _g("bulk-reassign-list").innerHTML = listHtml || \'<div class="bulk-reassign-row">No leads selected</div>\';\n' +
+'  var amSel=_g("bulk-reassign-am"); amSel.innerHTML = \'<option value="">Select an AM...</option>\' + AM_NAMES.map(function(n){ return \'<option value="\'+escHtml(n)+\'">\'+escHtml(n)+\'</option>\'; }).join("");\n' +
+'  _g("bulk-reassign-note").value = "";\n' +
+'  _g("bulk-reassign-progress").textContent = "";\n' +
+'  _g("bulk-reassign-confirm").disabled = false;\n' +
+'  _g("bulk-reassign-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeBulkReassignModal() {\n' +
+'  if(_bulkReassignInFlight) return;\n' +
+'  _g("bulk-reassign-overlay").classList.remove("open");\n' +
+'}\n' +
+'async function submitBulkReassign() {\n' +
+'  var amName = _g("bulk-reassign-am").value;\n' +
+'  if(!amName){ _g("bulk-reassign-progress").textContent = "Please choose an AM."; return; }\n' +
+'  var note = (_g("bulk-reassign-note").value||"").trim();\n' +
+'  var selectedIds = Object.keys(_inactivitySelected);\n' +
+'  if(!selectedIds.length){ closeBulkReassignModal(); return; }\n' +
+'  var progress=_g("bulk-reassign-progress");\n' +
+'  var confirmBtn=_g("bulk-reassign-confirm"); confirmBtn.disabled = true;\n' +
+'  _bulkReassignInFlight = true;\n' +
+'  var i=0;\n' +
+'  for (var n=0;n<selectedIds.length;n++){\n' +
+'    i=n+1;\n' +
+'    var leadId=selectedIds[n];\n' +
+'    progress.textContent = "Reassigning " + i + " of " + selectedIds.length + "...";\n' +
+'    var lead = (allLeadsCache||leads).find(function(l){return l.id===leadId;});\n' +
+'    var updates = { assignedAM: amName };\n' +
+'    if(lead && lead.status === "new") updates.status = "pending";\n' +
+'    try {\n' +
+'      await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,updates:updates,reassign_reason:"manual"})});\n' +
+'      if(note) await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:"add_note",message:note,authorEmail:AM.email,authorName:AM.name||""})});\n' +
+'      _reassignedFromQueue[leadId] = true;\n' +
+'      if(lead){ lead.assignedAM = amName; lead.assignedAMEmail = ""; if(updates.status) lead.status = updates.status; }\n' +
+'    } catch(e){ console.error("bulk reassign error for "+leadId+":", e); }\n' +
+'  }\n' +
+'  progress.textContent = "Refreshing...";\n' +
+'  try {\n' +
+'    var r=await fetch((AM.role==="admin")?"/api/leads?showAll=1":"/api/leads");\n' +
+'    var d=await r.json(); var allLeads=d.leads||[];\n' +
+'    if(AM.role==="admin"){ allLeadsCache = allLeads; leads = allLeads; }\n' +
+'    else { leads = allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;}); }\n' +
+'  } catch(e){ console.error("Refresh after bulk reassign failed:", e); }\n' +
+'  _inactivitySelected = {};\n' +
+'  _bulkReassignInFlight = false;\n' +
+'  _g("bulk-reassign-overlay").classList.remove("open");\n' +
+'  showToast("Reassigned " + selectedIds.length + " lead" + (selectedIds.length===1?"":"s") + " to " + amName, 3500);\n' +
+'  renderInactivityView();\n' +
+'  if(currentTab === "leads") renderLeads();\n' +
 '}\n' +
 '\n' +
 '/* ===== Admin viewed tracking ===== */\n' +
