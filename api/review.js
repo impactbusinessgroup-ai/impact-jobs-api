@@ -1005,33 +1005,41 @@ module.exports = async function handler(req, res) {
 '  if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
 '  if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
 '  container.innerHTML=view.map(function(lead){return renderCard(lead);}).join("");\n' +
-'  // Kick off logo fetch for every rendered card so filter changes repaint logos\n' +
-'  view.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
+'  postRenderLeads(view);\n' +
+'}\n' +
+'\n' +
+'// Shared post-render pass for any view that builds card HTML via renderCard().\n' +
+'// Fetches logos, seeds the window._lead* maps, hydrates contact tiles with\n' +
+'// addContact(), shows outreach badges, and evaluates Complete Lead state.\n' +
+'function postRenderLeads(renderedLeads) {\n' +
+'  if(!Array.isArray(renderedLeads) || !renderedLeads.length) return;\n' +
+'  // Kick off logo fetch for every rendered card\n' +
+'  renderedLeads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
 '  // <script> tags embedded via innerHTML do not execute, so populate the per-lead window maps here.\n' +
 '  window._leadJobTitles=window._leadJobTitles||{};\n' +
 '  window._leadCategories=window._leadCategories||{};\n' +
 '  window._leadRedisIds=window._leadRedisIds||{};\n' +
-'  leads.forEach(function(lead){\n' +
+'  renderedLeads.forEach(function(lead){\n' +
 '    var sid=getSafeId(lead.id);\n' +
 '    window._leadJobTitles[sid]=lead.jobTitle||"";\n' +
 '    window._leadCategories[sid]=lead.category||"engineering";\n' +
 '    window._leadRedisIds[sid]=lead.id||"";\n' +
-'    // Also stamp the card element so handlers have a DOM-level fallback.\n' +
 '    var cardEl=_g("card-"+sid);\n' +
 '    if(cardEl) cardEl.setAttribute("data-lead-redis-id",lead.id||"");\n' +
 '  });\n' +
-'  leads.forEach(function(lead){\n' +
+'  renderedLeads.forEach(function(lead){\n' +
 '    if(lead.contacts&&lead.contacts.length>0){\n' +
 '      var safeId=getSafeId(lead.id);\n' +
+'      var contactsWrap=_g("contacts-"+safeId);\n' +
+'      if(!contactsWrap) return;\n' +
 '      lead.contacts.forEach(function(c){\n' +
 '        addContact(safeId,c.full_name||c.name||"",c.job_title||c.title||"",lead.company,lead.location||"",c.apollo_id||c.prospect_id||"",{\n' +
 '          suggested:true,city:c.city||"",region:c.region_name||c.region||c.state||"",linkedin:c.linkedin||"",\n' +
 '          fromCache:c.fromCache||false,email:c.email||"",previousJobs:c.previousJobs||[],uniqid:c.uniqid||"",photo_url:c.photo_url||""\n' +
 '        });\n' +
 '      });\n' +
-'      // Show outreach badges for contacts with logged outreach and evaluate Complete button\n' +
 '      if(lead.outreach_log){\n' +
-'        var contactCards=_g("contacts-"+safeId).querySelectorAll(".contact-card");\n' +
+'        var contactCards=contactsWrap.querySelectorAll(".contact-card");\n' +
 '        contactCards.forEach(function(cc){\n' +
 '          var pid=cc.getAttribute("data-prospect-id")||"";\n' +
 '          if(pid&&lead.outreach_log[pid]&&lead.outreach_log[pid].length>0){\n' +
@@ -2602,6 +2610,7 @@ module.exports = async function handler(req, res) {
 '    var inject = \'<div class="inactivity-timeline"><strong>Assignment history:</strong> \' + escHtml(timeline) + \'</div>\';\n' +
 '    return html.replace(/<\\/div>\\s*$/, inject + \'</div>\');\n' +
 '  }).join("");\n' +
+'  postRenderLeads(list);\n' +
 '}\n' +
 '\n' +
 '/* ===== Admin viewed tracking ===== */\n' +
