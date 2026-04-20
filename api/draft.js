@@ -128,26 +128,47 @@ module.exports = async function handler(req, res) {
 
   var caseStudyInstruction = '';
   if (isGM) {
-    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + ' -- confidential values-based search, succession planning.';
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Perfect General Manager Hire" at https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=' + uniqid + '. Confidential values-based search, succession planning.';
   } else if (isExec && (isMfg || category === 'engineering')) {
-    caseStudyInstruction = 'Reference this case study naturally in one sentence: "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + ' -- confidential executive search, niche industry, hands-on leadership.';
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "VP of Operations Executive Search" at https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=' + uniqid + '. Confidential executive search, niche industry, hands-on leadership.';
   } else if (isIT) {
-    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + ' -- built entire product team from scratch on accelerated timeline.';
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Greenfield Software System Project" at https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=' + uniqid + '. Built an entire product team from scratch on an accelerated timeline.';
   } else if (isMfg || category === 'engineering') {
-    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + ' -- filled 3 specialized roles in under 2 weeks under urgent timeline.';
+    caseStudyInstruction = 'Reference this case study naturally in one sentence: "Filling Critical Manufacturing Roles in One Week" at https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=' + uniqid + '. Filled three specialized roles in under two weeks under an urgent timeline.';
   } else {
     caseStudyInstruction = 'Reference our case studies page naturally: https://impactbusinessgroup.com/case-studies/?cid=' + uniqid + ' with language like "You can see some of our recent client work here."';
+  }
+
+  var openingExamples;
+  if (category === 'it') {
+    openingExamples =
+      '  - "We recently built out an entire product team from scratch for a software company on an accelerated timeline."\n' +
+      '  - "We placed a senior DevOps engineer for a Tampa tech firm within 10 days."';
+  } else if (category === 'accounting') {
+    openingExamples =
+      '  - "We placed a Controller for a mid-size West Michigan manufacturer who needed someone with both technical and leadership skills."\n' +
+      '  - "We recently helped a growing company find a CFO with the right mix of operational and financial expertise."';
+  } else if (category === 'other') {
+    openingExamples =
+      '  - "We recently helped a Grand Rapids company find an HR Director who transformed their people operations in the first 90 days."';
+  } else {
+    openingExamples =
+      '  - "We placed three CNC machinists for a West Michigan automotive supplier in under two weeks."\n' +
+      '  - "Our team filled a critical process engineering role for a Grand Rapids manufacturer on a tight timeline."';
   }
 
   var prompt =
     'You are writing a cold outreach email for iMPact Business Group, a staffing firm in Grand Rapids MI and Tampa FL placing IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration professionals nationally.\n\n' +
     'Write to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening (category: ' + category + ').\n\n' +
-    (description ? 'Job description context:\n' + description.slice(0, 1500) + '\n\n' : '') +
+    (description ? 'Job description context:\n' + description.slice(0, 5000) + '\n\n' : '') +
+    'PERSONALIZATION (highest priority):\n' +
+    '- Read the full job description carefully. In your opening paragraph, reference ONE specific detail from the job description that reveals something about the company\'s situation, challenge, or what they are looking for. This could be a specific technology, team structure, growth stage, or urgency signal. Do not make generic statements about the company. Make the opening feel like you read their posting carefully.\n\n' +
     'WRITING STYLE:\n' +
     '- Sound like a real person who wrote this quickly. Short, direct, confident.\n' +
     '- NEVER start with "I noticed", "I came across", "I saw your posting", or any variation of restating their job posting. These are banned phrases.\n' +
-    '- Open with a direct statement about iMPact\'s relevant experience or a concrete result. Example: "We recently placed three specialized engineers in under two weeks for a company in a similar situation."\n' +
-    '- Add one specific detail showing knowledge of their company or industry.\n' +
+    '- Open with a direct statement about iMPact\'s relevant experience or a concrete result, then immediately weave in the specific detail you picked from the job description. Pick the example below that best fits this role category (' + category + ') as a style reference, do not copy it verbatim:\n' +
+    openingExamples + '\n' +
+    '- Add one additional specific detail showing knowledge of their company or industry beyond the opening reference.\n' +
     '- No buzzwords. No AI-sounding language.\n' +
     '- DASH RULES: NEVER use em dashes (—), en dashes (–), double hyphens (--), or any similar dash substitute anywhere in the email subject or body. Use commas, periods, or regular hyphens (-) only. This is strict.\n' +
     '- Use correct articles: "an" before vowel sounds (e.g., "an Automation Engineer"), "a" before consonant sounds (e.g., "a Manufacturing Engineer").\n' +
