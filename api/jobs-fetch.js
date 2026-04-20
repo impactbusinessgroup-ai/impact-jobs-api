@@ -101,8 +101,11 @@ async function redisAppend(key, text) {
 
 // --- Load dynamic blocklists from Redis ---
 async function loadBlocklists() {
-  const companies = await redisGet('blocklist:companies') || [];
-  const titles = await redisGet('blocklist:titles') || [];
+  const companiesRaw = await redisGet('blocklist:companies') || [];
+  const titlesRaw = await redisGet('blocklist:titles') || [];
+  const toName = e => typeof e === 'string' ? e : (e && e.company) || '';
+  const companies = (Array.isArray(companiesRaw) ? companiesRaw : []).map(toName).filter(Boolean);
+  const titles = (Array.isArray(titlesRaw) ? titlesRaw : []).map(toName).filter(Boolean);
   return { companies, titles };
 }
 
@@ -281,7 +284,7 @@ async function fetchJSearchPage(query, page = 1) {
   const params = new URLSearchParams({
     query,
     page: String(page),
-    num_pages: '3',
+    num_pages: '5',
     date_posted: 'today',
     country: 'us',
     radius: '50',
@@ -443,7 +446,7 @@ module.exports = async function handler(req, res) {
     if (nc) seenCompanyTitles.add(nc + '|' + nt);
   }
 
-  const MAX_QUALIFIED = 30;
+  const MAX_QUALIFIED = 50;
 
   for (const query of JSEARCH_QUERIES) {
     if (qualifiedLeads.length >= MAX_QUALIFIED) break;

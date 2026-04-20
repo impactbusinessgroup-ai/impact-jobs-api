@@ -162,6 +162,22 @@ module.exports = async function handler(req, res) {
 '.btn-check { width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; box-shadow: 0 2px 6px rgba(59,130,246,0.35); }\n' +
 '.btn-check:hover { background: #2563eb; transform: scale(1.08); }\n' +
 '.contact-actions .btn-check { height: 28px; width: 28px; }\n' +
+'.contact-check-corner { position: absolute; top: 10px; right: 10px; z-index: 5; }\n' +
+'.contact-check-corner .contact-dd { top: calc(100% + 6px); bottom: auto; right: 0; }\n' +
+'.reason-pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }\n' +
+'.reason-pill { padding: 8px 14px; font-size: 12px; font-weight: 600; font-family: Raleway, sans-serif; color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; cursor: pointer; transition: all 0.15s; user-select: none; }\n' +
+'.reason-pill:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }\n' +
+'.reason-pill.active { background: #E8620A; color: #fff; border-color: #E8620A; box-shadow: 0 2px 10px rgba(232,98,10,0.35); }\n' +
+'.reason-pill.active-red { background: #c62828; color: #fff; border-color: #c62828; box-shadow: 0 2px 10px rgba(198,40,40,0.35); }\n' +
+'.reason-target { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.5; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 10px 12px; border-radius: 8px; }\n' +
+'.reason-target strong { color: #fff; font-weight: 600; }\n' +
+'.reason-warning { font-size: 12px; color: #f3b86b; background: rgba(232,98,10,0.08); border: 1px solid rgba(232,98,10,0.25); padding: 10px 12px; border-radius: 8px; margin-top: 12px; }\n' +
+'.confirm-actions .btn-glass-red { background: #c62828; color: #fff; border: 1px solid #c62828; }\n' +
+'.confirm-actions .btn-glass-red:hover { background: #b71c1c; }\n' +
+'.confirm-actions .btn-glass-red:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
+'.confirm-actions .btn-glass-skip-orange { background: #E8620A; color: #fff; border: 1px solid #E8620A; }\n' +
+'.confirm-actions .btn-glass-skip-orange:hover { background: #cc5200; }\n' +
+'.confirm-actions .btn-glass-skip-orange:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
 '.add-modal { max-width: 620px; }\n' +
 '.add-modal .modal-body { padding: 20px 24px; }\n' +
 '.add-field { margin-bottom: 14px; }\n' +
@@ -219,7 +235,7 @@ module.exports = async function handler(req, res) {
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
 '.section-label { font-size: 16px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
-'.contact-card { flex: 1; min-width: 200px; max-width: 320px; background: #424242; border: 1px solid #555555; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
+'.contact-card { position: relative; flex: 1; min-width: 200px; max-width: 320px; background: #424242; border: 1px solid #555555; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
 '.contact-card:hover { border-color: #666666; background: #4a4a4a; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
 '.contact-header, .contact-info, .contact-name-row, .contact-name, .contact-title-sub, .contact-loc, .email-row, .credit-note, .badge { pointer-events: none; }\n' +
 '.contact-actions { pointer-events: auto; }\n' +
@@ -588,6 +604,45 @@ module.exports = async function handler(req, res) {
 '  </div>\n' +
 '</div>\n' +
 '\n' +
+'<div class="modal-overlay" id="skip-overlay" onclick="if(event.target===this)closeSkipModal()">\n' +
+'  <div class="modal" style="max-width:460px;">\n' +
+'    <div class="modal-header"><h3>Skip this lead?</h3><button class="modal-close" onclick="closeSkipModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="reason-target" id="skip-target"></div>\n' +
+'      <div class="reason-pill-row" id="skip-pills">\n' +
+'        <button class="reason-pill" data-reason="active_client" onclick="selectSkipReason(this)">Active Client</button>\n' +
+'        <button class="reason-pill" data-reason="already_contacted" onclick="selectSkipReason(this)">Already Contacted</button>\n' +
+'        <button class="reason-pill" data-reason="duplicate" onclick="selectSkipReason(this)">Duplicate</button>\n' +
+'        <button class="reason-pill" data-reason="other" onclick="selectSkipReason(this)">Other</button>\n' +
+'      </div>\n' +
+'      <div class="confirm-actions" style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">\n' +
+'        <button class="btn-glass" onclick="closeSkipModal()">Cancel</button>\n' +
+'        <button class="btn-glass btn-glass-skip-orange" id="skip-confirm-btn" disabled onclick="confirmSkipModal()">Skip Lead</button>\n' +
+'      </div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="block-overlay" onclick="if(event.target===this)closeBlockModal()">\n' +
+'  <div class="modal" style="max-width:480px;">\n' +
+'    <div class="modal-header"><h3>Block this company?</h3><button class="modal-close" onclick="closeBlockModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="reason-warning" id="block-warning"></div>\n' +
+'      <div class="reason-pill-row" id="block-pills">\n' +
+'        <button class="reason-pill" data-reason="not_a_fit" onclick="selectBlockReason(this)">Not a Fit</button>\n' +
+'        <button class="reason-pill" data-reason="competitor_staffing" onclick="selectBlockReason(this)">Competitor/Staffing</button>\n' +
+'        <button class="reason-pill" data-reason="bad_experience" onclick="selectBlockReason(this)">Bad Experience</button>\n' +
+'        <button class="reason-pill" data-reason="out_of_territory" onclick="selectBlockReason(this)">Out of Territory</button>\n' +
+'        <button class="reason-pill" data-reason="other" onclick="selectBlockReason(this)">Other</button>\n' +
+'      </div>\n' +
+'      <div class="confirm-actions" style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">\n' +
+'        <button class="btn-glass" onclick="closeBlockModal()">Cancel</button>\n' +
+'        <button class="btn-glass btn-glass-red" id="block-confirm-btn" disabled onclick="confirmBlockModal()">Block Company</button>\n' +
+'      </div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
 '<div class="modal-overlay" id="archive-overlay" onclick="if(event.target===this)closeArchiveModal()">\n' +
 '  <div class="modal">\n' +
 '    <div class="modal-header">\n' +
@@ -703,7 +758,7 @@ module.exports = async function handler(req, res) {
 'function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\\\'/g,"&#39;"); }\n' +
 'function initials(name) { return name.split(" ").map(function(n){return n[0]||"";}).join("").toUpperCase().slice(0,2); }\n' +
 'function companyInitials(name) { var w=name.trim().split(/\\s+/); return w.length===1?w[0].slice(0,2).toUpperCase():(w[0][0]+w[1][0]).toUpperCase(); }\n' +
-'function isCompanyBlocked(c) { return blocklist.companies.some(function(b){return b.toLowerCase()===c.toLowerCase();}); }\n' +
+'function isCompanyBlocked(c) { var q=(c||"").toLowerCase(); return blocklist.companies.some(function(b){var n=(typeof b==="string"?b:((b&&b.company)||""));return n.toLowerCase()===q;}); }\n' +
 'function formatPostDate(lead) { var d=lead.createdAt?new Date(lead.createdAt):new Date(); return {month:d.toLocaleString("en-US",{month:"short"}).toUpperCase(),day:d.getDate(),year:d.getFullYear()}; }\n' +
 'function categoryPill(cat, safeId) {\n' +
 '  var cls="pill-eng",lbl="Engineering";\n' +
@@ -946,7 +1001,7 @@ module.exports = async function handler(req, res) {
 '      \'</div>\'+\n' +
 '    \'</div>\'+\n' +
 '    \'<div class="card-footer">\'+\n' +
-'      \'<button class="btn-glass btn-glass-skip" onclick="skipLead(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Skip</button>\'+\n' +
+'      \'<button class="btn-glass btn-glass-skip" onclick="openSkipModal(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Skip</button>\'+\n' +
 '      \'<button class="btn-glass btn-glass-block" onclick="toggleBlockCompany(\\\'\'+companyEsc+\'\\\',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> \'+(blocked?"Unblock":"Block company")+\'</button>\'+\n' +
 '      \'<div style="flex:1;"></div>\'+\n' +
 '      \'<button class="btn-glass btn-glass-reassign" onclick="openReassignModal(\\\'\'+safeId+\'\\\',\\\'\'+lead.id+\'\\\')">\'+ SVG_REASSIGN +\' Reassign</button>\'+\n' +
@@ -1137,6 +1192,27 @@ module.exports = async function handler(req, res) {
 '  if(_lrid) card.setAttribute("data-lead-redis-id",_lrid);\n' +
 '\n' +
 '  card.innerHTML=\n' +
+'    \'<div class="contact-check-corner"><div class="remove-wrap" style="position:relative;">\'+\n' +
+'      \'<button class="btn-check has-tooltip" data-tooltip="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
+'      \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
+'        \'<div class="contact-dd-section">\'+\n' +
+'          \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
+'          \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-email-\'+cid+\'"> Email</label>\'+\n' +
+'          \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-limsg-\'+cid+\'"> LinkedIn Message</label>\'+\n' +
+'          \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-liconn-\'+cid+\'"> LinkedIn Connect</label>\'+\n' +
+'          \'<button class="btn-confirm-outreach" onclick="event.stopPropagation();confirmOutreach(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Confirm Outreach</button>\'+\n' +
+'        \'</div>\'+\n' +
+'        \'<div class="contact-dd-divider"></div>\'+\n' +
+'        \'<div class="contact-dd-section">\'+\n' +
+'          \'<div class="contact-dd-header" style="color:#cc4444;font-weight:600;">Remove</div>\'+\n' +
+'          \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'made_contact\\\')">Made Contact</div>\'+\n' +
+'          \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'wrong_type\\\')">Wrong Contact Type</div>\'+\n' +
+'          \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'existing\\\')">Existing Contact</div>\'+\n' +
+'          \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'not_interested\\\')">Not Interested</div>\'+\n' +
+'          \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'other\\\')">Other</div>\'+\n' +
+'        \'</div>\'+\n' +
+'      \'</div>\'+\n' +
+'    \'</div></div>\'+\n' +
 '    \'<div class="contact-header">\'+\n' +
 '      \'<div class="contact-info">\'+\n' +
 '        \'<div class="contact-name-row">\'+\n' +
@@ -1153,26 +1229,6 @@ module.exports = async function handler(req, res) {
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
 '      \'<span class="outreach-badge" id="obd-\'+cid+\'" style="display:none;"></span>\'+\n' +
-'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-check has-tooltip" data-tooltip="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
-'        \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
-'          \'<div class="contact-dd-section">\'+\n' +
-'            \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
-'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-email-\'+cid+\'"> Email</label>\'+\n' +
-'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-limsg-\'+cid+\'"> LinkedIn Message</label>\'+\n' +
-'            \'<label class="outreach-cb-row" onclick="event.stopPropagation();"><input type="checkbox" id="oc-liconn-\'+cid+\'"> LinkedIn Connect</label>\'+\n' +
-'            \'<button class="btn-confirm-outreach" onclick="event.stopPropagation();confirmOutreach(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Confirm Outreach</button>\'+\n' +
-'          \'</div>\'+\n' +
-'          \'<div class="contact-dd-divider"></div>\'+\n' +
-'          \'<div class="contact-dd-section">\'+\n' +
-'            \'<div class="contact-dd-header" style="color:#cc4444;font-weight:600;">Remove</div>\'+\n' +
-'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'made_contact\\\')">Made Contact</div>\'+\n' +
-'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'wrong_type\\\')">Wrong Contact Type</div>\'+\n' +
-'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'existing\\\')">Existing Contact</div>\'+\n' +
-'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'not_interested\\\')">Not Interested</div>\'+\n' +
-'            \'<div class="contact-dd-remove" onclick="event.stopPropagation();removeWithReason(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\',\\\'other\\\')">Other</div>\'+\n' +
-'          \'</div>\'+\n' +
-'        \'</div>\'+\n' +
-'      \'</div>\'+\n' +
 '    \'</div>\';\n' +
 '\n' +
 '  card.addEventListener("click",function(e){\n' +
@@ -1723,26 +1779,78 @@ module.exports = async function handler(req, res) {
 'function showConfirm(t,s,bl,fn,btnCls){_g("confirm-title").textContent=t;_g("confirm-sub").textContent=s;var b=_g("confirm-action-btn");b.textContent=bl;b.className="btn-glass "+(btnCls||"btn-glass-block");b.onclick=function(){closeConfirm();fn();};_g("confirm-overlay").classList.add("open");}\n' +
 'function closeConfirm(){_g("confirm-overlay").classList.remove("open");}\n' +
 '\n' +
+'function _blocklistName(e){return typeof e==="string"?e:((e&&e.company)||"");}\n' +
 'function toggleBlockCompany(company,btn){\n' +
 '  var isBlocked=isCompanyBlocked(company);\n' +
 '  if(isBlocked){\n' +
 '    fetch("/api/blocklist",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"companies",value:company})});\n' +
-'    blocklist.companies=blocklist.companies.filter(function(c){return c.toLowerCase()!==company.toLowerCase();});\n' +
+'    blocklist.companies=blocklist.companies.filter(function(c){return _blocklistName(c).toLowerCase()!==company.toLowerCase();});\n' +
 '    btn.innerHTML=\'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Block company\';\n' +
 '    return;\n' +
 '  }\n' +
-'  showConfirm("Block "+company+"?","This company will not appear in future leads.","Block",function(){\n' +
-'    fetch("/api/blocklist",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"companies",value:company})});\n' +
-'    blocklist.companies.push(company);\n' +
-'    var rm=[];leads.forEach(function(l){if(l.company.toLowerCase()===company.toLowerCase())rm.push(getSafeId(l.id));});\n' +
-'    leads=leads.filter(function(l){return l.company.toLowerCase()!==company.toLowerCase();});\n' +
-'    rm.forEach(function(sid){var c=_g("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
-'    updateLeadCount();\n' +
-'    refreshArchiveBadge();\n' +
-'  });\n' +
+'  openBlockModal(company);\n' +
 '}\n' +
 '\n' +
-'function skipLead(safeId,realId){\n' +
+'var _blockModalCompany="";\n' +
+'var _blockModalReason="";\n' +
+'function openBlockModal(company){\n' +
+'  _blockModalCompany=company||"";_blockModalReason="";\n' +
+'  _g("block-warning").innerHTML="This will permanently block <strong>"+escHtml(_blockModalCompany)+"</strong> from appearing in future leads.";\n' +
+'  document.querySelectorAll("#block-pills .reason-pill").forEach(function(p){p.classList.remove("active-red");});\n' +
+'  _g("block-confirm-btn").disabled=true;\n' +
+'  _g("block-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeBlockModal(){_g("block-overlay").classList.remove("open");}\n' +
+'function selectBlockReason(el){\n' +
+'  _blockModalReason=el.getAttribute("data-reason")||"";\n' +
+'  document.querySelectorAll("#block-pills .reason-pill").forEach(function(p){p.classList.remove("active-red");});\n' +
+'  el.classList.add("active-red");\n' +
+'  _g("block-confirm-btn").disabled=!_blockModalReason;\n' +
+'}\n' +
+'function confirmBlockModal(){\n' +
+'  if(!_blockModalReason) return;\n' +
+'  var company=_blockModalCompany,reason=_blockModalReason;\n' +
+'  closeBlockModal();\n' +
+'  fetch("/api/blocklist",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"companies",value:company,reason:reason})});\n' +
+'  blocklist.companies.push({company:company,reason:reason,at:new Date().toISOString()});\n' +
+'  var rm=[];\n' +
+'  leads.forEach(function(l){\n' +
+'    if(l.company.toLowerCase()===company.toLowerCase()){\n' +
+'      rm.push(getSafeId(l.id));\n' +
+'      fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:l.id,updates:{blockReason:reason}})}).catch(function(){});\n' +
+'    }\n' +
+'  });\n' +
+'  leads=leads.filter(function(l){return l.company.toLowerCase()!==company.toLowerCase();});\n' +
+'  rm.forEach(function(sid){var c=_g("card-"+sid);if(c){c.style.opacity="0";c.style.transition="opacity 0.3s";setTimeout(function(){c.remove();},300);}});\n' +
+'  updateLeadCount();\n' +
+'  refreshArchiveBadge();\n' +
+'}\n' +
+'\n' +
+'var _skipModalSafeId="",_skipModalRealId="",_skipModalReason="";\n' +
+'function openSkipModal(safeId,realId){\n' +
+'  _skipModalSafeId=safeId;_skipModalRealId=realId;_skipModalReason="";\n' +
+'  var lead=leads.find(function(l){return l.id===realId;});\n' +
+'  var cn=lead?lead.company:"",jt=lead?cleanJobTitle(lead.jobTitle||""):"";\n' +
+'  _g("skip-target").innerHTML="<strong>"+escHtml(cn)+"</strong><br>"+escHtml(jt);\n' +
+'  document.querySelectorAll("#skip-pills .reason-pill").forEach(function(p){p.classList.remove("active");});\n' +
+'  _g("skip-confirm-btn").disabled=true;\n' +
+'  _g("skip-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeSkipModal(){_g("skip-overlay").classList.remove("open");}\n' +
+'function selectSkipReason(el){\n' +
+'  _skipModalReason=el.getAttribute("data-reason")||"";\n' +
+'  document.querySelectorAll("#skip-pills .reason-pill").forEach(function(p){p.classList.remove("active");});\n' +
+'  el.classList.add("active");\n' +
+'  _g("skip-confirm-btn").disabled=!_skipModalReason;\n' +
+'}\n' +
+'function confirmSkipModal(){\n' +
+'  if(!_skipModalReason) return;\n' +
+'  var safeId=_skipModalSafeId,realId=_skipModalRealId,reason=_skipModalReason;\n' +
+'  closeSkipModal();\n' +
+'  skipLead(safeId,realId,reason);\n' +
+'}\n' +
+'\n' +
+'function skipLead(safeId,realId,reason){\n' +
 '  if(_skipTimer){clearTimeout(_skipTimer);hideToast();}\n' +
 '  _skipUndone=false;\n' +
 '  var lead=leads.find(function(l){return l.id===realId;});\n' +
@@ -1753,14 +1861,14 @@ module.exports = async function handler(req, res) {
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
 '  updateLeadCount();\n' +
 '  _skipTimer=showToast("Lead skipped: "+cn+" <button class=\\"toast-undo\\" onclick=\\"undoSkip()\\">Undo</button>",5000);\n' +
-'  var pRealId=realId,pLead=lead;\n' +
+'  var pRealId=realId,pLead=lead,pReason=reason||"";\n' +
 '  window._skipUndo=function(){\n' +
 '    _skipUndone=true;clearTimeout(_skipTimer);hideToast();\n' +
 '    if(pLead)leads.push(pLead);\n' +
 '    updateLeadCount();\n' +
 '    if(cardHTML&&cardParent){var tmp=document.createElement("div");tmp.innerHTML=cardHTML;var r=tmp.firstChild;r.style.opacity="0";r.style.transition="opacity 0.3s";if(cardNext&&cardNext.parentNode===cardParent)cardParent.insertBefore(r,cardNext);else cardParent.appendChild(r);setTimeout(function(){r.style.opacity="1";},10);fetchLogo(pLead.company,pLead.employerWebsite||"",pLead.location||"",getSafeId(pLead.id));}\n' +
 '  };\n' +
-'  setTimeout(function(){if(!_skipUndone)fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:{status:"skipped",skippedAt:new Date().toISOString()}})}).then(function(){refreshArchiveBadge();});},5200);\n' +
+'  setTimeout(function(){if(!_skipUndone){var upd={status:"skipped",skippedAt:new Date().toISOString()};if(pReason)upd.skipReason=pReason;fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:upd})}).then(function(){refreshArchiveBadge();});}},5200);\n' +
 '}\n' +
 'function undoSkip(){if(window._skipUndo)window._skipUndo();}\n' +
 '\n' +

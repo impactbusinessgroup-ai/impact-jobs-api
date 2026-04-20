@@ -139,9 +139,10 @@ module.exports = async function handler(req, res) {
 
     const keys = await redisKeys('lead:*');
     const blockedRaw = await redisGet('blocklist:companies');
-    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : []).map(c =>
-      (c || '').toLowerCase().trim()
-    );
+    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : [])
+      .map(e => typeof e === 'string' ? e : (e && e.company) || '')
+      .filter(Boolean)
+      .map(c => c.toLowerCase().trim());
 
     const skipped = [];
     const blocked = [];
@@ -182,9 +183,12 @@ module.exports = async function handler(req, res) {
     const leads = [];
     const VISIBLE_STATUSES = ['new', 'pending', 'in_progress'];
 
-    // Load blocked companies for filtering
+    // Load blocked companies for filtering (entries may be strings or {company,reason,at})
     const blockedRaw = await redisGet('blocklist:companies');
-    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : []).map(c => c.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\b(inc|llc|corp|co|ltd|group|enterprises|company|solutions|services|technologies|partners)\b/g, '').replace(/\s+/g, ' ').trim());
+    const blockedCompanies = (Array.isArray(blockedRaw) ? blockedRaw : [])
+      .map(e => typeof e === 'string' ? e : (e && e.company) || '')
+      .filter(Boolean)
+      .map(c => c.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\b(inc|llc|corp|co|ltd|group|enterprises|company|solutions|services|technologies|partners)\b/g, '').replace(/\s+/g, ' ').trim());
 
     for (const key of keys) {
       try {
@@ -296,11 +300,12 @@ module.exports = async function handler(req, res) {
 
     // --- unblock: remove company from blocklist and restore lead to pending ---
     if (action === 'unblock') {
-      const company = lead.company || '';
+      const company = (lead.company || '').toLowerCase();
       const blocked = (await redisGet('blocklist:companies')) || [];
-      const filtered = (Array.isArray(blocked) ? blocked : []).filter(c =>
-        (c || '').toLowerCase() !== company.toLowerCase()
-      );
+      const filtered = (Array.isArray(blocked) ? blocked : []).filter(e => {
+        const name = typeof e === 'string' ? e : (e && e.company) || '';
+        return name.toLowerCase() !== company;
+      });
       await redisSet('blocklist:companies', filtered);
       lead.status = 'pending';
       lead.unblockedAt = new Date().toISOString();

@@ -299,6 +299,19 @@ async function processLead(lead, leadKey, debugLog) {
     }
   }
 
+  // Step 1.5: Skip enrichment if Apollo reports a concrete small headcount (<50)
+  var estEmp = lead.apollo_estimated_employees;
+  if (typeof estEmp === 'number' && estEmp < 50) {
+    lead.contactsEnrichedAt = Date.now();
+    lead.contactsEnrichedNote = 'employee_count_too_low';
+    await redisSet(leadKey, lead, 1209600);
+    dbg.result = 'skip_employee_count_too_low';
+    dbg.estimated_num_employees = estEmp;
+    debugLog.push(dbg);
+    console.log('Skip ' + lead.company + ': Apollo estimated_num_employees=' + estEmp + ' (<50)');
+    return null;
+  }
+
   // Step 2: Gemini generates broad title keywords
   var feedbackSummary = '';
   try {
