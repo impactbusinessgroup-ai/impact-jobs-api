@@ -116,6 +116,15 @@ function normalizeCompany(name) {
     .trim();
 }
 
+// --- Normalize job title for dedup ---
+function normalizeTitle(title) {
+  return (title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // --- Keyword-based category fallback ---
 function detectCategoryKeyword(title, description) {
   const text = (title + ' ' + (description || '')).toLowerCase();
@@ -321,7 +330,7 @@ async function fetchJSearchPageDryRun(query, datePosted) {
 
 // --- Dry run handler ---
 async function handleDryRun(req, res) {
-  const seenCompanies = new Set();
+  const seenCompanyTitles = new Set();
   let totalFetched = 0;
   let afterAggregatorFilter = 0;
   let afterGeminiRelevance = 0;
@@ -364,8 +373,10 @@ async function handleDryRun(req, res) {
       // Blocklist check
       if (isBlockedCompany(employer, blockedCompanies)) continue;
       const normalized = normalizeCompany(employer);
-      if (seenCompanies.has(normalized)) continue;
-      seenCompanies.add(normalized);
+      const normalizedTitle = normalizeTitle(title);
+      const dedupKey = normalized + '|' + normalizedTitle;
+      if (seenCompanyTitles.has(dedupKey)) continue;
+      seenCompanyTitles.add(dedupKey);
       afterBlocklist++;
 
       // Category detection
@@ -413,7 +424,7 @@ module.exports = async function handler(req, res) {
   }
 
   const today = new Date().toISOString().split('T')[0];
-  const seenCompanies = new Set();
+  const seenCompanyTitles = new Set();
   const qualifiedLeads = [];
   let totalFetched = 0;
   let totalFiltered = 0;
@@ -426,7 +437,10 @@ module.exports = async function handler(req, res) {
   const existingKeys = await redisKeys(`lead:${today}:*`);
   for (const key of existingKeys) {
     const lead = await redisGet(key);
-    if (lead?.normalizedCompany) seenCompanies.add(lead.normalizedCompany);
+    if (!lead) continue;
+    const nc = lead.normalizedCompany || '';
+    const nt = lead.normalizedTitle || normalizeTitle(lead.jobTitle || '');
+    if (nc) seenCompanyTitles.add(nc + '|' + nt);
   }
 
   const MAX_QUALIFIED = 30;
@@ -485,14 +499,18 @@ module.exports = async function handler(req, res) {
       }
 
       const normalized = normalizeCompany(employer);
-      if (seenCompanies.has(normalized)) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'company-dedup', timestamp: new Date().toISOString() });
+      const normalizedTitle = normalizeTitle(title);
+      const dedupKey = normalized + '|' + normalizedTitle;
+      if (seenCompanyTitles.has(dedupKey)) {
+        rejectionLog.push({ jobTitle: title, company: employer, reason: 'company-title-dedup', timestamp: new Date().toISOString() });
         totalFiltered++; continue;
       }
-      seenCompanies.add(normalized);
+      seenCompanyTitles.add(dedupKey);
 
       const category = await detectCategory(title, description);
-      const leadId = `lead:${today}:${normalized.replace(/\s/g, '-').slice(0, 50)}`;
+      const companySlug = normalized.replace(/\s/g, '-').slice(0, 30);
+      const titleSlug = normalizedTitle.replace(/\s/g, '-').slice(0, 30);
+      const leadId = `lead:${today}:${companySlug}-${titleSlug}`;
 
       let company_domain = null;
       try {
@@ -537,6 +555,7 @@ module.exports = async function handler(req, res) {
         jobTitle: title,
         company: employer,
         normalizedCompany: normalized,
+        normalizedTitle: normalizedTitle,
         location: `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, ''),
         description: description.slice(0, 2000),
         source: 'jsearch',
@@ -549,7 +568,7 @@ module.exports = async function handler(req, res) {
         createdAt: Date.now(),
       };
 
-      await redisSet(leadId, lead, 60 * 60 * 24 * 7);
+      await redisSet(leadId, lead, 60 * 60 * 24 * 14);
       qualifiedLeads.push(leadId);
     }
 

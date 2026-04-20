@@ -60,7 +60,7 @@ module.exports = async function handler(req, res) {
 
   // Subject-only generation
   if (body.action === 'subject_only') {
-    var subjPrompt = 'Generate a short, personalized email subject line for a cold outreach to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening. The subject MUST include the job title "' + jobTitle + '". Make it direct and professional, not clickbaity. No em dashes. Return ONLY a JSON object: { "subject": "the subject line" }';
+    var subjPrompt = 'Generate a short, personalized email subject line for a cold outreach to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening. The subject MUST include the job title "' + jobTitle + '". Make it direct and professional, not clickbaity. DASH RULES: NEVER use em dashes (—), en dashes (–), double hyphens (--), or any similar dash substitute anywhere in the output. Use commas, periods, or regular hyphens (-) only. Return ONLY a JSON object: { "subject": "the subject line" }';
     try {
       var sjRes = await fetchGemini({ contents: [{ parts: [{ text: subjPrompt }] }], generationConfig: { maxOutputTokens: 100, temperature: 0.8 } });
       if (!sjRes.ok) return res.status(500).json({ error: 'Subject generation failed' });
@@ -87,7 +87,8 @@ module.exports = async function handler(req, res) {
       '- One sentence about what iMPact does specifically for ' + category + ' placements.\n' +
       '- End with: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
       '- Then on a new line: Happy to find a time to connect: ' + calendlyLink + '\n' +
-      '- No em dashes. No AI-sounding language. Keep it natural.\n' +
+      '- DASH RULES: NEVER use em dashes (—), en dashes (–), double hyphens (--), or any similar dash substitute anywhere in the message. Use commas, periods, or regular hyphens (-) only.\n' +
+      '- No AI-sounding language. Keep it natural.\n' +
       '- Start with "' + greeting + '"\n\n' +
       'Return ONLY a JSON object: { "linkedinMessage": "the message as plain text" }';
 
@@ -147,18 +148,24 @@ module.exports = async function handler(req, res) {
     '- NEVER start with "I noticed", "I came across", "I saw your posting", or any variation of restating their job posting. These are banned phrases.\n' +
     '- Open with a direct statement about iMPact\'s relevant experience or a concrete result. Example: "We recently placed three specialized engineers in under two weeks for a company in a similar situation."\n' +
     '- Add one specific detail showing knowledge of their company or industry.\n' +
-    '- No buzzwords. No AI-sounding language. No em dashes. No double hyphens.\n' +
+    '- No buzzwords. No AI-sounding language.\n' +
+    '- DASH RULES: NEVER use em dashes (—), en dashes (–), double hyphens (--), or any similar dash substitute anywhere in the email subject or body. Use commas, periods, or regular hyphens (-) only. This is strict.\n' +
     '- Use correct articles: "an" before vowel sounds (e.g., "an Automation Engineer"), "a" before consonant sounds (e.g., "a Manufacturing Engineer").\n' +
     '- 3 short paragraphs maximum.\n' +
     '- Start with "' + greeting + '"\n\n' +
     'CASE STUDY:\n' + caseStudyInstruction + '\n\n' +
-    'END OF EMAIL:\n' +
-    '- Include this line: Learn more about how we can help: https://impactbusinessgroup.com/employers/?cid=' + uniqid + '\n' +
-    '- Then include the Calendly link with natural language like "Happy to find a time to connect:" followed by: ' + calendlyLink + '\n' +
-    '- Do NOT include a signature block.\n\n' +
+    'REQUIRED LINKS (must ALL appear in every email as proper HTML anchor tags):\n' +
+    '1. Case study link: use an <a href="..."> tag with the case study title as anchor text\n' +
+    '2. Employers page: <a href="https://impactbusinessgroup.com/employers/?cid=' + uniqid + '">Learn more about how we can help</a>\n' +
+    '3. Calendly link: output the Calendly URL as plain visible text, NOT as an anchor tag. Example: "Happy to find a time to connect: ' + calendlyLink + '". The URL must be visible in the email body.\n\n' +
+    'Do NOT include a signature block.\n\n' +
+    'FORMATTING:\n' +
+    '- Return the body as clean HTML using <p> tags for paragraphs and <a href="..."> tags for ALL links.\n' +
+    '- NEVER output raw URLs as plain text. Every URL must be wrapped in an <a> tag with descriptive anchor text.\n' +
+    '- No markdown. No backticks. No plain-text URLs.\n\n' +
     'Generate a personalized subject line that includes the job title "' + jobTitle + '".\n\n' +
     'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape:\n' +
-    '{ "subject": "the subject line", "body": "HTML string with <p> tags for paragraphs and <a> tags for links" }';
+    '{ "subject": "the subject line", "body": "HTML string" }';
 
   try {
     var geminiRes = await fetchGemini({
@@ -187,10 +194,24 @@ module.exports = async function handler(req, res) {
     var clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
     var parsed = JSON.parse(clean);
 
-    console.log('[draft] Success: subject=', (parsed.subject || '').slice(0, 80), 'bodyLen=', (parsed.body || '').length);
+    // Post-process: convert remaining raw URLs to anchor tags (except Calendly - keep as plain text)
+    var emailBody = parsed.body || '';
+    // Strip any anchor tags wrapping Calendly URLs - make them plain text
+    emailBody = emailBody.replace(/<a[^>]*href="([^"]*calendly\.com[^"]*)"[^>]*>[^<]*<\/a>/gi, function(match, url) { return url; });
+    // Convert remaining raw non-Calendly URLs to anchor tags
+    emailBody = emailBody.replace(/(?<!="|'>)(https?:\/\/[^\s<"']+)/g, function(url) {
+      if (url.indexOf('calendly.com') !== -1) return url; // Keep Calendly as plain text
+      var text = 'Learn more';
+      if (url.indexOf('/employers/') !== -1) text = 'Learn more about how we can help';
+      else if (url.indexOf('/case-studies/') !== -1) text = 'See our recent work';
+      else if (url.indexOf('impactbusinessgroup.com') !== -1) text = 'Learn more';
+      return '<a href="' + url + '">' + text + '</a>';
+    });
+
+    console.log('[draft] Success: subject=', (parsed.subject || '').slice(0, 80), 'bodyLen=', emailBody.length);
     return res.status(200).json({
       subject: parsed.subject || '',
-      body: parsed.body || ''
+      body: emailBody
     });
   } catch (e) {
     console.error('[draft] Draft generation error:', e.message, e.stack && e.stack.slice(0, 300));

@@ -42,6 +42,17 @@ async function redisSet(key, value, exSeconds) {
   });
 }
 
+// Atomic SET NX EX — returns true if lock acquired, false if key already exists
+async function redisSetNXEX(key, value, exSeconds) {
+  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}/${encodeURIComponent(value)}/EX/${exSeconds}/NX`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+  });
+  const data = await res.json();
+  return data.result === 'OK';
+}
+
 async function redisKeys(pattern) {
   const url = `${process.env.KV_REST_API_URL}/keys/${encodeURIComponent(pattern)}`;
   const res = await fetch(url, {
@@ -292,7 +303,24 @@ async function fireReminders() {
 // --- Morning email ---
 async function sendMorningEmail() {
   const today = new Date();
-  const dateKey = 'cron_email_sent_' + today.toISOString().split('T')[0];
+
+  // Skip on weekends (Saturday=6, Sunday=0) in ET
+  const etNow = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const dow = etNow.getDay();
+  if (dow === 0 || dow === 6) {
+    console.log('Skipping morning email on weekend (day ' + dow + ')');
+    return false;
+  }
+
+  const dateStr = today.toISOString().split('T')[0];
+  const lockKey = 'morning_email_lock_' + dateStr;
+  const lockAcquired = await redisSetNXEX(lockKey, '1', 60);
+  if (!lockAcquired) {
+    console.log('Morning email lock held by another instance, skipping');
+    return false;
+  }
+
+  const dateKey = 'cron_email_sent_' + dateStr;
   const alreadySent = await redisGet(dateKey);
   if (alreadySent) { console.log('Morning email already sent today'); return false; }
 

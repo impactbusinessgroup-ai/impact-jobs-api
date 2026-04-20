@@ -117,7 +117,7 @@ async function processLead(lead, leadKey, debugLog) {
   if (domain !== rawDomain) {
     console.log('Stripped subdomain:', rawDomain, '->', domain);
     lead.company_domain = domain;
-    await redisSet(leadKey, lead, 604800);
+    await redisSet(leadKey, lead, 1209600);
   }
   dbg.domain = domain;
 
@@ -169,6 +169,33 @@ async function processLead(lead, leadKey, debugLog) {
       var orgData = await orgRes.json();
       org = orgData.organization || {};
       orgId = org.id;
+    }
+
+    // Validate org name matches lead company name
+    if (orgId && org.name) {
+      var _stripSuffixes = function(n) {
+        return n.replace(/\b(Inc|LLC|Corp|Corporation|Ltd|Co|Group|Services|Solutions|Partners|Associates|Industries|International|Global|Technologies|Systems|Enterprises|Holdings)\b\.?/gi, '').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+      };
+      var cleanOrg = _stripSuffixes(org.name);
+      var cleanLead = _stripSuffixes(lead.company);
+      var orgContainsLead = cleanOrg.indexOf(cleanLead) !== -1;
+      var leadContainsOrg = cleanLead.indexOf(cleanOrg) !== -1;
+      if (!orgContainsLead && !leadContainsOrg) {
+        var orgWords = cleanOrg.split(' ').filter(function(w){return w.length>1;});
+        var leadWords = cleanLead.split(' ').filter(function(w){return w.length>1;});
+        var overlap = 0;
+        for (var wi = 0; wi < leadWords.length; wi++) {
+          if (orgWords.indexOf(leadWords[wi]) !== -1) overlap++;
+        }
+        var maxWords = Math.max(leadWords.length, 1);
+        var similarity = overlap / maxWords;
+        if (similarity < 0.6) {
+          console.log('Org name mismatch for', lead.company, ': Apollo returned "' + org.name + '" (similarity: ' + Math.round(similarity * 100) + '%)');
+          dbg.org_name_mismatch = { lead_name: lead.company, apollo_name: org.name, similarity: Math.round(similarity * 100) };
+          orgId = null;
+          org = {};
+        }
+      }
     }
 
     // Fallback 2: search by company name if domain enrichment failed
@@ -239,7 +266,7 @@ async function processLead(lead, leadKey, debugLog) {
     lead.apollo_estimated_employees = org.estimated_num_employees || null;
     var orgLinkedin = org.linkedin_url;
     if (orgLinkedin) lead.company_linkedin = orgLinkedin;
-    await redisSet(leadKey, lead, 604800);
+    await redisSet(leadKey, lead, 1209600);
     console.log('Apollo org ID for', lead.company, ':', orgId, '| locations:', org.num_locations, '| HQ:', org.city, org.state);
   } else {
     dbg.org_enrichment = 'cached';
@@ -263,7 +290,7 @@ async function processLead(lead, leadKey, debugLog) {
           if (!lead.company_linkedin && org2.linkedin_url) {
             lead.company_linkedin = org2.linkedin_url;
           }
-          await redisSet(leadKey, lead, 604800);
+          await redisSet(leadKey, lead, 1209600);
           console.log('Backfilled org metadata for', lead.company, '| locations:', lead.apollo_num_locations, '| HQ:', lead.apollo_hq_city, lead.apollo_hq_state);
         }
       } catch (e) {
@@ -613,7 +640,7 @@ module.exports = async function handler(req, res) {
                 var bfLinkedin = bfData.organization && bfData.organization.linkedin_url;
                 if (bfLinkedin) {
                   lead.company_linkedin = bfLinkedin;
-                  await redisSet(keys[i], lead, 604800);
+                  await redisSet(keys[i], lead, 1209600);
                   console.log('Backfilled company_linkedin for', lead.company, ':', bfLinkedin);
                 }
               }
@@ -637,14 +664,14 @@ module.exports = async function handler(req, res) {
           if (result.companyData.apollo_org_id) lead.apollo_org_id = result.companyData.apollo_org_id;
           if (result.usedFallback) lead.contactSelectionMethod = 'seniority-fallback';
           lead.contactsEnrichedAt = Date.now();
-          await redisSet(keys[i], lead, 604800);
+          await redisSet(keys[i], lead, 1209600);
           contactsFound += result.contacts.length;
           console.log('Found', result.contacts.length, 'contacts for', lead.company, (result.usedFallback ? '(seniority fallback)' : ''), '+', lead.allContacts.length, 'additional');
         } else {
           lead.contactsEnrichedAt = Date.now();
           lead.contacts = [];
           lead.allContacts = [];
-          await redisSet(keys[i], lead, 604800);
+          await redisSet(keys[i], lead, 1209600);
           console.log('No contacts found for', lead.company);
         }
 
