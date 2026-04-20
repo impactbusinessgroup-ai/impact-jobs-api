@@ -131,8 +131,13 @@ module.exports = async function handler(req, res) {
 '.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
 '.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 8px rgba(34,197,94,0.3); }\n' +
 '.btn-add-lead:hover { background: #16a34a; transform: scale(1.08); }\n' +
-'.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1f1f1f; border: 1px solid #333; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
-'.btn-archive:hover { background: #2a2a2a; transform: scale(1.08); border-color: #555; }\n' +
+'.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1A4EA2; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.15s; box-shadow: 0 2px 8px rgba(26,78,162,0.35); padding: 0; }\n' +
+'.btn-archive:hover { background: #15407f; transform: scale(1.08); }\n' +
+'.btn-archive svg { display: block; }\n' +
+'.has-tooltip { position: relative; }\n' +
+'.has-tooltip::before { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
+'.has-tooltip::after { content: ""; position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #1a1a1a; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
+'.has-tooltip:hover::before, .has-tooltip:hover::after { opacity: 1; }\n' +
 '.btn-archive-badge { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #E8620A; color: #fff; font-size: 10px; font-weight: 700; font-family: Arial,sans-serif; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }\n' +
 '.archive-pills { display: flex; gap: 8px; margin-bottom: 18px; }\n' +
 '.archive-pill { padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: Raleway, sans-serif; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; cursor: pointer; transition: all 0.15s; }\n' +
@@ -534,7 +539,7 @@ module.exports = async function handler(req, res) {
 '  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
 '    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
-'    <button class="btn-archive" onclick="openArchiveModal()" title="View skipped &amp; blocked"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-6.7L3 9"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
+'    <button class="btn-archive has-tooltip" data-tooltip="View Skipped &amp; Blocked" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
 '  </div>\n' +
@@ -1148,7 +1153,7 @@ module.exports = async function handler(req, res) {
 '      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
 '      \'<span class="outreach-badge" id="obd-\'+cid+\'" style="display:none;"></span>\'+\n' +
-'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-check" title="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
+'      \'<div class="remove-wrap" style="position:relative;"><button class="btn-check has-tooltip" data-tooltip="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
 '        \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
 '          \'<div class="contact-dd-section">\'+\n' +
 '            \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
