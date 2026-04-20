@@ -135,7 +135,7 @@ module.exports = async function handler(req, res) {
 '.btn-archive:hover { background: #15407f; transform: scale(1.08); }\n' +
 '.btn-archive svg { display: block; }\n' +
 '.has-tooltip { position: relative; }\n' +
-'.has-tooltip::before { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
+'.has-tooltip::before { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; white-space: normal; max-width: 240px; width: max-content; text-align: center; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
 '.has-tooltip::after { content: ""; position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #1a1a1a; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
 '.has-tooltip:hover::before, .has-tooltip:hover::after { opacity: 1; }\n' +
 '.btn-archive-badge { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #E8620A; color: #fff; font-size: 10px; font-weight: 700; font-family: Arial,sans-serif; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }\n' +
@@ -1333,7 +1333,7 @@ module.exports = async function handler(req, res) {
 '\n' +
 '  card.innerHTML=\n' +
 '    \'<div class="contact-check-corner"><div class="remove-wrap" style="position:relative;">\'+\n' +
-'      \'<button class="btn-check has-tooltip" data-tooltip="Log action" onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
+'      \'<button class="btn-check has-tooltip" data-tooltip="Log action to complete contact. Complete all contacts before completing lead." onclick="event.stopPropagation();toggleContactDD(\\\'\'+cid+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>\'+\n' +
 '      \'<div class="contact-dd" id="cdd-\'+cid+\'">\'+\n' +
 '        \'<div class="contact-dd-section">\'+\n' +
 '          \'<div class="contact-dd-header" style="color:#E8620A;font-weight:600;">Log Outreach</div>\'+\n' +
@@ -1366,7 +1366,7 @@ module.exports = async function handler(req, res) {
 '      \'</div>\'+\n' +
 '    \'</div>\'+\n' +
 '    \'<div class="contact-actions">\'+\n' +
-'      (hasEmail?"":\'<button class="btn btn-fetch" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
+'      (hasEmail?"":\'<button class="btn btn-fetch has-tooltip" data-tooltip="Get Email - 1 credit" id="ge-\'+cid+\'" onclick="event.stopPropagation();getEmail(\\\'\'+cid+\'\\\',\\\'\'+safeId+\'\\\')">Get Email</button>\')+\n' +
 '      \'<a href="\'+linkedinHref+\'" target="_blank" class="btn btn-li" data-tooltip="LinkedIn" onclick="event.stopPropagation();">\'+SVG_LINKEDIN.replace(\'viewBox="0 0 24 24"\',\'viewBox="0 0 24 24" width="14" height="14"\')+\'</a>\'+\n' +
 '      \'<span class="outreach-badge" id="obd-\'+cid+\'" style="display:none;"></span>\'+\n' +
 '    \'</div>\';\n' +
