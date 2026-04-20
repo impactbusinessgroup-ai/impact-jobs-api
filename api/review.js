@@ -129,22 +129,24 @@ module.exports = async function handler(req, res) {
 '.header { background: rgba(26,26,26,0.95); backdrop-filter: blur(16px); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }\n' +
 '.header-logo { height: 34px; }\n' +
 '.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
-'.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 8px rgba(34,197,94,0.3); }\n' +
-'.btn-add-lead:hover { background: #16a34a; transform: scale(1.08); }\n' +
+'.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #00a86b; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; transition: all 0.15s; padding: 0; line-height: 1; }\n' +
+'.btn-add-lead:hover { background: #14c480; transform: scale(1.05); }\n' +
 '.header-btn-group { display: inline-flex; align-items: center; gap: 8px; background: #1e1e1e; border: 1px solid #333; border-radius: 24px; padding: 4px 8px; }\n' +
-'.btn-cal { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; }\n' +
-'.btn-cal:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
-'.btn-cal.active-away { color: #cc3333; }\n' +
-'.btn-help { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 16px; }\n' +
-'.btn-help:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
-'.btn-search-icon { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; }\n' +
-'.btn-search-icon:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
+'.btn-cal { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #E8620A; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; }\n' +
+'.btn-cal:hover { background: #f47321; transform: scale(1.05); }\n' +
+'.btn-cal.active-away { background: #cc3333; }\n' +
+'.btn-cal.active-away:hover { background: #e04444; }\n' +
+'.btn-help { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #0F1E3D; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 16px; line-height: 1; }\n' +
+'.btn-help:hover { background: #1a2d54; transform: scale(1.05); }\n' +
+'.btn-search-icon { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #4a4a4a; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; }\n' +
+'.btn-search-icon:hover { background: #5a5a5a; transform: scale(1.05); }\n' +
 '.header-search-row { display: none; align-items: center; gap: 6px; padding: 0 4px; }\n' +
 '.header-btn-group.searching .header-btn-icons { display: none; }\n' +
 '.header-btn-group.searching .header-search-row { display: inline-flex; }\n' +
 '.header-btn-group.searching { background: #1f1f1f; }\n' +
-'.header-search-input { background: transparent; border: none; color: #fff; font-family: Raleway, sans-serif; font-size: 13px; padding: 6px 4px; outline: none; width: 240px; }\n' +
-'.header-search-input::placeholder { color: rgba(255,255,255,0.4); }\n' +
+'.header-search-input { background: #3a3a3a; border: 1px solid #4a4a4a; color: #fff; font-family: Raleway, sans-serif; font-size: 13px; padding: 7px 10px; outline: none; width: 240px; border-radius: 6px; }\n' +
+'.header-search-input:focus { border-color: #E8620A; }\n' +
+'.header-search-input::placeholder { color: #888; }\n' +
 '.header-search-close { background: transparent; border: none; color: #888; cursor: pointer; padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; }\n' +
 '.header-search-close:hover { color: #fff; background: rgba(255,255,255,0.06); }\n' +
 '.search-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.6); font-family: Raleway, sans-serif; }\n' +
@@ -202,8 +204,8 @@ module.exports = async function handler(req, res) {
 '.cal-list-row button:hover { color: #fff; background: rgba(255,255,255,0.06); }\n' +
 '.cal-list-row button.danger:hover { color: #ff8e8e; }\n' +
 '.cal-empty { font-size: 12px; color: rgba(255,255,255,0.4); font-style: italic; padding: 10px; text-align: center; }\n' +
-'.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1A4EA2; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.15s; box-shadow: 0 2px 8px rgba(26,78,162,0.35); padding: 0; }\n' +
-'.btn-archive:hover { background: #15407f; transform: scale(1.08); }\n' +
+'.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1A4EA2; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; }\n' +
+'.btn-archive:hover { background: #2360c0; transform: scale(1.05); }\n' +
 '.btn-archive svg { display: block; }\n' +
 '.has-tooltip { position: relative; }\n' +
 '.has-tooltip::before { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; white-space: normal; max-width: 240px; width: max-content; text-align: center; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10000; }\n' +
@@ -367,6 +369,7 @@ module.exports = async function handler(req, res) {
 '.card-top-job-title { font-size: 15px; color: rgba(255,255,255,0.7); font-weight: 500; line-height: 1.3; }\n' +
 '.links-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.04); background: #1e1e1e; }\n' +
 '.links-bar-left, .links-bar-right { display: flex; gap: 12px; align-items: center; }\n' +
+'.links-bar-am { font-family: Raleway, sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.88); text-align: center; flex: 1; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n' +
 '.link-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid #3a3a3a; color: rgba(255,255,255,0.5); cursor: pointer; text-decoration: none; transition: all 0.15s; }\n' +
 '.link-icon:hover { background: rgba(255,255,255,0.1); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
 '.link-icon svg { width: 15px; height: 15px; }\n' +
@@ -748,10 +751,10 @@ html += '' +
 '    <div class="header-btn-group" id="header-btn-group">\n' +
 '      <div class="header-btn-icons" id="header-btn-icons" style="display:inline-flex;align-items:center;gap:8px;">\n' +
 '        <button class="btn-add-lead has-tooltip" data-tooltip="Add Job Description" onclick="openAddModal()">+</button>\n' +
-'        <button class="btn-search-icon has-tooltip" id="btn-search" data-tooltip="Search Leads" onclick="openHeaderSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>\n' +
 '        <button class="btn-archive has-tooltip" data-tooltip="Re-activate skipped &amp; blocked jobs" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
 '        <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Schedule days to skip leads" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
 '        <button class="btn-help has-tooltip" id="btn-help" data-tooltip="Help &amp; Getting Started" onclick="openHelpModal()">?</button>\n' +
+'        <button class="btn-search-icon has-tooltip" id="btn-search" data-tooltip="Search Leads" onclick="openHeaderSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>\n' +
 '      </div>\n' +
 '      <div class="header-search-row" id="header-search-row">\n' +
 '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>\n' +
@@ -1698,7 +1701,7 @@ html += '' +
 '          if(pid&&lead.outreach_log[pid]&&lead.outreach_log[pid].length>0){\n' +
 '            var last=lead.outreach_log[pid][lead.outreach_log[pid].length-1];\n' +
 '            var badge=cc.querySelector(".outreach-badge");\n' +
-'            if(badge){badge.style.display="inline-block";badge.textContent="Outreach "+last.attempt+" sent "+new Date(last.date).toLocaleDateString();}\n' +
+'            if(badge){badge.style.display="inline-block";badge.textContent=_formatOutreachBadge(last.attempt,last.date,last.am_email);}\n' +
 '          }\n' +
 '        });\n' +
 '      }\n' +
@@ -1707,6 +1710,30 @@ html += '' +
 '  });\n' +
 '}\n' +
 '\n' +
+'function _amShortName(email) {\n' +
+'  if (!email) return "";\n' +
+'  var e = String(email).toLowerCase();\n' +
+'  // AM_EMAIL_MAP is keyed by lowercase "first last" -> email\n' +
+'  if (typeof AM_EMAIL_MAP === "object") {\n' +
+'    for (var k in AM_EMAIL_MAP) {\n' +
+'      if (AM_EMAIL_MAP[k] === e) {\n' +
+'        var parts = k.split(" ");\n' +
+'        var first = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : "";\n' +
+'        var lastInit = parts[1] ? parts[1].charAt(0).toUpperCase() : "";\n' +
+'        return lastInit ? (first + " " + lastInit) : first;\n' +
+'      }\n' +
+'    }\n' +
+'  }\n' +
+'  // Fallback: derive from local part of email (e.g. "msapoznikov" -> "M Sapoznikov" not ideal;\n' +
+'  // keep simple "<local>" when unknown so the badge still renders distinctively)\n' +
+'  var local = e.split("@")[0] || "";\n' +
+'  return local ? local.charAt(0).toUpperCase() + local.slice(1) : "";\n' +
+'}\n' +
+'function _formatOutreachBadge(attempt, dateIso, amEmail) {\n' +
+'  var base = "Outreach " + attempt + " sent " + new Date(dateIso).toLocaleDateString();\n' +
+'  var who = _amShortName(amEmail||"");\n' +
+'  return who ? (base + " - " + who) : base;\n' +
+'}\n' +
 'function _cardBorderForStatus(lead) {\n' +
 '  var hasOutreach = lead.outreach_log && typeof lead.outreach_log === "object" && Object.keys(lead.outreach_log).length > 0;\n' +
 '  var stage = Number(lead.reminder_stage || 0);\n' +
@@ -1779,7 +1806,7 @@ html += '' +
 '        categoryPill(cat,safeId)+\n' +
 '      \'</div>\'+\n' +
 '    \'</div>\'+\n' +
-'    ((linksLeft||linksRight)?\'<div class="links-bar"><div class="links-bar-left">\'+linksLeft+\'</div><div class="links-bar-right">\'+linksRight+\'</div></div>\':"")+\n' +
+'    ((linksLeft||linksRight)?\'<div class="links-bar"><div class="links-bar-left">\'+linksLeft+\'</div>\'+((AM.role==="admin" && lead.assignedAM)?\'<div class="links-bar-am">\'+escHtml(lead.assignedAM)+\'</div>\':"")+\'<div class="links-bar-right">\'+linksRight+\'</div></div>\':"")+\n' +
 '    \'<div class="card-body">\'+\n' +
 '    (lead.reminder_stage>0?\'<div class="reminder-banner">Follow-up Reminder \'+lead.reminder_stage+\' of 3 - Originally closed \'+(lead.completedAt?new Date(lead.completedAt).toLocaleDateString():"unknown")+(lead.outreach_summary&&lead.outreach_summary.length>0?" - Last outreach: "+lead.outreach_summary[0].attempts[lead.outreach_summary[0].attempts.length-1].methods.join(", ")+" on "+new Date(lead.outreach_summary[0].attempts[lead.outreach_summary[0].attempts.length-1].date).toLocaleDateString():"")+\'</div>\':"")+\n' +
 '      \'<div class="section-label-row">\'+\n' +
@@ -2081,7 +2108,7 @@ html += '' +
 '    if(d.ok){\n' +
 '      var badge=_g("obd-"+cid);\n' +
 '      var attempt=d.attempt||1;\n' +
-'      if(badge){badge.style.display="inline-block";badge.textContent="Outreach "+attempt+" sent "+new Date().toLocaleDateString();}\n' +
+'      if(badge){badge.style.display="inline-block";badge.textContent=_formatOutreachBadge(attempt,new Date().toISOString(),AM.email);}\n' +
 '      var btn=_g("ob-"+cid);\n' +
 '      if(btn) btn.textContent="Follow-up";\n' +
 '      var cdd=_g("cdd-"+cid);\n' +
