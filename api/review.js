@@ -186,8 +186,7 @@ module.exports = async function handler(req, res) {
 '.inact-reassign-btn { margin-left: auto; background: #E8620A; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }\n' +
 '.inact-reassign-btn:hover { background: #cc5200; }\n' +
 '.inact-reassign-btn:disabled { opacity: 0.45; cursor: not-allowed; background: #666; }\n' +
-'.inact-card-checkbox { position: absolute; top: 14px; left: 14px; width: 18px; height: 18px; z-index: 6; accent-color: #E8620A; cursor: pointer; background: #2e2e2e; }\n' +
-'.card.inact-card { padding-left: 44px; }\n' +
+'.inact-card-checkbox { width: 20px; height: 20px; accent-color: #E8620A; cursor: pointer; background: #2e2e2e; flex: 0 0 auto; margin-right: 14px; align-self: center; }\n' +
 '.bulk-reassign-list { max-height: 220px; overflow-y: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 12px; margin: 12px 0; }\n' +
 '.bulk-reassign-row { font-size: 12px; color: rgba(255,255,255,0.75); padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); font-family: Raleway, sans-serif; }\n' +
 '.bulk-reassign-row:last-child { border-bottom: none; }\n' +
@@ -2683,19 +2682,26 @@ module.exports = async function handler(req, res) {
 '}\n' +
 'var _reassignedFromQueue = {};\n' +
 'function _inactivityQueueEligible(l) {\n' +
-'  if(!_hasInactivityHistory(l)) return false;\n' +
-'  if(_reassignedFromQueue[l.id]) return false;\n' +
-'  var st = l.status || "";\n' +
-'  if(st !== "new" && st !== "pending") return false;\n' +
-'  // Any AM activity disqualifies the lead from the queue\n' +
+'  var co = l.company || "";\n' +
 '  var hasOutreach = l.outreach_log && typeof l.outreach_log === "object" && Object.keys(l.outreach_log).length > 0;\n' +
-'  if(hasOutreach) return false;\n' +
-'  if(Array.isArray(l.contacts) && l.contacts.some(function(c){ return c && c.removal_reason; })) return false;\n' +
+'  var contactRemoved = Array.isArray(l.contacts) && l.contacts.some(function(c){ return c && c.removal_reason; });\n' +
+'  function _dbg(ok, reason){\n' +
+'    try {\n' +
+'      console.log(\'[InactQueue] eligible: \'+ok+\' | \'+co+\' | \'+reason+\' | id=\'+l.id+\' status=\'+(l.status||"")+\' outreach=\'+hasOutreach+\' contactRemoved=\'+contactRemoved+\' skippedAt=\'+(l.skippedAt||"-")+\' retrievedAt=\'+(l.retrievedAt||"-")+\' blockReason=\'+(l.blockReason||"-"));\n' +
+'    } catch(e){}\n' +
+'  }\n' +
+'  if(!_hasInactivityHistory(l)){ _dbg(false,"no_inactivity_history"); return false; }\n' +
+'  if(_reassignedFromQueue[l.id]){ _dbg(false,"reassigned_this_session"); return false; }\n' +
+'  var st = l.status || "";\n' +
+'  if(st !== "new" && st !== "pending"){ _dbg(false,"status_not_new_or_pending"); return false; }\n' +
+'  if(hasOutreach){ _dbg(false,"has_outreach"); return false; }\n' +
+'  if(contactRemoved){ _dbg(false,"contact_removed"); return false; }\n' +
 '  var skippedMs = l.skippedAt ? Date.parse(l.skippedAt) : 0;\n' +
 '  var retrievedMs = l.retrievedAt ? Date.parse(l.retrievedAt) : 0;\n' +
-'  if(skippedMs && !(retrievedMs && retrievedMs > skippedMs)) return false;\n' +
-'  if(l.blockReason) return false;\n' +
-'  if(typeof isCompanyBlocked === "function" && isCompanyBlocked(l.company||"")) return false;\n' +
+'  if(skippedMs && !(retrievedMs && retrievedMs > skippedMs)){ _dbg(false,"skipped_without_retrieve"); return false; }\n' +
+'  if(l.blockReason){ _dbg(false,"has_block_reason"); return false; }\n' +
+'  if(typeof isCompanyBlocked === "function" && isCompanyBlocked(co)){ _dbg(false,"company_blocked"); return false; }\n' +
+'  _dbg(true,"pass");\n' +
 '  return true;\n' +
 '}\n' +
 'function _buildInactivityTimeline(l) {\n' +
@@ -2741,18 +2747,23 @@ module.exports = async function handler(req, res) {
 '    var html = renderCard(lead);\n' +
 '    var timeline = _buildInactivityTimeline(lead);\n' +
 '    var inject = \'<div class="inactivity-timeline"><strong>Assignment history:</strong> \' + escHtml(timeline) + \'</div>\';\n' +
+'    // (kept for legacy selector targeting; padding rule was removed since the\n' +
+'    //  checkbox is now an inline flex child of .card-top-left)\n' +
 '    html = html.replace(\'<div class="card" id="card-\', \'<div class="card inact-card" id="card-\');\n' +
 '    return html.replace(/<\\/div>\\s*$/, inject + \'</div>\');\n' +
 '  }).join("");\n' +
-'  // Inject checkboxes after innerHTML write so the event listeners stick\n' +
+'  // Inject checkboxes after innerHTML write so event listeners stick. Place\n' +
+'  // each checkbox inside .card-top-left, before the logo, so it sits in the\n' +
+'  // header row and does not overlap the logo or notes icon.\n' +
 '  list.forEach(function(lead){\n' +
 '    var sid=getSafeId(lead.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
+'    var headerLeft = cardEl.querySelector(".card-top-left"); if(!headerLeft) return;\n' +
 '    var cb=document.createElement("input"); cb.type="checkbox"; cb.className="inact-card-checkbox";\n' +
 '    cb.setAttribute("data-lead-id", lead.id);\n' +
 '    cb.checked = !!_inactivitySelected[lead.id];\n' +
 '    cb.addEventListener("click", function(e){ e.stopPropagation(); });\n' +
 '    cb.addEventListener("change", function(){ toggleInactivityLead(lead.id, this.checked); });\n' +
-'    cardEl.insertBefore(cb, cardEl.firstChild);\n' +
+'    headerLeft.insertBefore(cb, headerLeft.firstChild);\n' +
 '  });\n' +
 '  setTimeout(function(){ postRenderLeads(list); }, 150);\n' +
 '  _updateInactivityToolbar();\n' +
