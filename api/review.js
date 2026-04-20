@@ -735,7 +735,11 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '</style>\n' +
 '</head>\n' +
-'<body>\n' +
+'<body>\n';
+// Split the giant template into multiple += chunks so Vercel's build
+// pipeline (Babel/Terser) doesn't stack-overflow on a single ~3800-op
+// binary-expression AST.
+html += '' +
 '\n' +
 '<div class="header">\n' +
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
@@ -1037,7 +1041,8 @@ module.exports = async function handler(req, res) {
 '  <div class="am-detail" id="analytics-am-detail"></div>\n' +
 '</div>\n' +
 '\n' +
-'<script>\n' +
+'<script>\n';
+html += '' +
 'var SVG_GLOBE = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>\';\n' +
 'var SVG_LINKEDIN = \'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>\';\n' +
 'var SVG_DOC = \'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>\';\n' +
@@ -1710,7 +1715,8 @@ module.exports = async function handler(req, res) {
 '  if((lead.status === "new" || lead.status === "pending") && !hasOutreach) return "#00a86b";\n' +
 '  if(hasOutreach) return "#444444";\n' +
 '  return "#444444";\n' +
-'}\n' +
+'}\n';
+html += '' +
 '\n' +
 'function renderCard(lead) {\n' +
 '  var blocked=isCompanyBlocked(lead.company);\n' +
@@ -2375,7 +2381,8 @@ module.exports = async function handler(req, res) {
 '  body.innerHTML=h;\n' +
 '  _g("ac-overlay").classList.add("open");\n' +
 '}\n' +
-'function closeACModal(){_g("ac-overlay").classList.remove("open");}\n' +
+'function closeACModal(){_g("ac-overlay").classList.remove("open");}\n';
+html += '' +
 '\n' +
 'function fcContactRow(safeId,apolloId,firstName,lastInitial,title,linkedin,city,state,rowId){\n' +
 '  var nameStr=firstName+" "+lastInitial;\n' +
@@ -3034,7 +3041,8 @@ module.exports = async function handler(req, res) {
 '  var logoUrl=lead.company_logo_apollo||lead.company_logo||"";\n' +
 '  fetchLogo(lead.company,lead.company_domain||lead.company_website||"",lead.location||"",safeId,logoUrl);\n' +
 '  updateLeadCount();\n' +
-'}\n' +
+'}\n';
+html += '' +
 '\n' +
 'async function submitAddLead(){\n' +
 '  try{\n' +
