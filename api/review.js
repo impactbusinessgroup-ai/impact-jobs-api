@@ -131,6 +131,33 @@ module.exports = async function handler(req, res) {
 '.header-center { position: absolute; left: 50%; transform: translateX(-50%); color: white; font-family: Oswald, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }\n' +
 '.btn-add-lead { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 8px rgba(34,197,94,0.3); }\n' +
 '.btn-add-lead:hover { background: #16a34a; transform: scale(1.08); }\n' +
+'.header-btn-group { display: inline-flex; align-items: center; gap: 8px; background: #1e1e1e; border: 1px solid #333; border-radius: 24px; padding: 4px 8px; }\n' +
+'.btn-cal { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; }\n' +
+'.btn-cal:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
+'.btn-cal.active-away { color: #cc3333; }\n' +
+'.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }\n' +
+'.cal-head { text-align: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; font-family: Raleway, sans-serif; padding: 4px 0; }\n' +
+'.cal-day { text-align: center; padding: 8px 0; font-size: 13px; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.03); border: 1px solid transparent; border-radius: 6px; cursor: pointer; user-select: none; font-family: Raleway, sans-serif; transition: background 0.1s; }\n' +
+'.cal-day:hover { background: rgba(232,98,10,0.18); }\n' +
+'.cal-day.blank { background: transparent; cursor: default; }\n' +
+'.cal-day.today { border-color: rgba(255,255,255,0.35); font-weight: 700; }\n' +
+'.cal-day.sel-start, .cal-day.sel-end, .cal-day.sel { background: #E8620A; color: #fff; border-color: #E8620A; }\n' +
+'.cal-day.in-range { background: rgba(232,98,10,0.35); color: #fff; }\n' +
+'.cal-nav { display: flex; justify-content: space-between; align-items: center; padding: 6px 4px; }\n' +
+'.cal-nav button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-family: Raleway, sans-serif; }\n' +
+'.cal-nav-title { font-family: Oswald, sans-serif; font-weight: 600; font-size: 15px; color: #fff; letter-spacing: 0.5px; }\n' +
+'.cal-footer { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-top: 14px; }\n' +
+'.cal-footer .hint { margin-right: auto; font-size: 11px; color: rgba(255,255,255,0.4); font-family: Raleway, sans-serif; }\n' +
+'.cal-add-btn { background: #E8620A; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-family: Raleway, sans-serif; font-size: 13px; cursor: pointer; }\n' +
+'.cal-add-btn:disabled { opacity: 0.45; cursor: not-allowed; }\n' +
+'.cal-list { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }\n' +
+'.cal-list-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; font-family: Raleway, sans-serif; margin-bottom: 8px; }\n' +
+'.cal-list-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 6px; font-family: Raleway, sans-serif; font-size: 13px; color: rgba(255,255,255,0.8); }\n' +
+'.cal-list-row .dates { flex: 1; }\n' +
+'.cal-list-row button { background: transparent; border: none; color: rgba(255,255,255,0.45); cursor: pointer; padding: 4px 6px; border-radius: 4px; }\n' +
+'.cal-list-row button:hover { color: #fff; background: rgba(255,255,255,0.06); }\n' +
+'.cal-list-row button.danger:hover { color: #ff8e8e; }\n' +
+'.cal-empty { font-size: 12px; color: rgba(255,255,255,0.4); font-style: italic; padding: 10px; text-align: center; }\n' +
 '.btn-archive { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #1A4EA2; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.15s; box-shadow: 0 2px 8px rgba(26,78,162,0.35); padding: 0; }\n' +
 '.btn-archive:hover { background: #15407f; transform: scale(1.08); }\n' +
 '.btn-archive svg { display: block; }\n' +
@@ -161,6 +188,13 @@ module.exports = async function handler(req, res) {
 '.archive-empty { padding: 14px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; }\n' +
 '.admin-filter-bar { display: none; gap: 10px; padding: 14px 24px; background: #1a1a1a; border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap; position: sticky; top: 64px; z-index: 100; }\n' +
 '.admin-filter-bar.visible { display: flex; }\n' +
+'.am-scoreboard { display: none; gap: 30px; padding: 10px 24px; background: #1e1e1e; border-bottom: 1px solid #333; align-items: center; flex-wrap: wrap; }\n' +
+'.am-scoreboard.visible { display: flex; }\n' +
+'.am-score-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }\n' +
+'.am-score-num { font-size: 20px; font-weight: 700; color: #E8620A; line-height: 1; font-family: Oswald, sans-serif; }\n' +
+'.am-score-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.7px; font-family: Raleway, sans-serif; }\n' +
+'.ooo-banner { display: none; background: rgba(204,51,51,0.12); border-bottom: 1px solid #cc3333; color: #ff8e8e; font-family: Raleway, sans-serif; font-size: 13px; font-weight: 600; padding: 12px 24px; text-align: center; }\n' +
+'.ooo-banner.visible { display: block; }\n' +
 '.admin-filter-bar .filter-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-right: 4px; }\n' +
 '.custom-dd { position: relative; }\n' +
 '.custom-dd-btn { background: #2e2e2e; color: #fff; border: 1px solid #444; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-family: Raleway, sans-serif; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: border-color 0.15s; min-width: 90px; }\n' +
@@ -652,8 +686,11 @@ module.exports = async function handler(req, res) {
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
 '  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button><button class="nav-tab" id="tab-inactivity" style="display:none;" onclick="switchTab(&apos;inactivity&apos;)">Inactivity Queue</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
-'    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
-'    <button class="btn-archive has-tooltip" data-tooltip="View Skipped &amp; Blocked" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
+'    <div class="header-btn-group">\n' +
+'      <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
+'      <button class="btn-archive has-tooltip" data-tooltip="View Skipped &amp; Blocked" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
+'      <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Out of Office" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
+'    </div>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
 '  </div>\n' +
@@ -796,6 +833,13 @@ module.exports = async function handler(req, res) {
 '  </div>\n' +
 '</div>\n' +
 '\n' +
+'<div class="ooo-banner" id="ooo-banner">You are currently marked as Out of Office. New leads will not be assigned to you today.</div>\n' +
+'<div class="am-scoreboard" id="am-scoreboard">\n' +
+'  <div class="am-score-stat"><div class="am-score-num" id="score-new-today">0</div><div class="am-score-label">New Today</div></div>\n' +
+'  <div class="am-score-stat"><div class="am-score-num" id="score-total-pending">0</div><div class="am-score-label">Total Pending</div></div>\n' +
+'  <div class="am-score-stat"><div class="am-score-num" id="score-followups">0</div><div class="am-score-label">Follow-ups Due</div></div>\n' +
+'</div>\n' +
+'\n' +
 '<div class="admin-filter-bar" id="admin-filter-bar">\n' +
 '  <span class="filter-label">AM</span>\n' +
 '  <div class="custom-dd" id="dd-am"><button class="custom-dd-btn" onclick="toggleFilterDD(&apos;am&apos;,event)"><span class="custom-dd-label" id="lbl-am">All</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="panel-am"></div></div>\n' +
@@ -828,6 +872,27 @@ module.exports = async function handler(req, res) {
 '    </div>\n' +
 '  </div>\n' +
 '  <div id="inactivity-container"><div class="loading">Loading inactivity queue...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="cal-overlay" onclick="if(event.target===this)closeCalendarModal()">\n' +
+'  <div class="modal" style="max-width:420px;">\n' +
+'    <div class="modal-header"><h3>Out of Office Dates</h3><button class="modal-close" onclick="closeCalendarModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="cal-nav"><button onclick="calPrevMonth()">&larr;</button><div class="cal-nav-title" id="cal-nav-title"></div><button onclick="calNextMonth()">&rarr;</button></div>\n' +
+'      <div class="cal-grid" id="cal-grid"></div>\n' +
+'      <div class="cal-footer"><span class="hint" id="cal-hint">Click a day, then click another for a range. Click the same day twice for one-day.</span><button class="cal-add-btn" id="cal-add-btn" disabled onclick="addAwayDate()">Add Date</button></div>\n' +
+'      <div class="cal-list"><div class="cal-list-title">Your Away Dates</div><div id="cal-list-body"></div></div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="admin-ooo-overlay" onclick="if(event.target===this)closeAdminOOOModal()">\n' +
+'  <div class="modal" style="max-width:520px;">\n' +
+'    <div class="modal-header"><h3>Upcoming Out of Office</h3><button class="modal-close" onclick="closeAdminOOOModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div id="admin-ooo-body"><div class="cal-empty">Loading...</div></div>\n' +
+'    </div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="modal-overlay" id="bulk-reassign-overlay" onclick="if(event.target===this)closeBulkReassignModal()">\n' +
@@ -1027,6 +1092,10 @@ module.exports = async function handler(req, res) {
 '    populateAmFilterOptions();\n' +
 '    readAdminFiltersFromUrl();\n' +
 '    loadAdminViewedSet();\n' +
+'    loadAwayDatesForAdmin();\n' +
+'  } else {\n' +
+'    _g("am-scoreboard").classList.add("visible");\n' +
+'    loadAwayDatesForSelf();\n' +
 '  }\n' +
 '  var today=new Date();\n' +
 '  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
@@ -1048,12 +1117,222 @@ module.exports = async function handler(req, res) {
 '}\n' +
 '\n' +
 'function renderLeads() {\n' +
+'  updateAmScoreboard();\n' +
 '  var container=_g("leads-container");\n' +
 '  var view=(AM.role==="admin")?applyFilterToLeads(leads):leads;\n' +
 '  if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
 '  if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
 '  container.innerHTML=view.map(function(lead){return renderCard(lead);}).join("");\n' +
 '  postRenderLeads(view);\n' +
+'}\n' +
+'\n' +
+'/* ===== Out of Office calendar ===== */\n' +
+'var _awayDates = [];\n' +
+'var _calViewYear, _calViewMonth;\n' +
+'var _calSelStart = null, _calSelEnd = null;\n' +
+'function _fmtYMD(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }\n' +
+'function _parseYMD(s){ if(!s) return null; var parts=String(s).slice(0,10).split("-"); if(parts.length<3) return null; return new Date(Number(parts[0]),Number(parts[1])-1,Number(parts[2])); }\n' +
+'function _todayYMD(){ return _fmtYMD(new Date()); }\n' +
+'function _fmtFriendly(ymd){ var d=_parseYMD(ymd); if(!d) return ymd; return d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }\n' +
+'function _isTodayInRange(ranges){\n' +
+'  var t=_todayYMD();\n' +
+'  return (ranges||[]).some(function(r){ return r && r.start && (t >= r.start) && (t <= (r.end||r.start)); });\n' +
+'}\n' +
+'function _anyAwayWithinDays(byEmail, days){\n' +
+'  var now = new Date(); var cutoff = new Date(now.getFullYear(),now.getMonth(),now.getDate()+days);\n' +
+'  var t = _todayYMD(); var cutoffStr = _fmtYMD(cutoff);\n' +
+'  for (var em in byEmail){\n' +
+'    var list = byEmail[em] || [];\n' +
+'    for (var i=0;i<list.length;i++){\n' +
+'      var r=list[i]; if(!r||!r.start) continue;\n' +
+'      var s = r.start, e = r.end||r.start;\n' +
+'      if(!(e < t || s > cutoffStr)) return true;\n' +
+'    }\n' +
+'  }\n' +
+'  return false;\n' +
+'}\n' +
+'async function loadAwayDatesForSelf(){\n' +
+'  try {\n' +
+'    var r=await fetch("/api/leads?action=get_away_dates&email="+encodeURIComponent(AM.email));\n' +
+'    var d=await r.json();\n' +
+'    _awayDates = Array.isArray(d.dates) ? d.dates : [];\n' +
+'    _applyOOOStateForAM();\n' +
+'  } catch(e){ console.error("loadAwayDates error:",e); }\n' +
+'}\n' +
+'function _applyOOOStateForAM(){\n' +
+'  var btn=_g("btn-cal"); if(!btn) return;\n' +
+'  var todayAway = _isTodayInRange(_awayDates);\n' +
+'  btn.classList.toggle("active-away", todayAway);\n' +
+'  var banner=_g("ooo-banner"); if(banner) banner.classList.toggle("visible", todayAway);\n' +
+'}\n' +
+'async function loadAwayDatesForAdmin(){\n' +
+'  try {\n' +
+'    var r=await fetch("/api/leads?action=get_away_dates&scope=all");\n' +
+'    var d=await r.json();\n' +
+'    var byEmail = (d && d.byEmail) || {};\n' +
+'    var btn=_g("btn-cal"); if(btn) btn.classList.toggle("active-away", _anyAwayWithinDays(byEmail, 7));\n' +
+'    window._awayByEmail = byEmail;\n' +
+'  } catch(e){ console.error("loadAwayDates admin error:",e); }\n' +
+'}\n' +
+'function openCalendarModal(){\n' +
+'  if(AM.role === "admin") return openAdminOOOModal();\n' +
+'  var now=new Date(); _calViewYear = now.getFullYear(); _calViewMonth = now.getMonth();\n' +
+'  _calSelStart=null; _calSelEnd=null;\n' +
+'  _renderCalendar(); _renderCalList();\n' +
+'  _g("cal-overlay").classList.add("open");\n' +
+'}\n' +
+'function closeCalendarModal(){ _g("cal-overlay").classList.remove("open"); }\n' +
+'function calPrevMonth(){ _calViewMonth--; if(_calViewMonth<0){_calViewMonth=11; _calViewYear--;} _renderCalendar(); }\n' +
+'function calNextMonth(){ _calViewMonth++; if(_calViewMonth>11){_calViewMonth=0; _calViewYear++;} _renderCalendar(); }\n' +
+'function _renderCalendar(){\n' +
+'  var title = new Date(_calViewYear,_calViewMonth,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});\n' +
+'  _g("cal-nav-title").textContent = title;\n' +
+'  var grid=_g("cal-grid");\n' +
+'  var heads = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(function(d){ return \'<div class="cal-head">\'+d+\'</div>\'; }).join("");\n' +
+'  var first = new Date(_calViewYear,_calViewMonth,1);\n' +
+'  var firstDow = first.getDay();\n' +
+'  var daysInMonth = new Date(_calViewYear,_calViewMonth+1,0).getDate();\n' +
+'  var today = _todayYMD();\n' +
+'  var cells = "";\n' +
+'  for (var i=0;i<firstDow;i++) cells += \'<div class="cal-day blank"></div>\';\n' +
+'  for (var d=1; d<=daysInMonth; d++){\n' +
+'    var ymd = _calViewYear+"-"+String(_calViewMonth+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");\n' +
+'    var classes = ["cal-day"];\n' +
+'    if(ymd === today) classes.push("today");\n' +
+'    if(_calSelStart && ymd === _calSelStart) classes.push("sel-start","sel");\n' +
+'    if(_calSelEnd && ymd === _calSelEnd) classes.push("sel-end","sel");\n' +
+'    if(_calSelStart && _calSelEnd && ymd > _calSelStart && ymd < _calSelEnd) classes.push("in-range");\n' +
+'    // Highlight already-saved ranges lightly\n' +
+'    if(_awayDates.some(function(r){ return r && r.start && ymd >= r.start && ymd <= (r.end||r.start); })) classes.push("in-range");\n' +
+'    cells += \'<div class="\'+classes.join(" ")+\'" data-ymd="\'+ymd+\'" onclick="_onCalDayClick(\\\'\'+ymd+\'\\\')">\'+d+\'</div>\';\n' +
+'  }\n' +
+'  grid.innerHTML = heads + cells;\n' +
+'  _g("cal-add-btn").disabled = !_calSelStart;\n' +
+'}\n' +
+'function _onCalDayClick(ymd){\n' +
+'  if(!_calSelStart || _calSelEnd){\n' +
+'    _calSelStart = ymd; _calSelEnd = null;\n' +
+'  } else if(ymd < _calSelStart){\n' +
+'    _calSelEnd = _calSelStart; _calSelStart = ymd;\n' +
+'  } else {\n' +
+'    _calSelEnd = ymd;\n' +
+'  }\n' +
+'  _renderCalendar();\n' +
+'}\n' +
+'async function addAwayDate(){\n' +
+'  if(!_calSelStart) return;\n' +
+'  var entry = { id: "aw_"+Date.now()+"_"+Math.random().toString(36).slice(2,8), start: _calSelStart, end: _calSelEnd || _calSelStart };\n' +
+'  _awayDates = _awayDates.concat([entry]);\n' +
+'  await _saveAwayDates();\n' +
+'  _calSelStart=null; _calSelEnd=null;\n' +
+'  _renderCalendar(); _renderCalList(); _applyOOOStateForAM();\n' +
+'}\n' +
+'async function deleteAwayDate(id){\n' +
+'  if(!confirm("Delete this out-of-office entry?")) return;\n' +
+'  try {\n' +
+'    await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delete_away_date",email:AM.email,date_id:id})});\n' +
+'    _awayDates = _awayDates.filter(function(d){ return d.id !== id; });\n' +
+'    _renderCalendar(); _renderCalList(); _applyOOOStateForAM();\n' +
+'  } catch(e){ console.error("delete_away_date error:",e); }\n' +
+'}\n' +
+'function editAwayDate(id){\n' +
+'  var r = _awayDates.find(function(x){ return x.id === id; }); if(!r) return;\n' +
+'  _calSelStart = r.start; _calSelEnd = (r.end && r.end !== r.start) ? r.end : null;\n' +
+'  var d = _parseYMD(r.start) || new Date();\n' +
+'  _calViewYear = d.getFullYear(); _calViewMonth = d.getMonth();\n' +
+'  // Delete the old entry; adding will save a new one with fresh id\n' +
+'  deleteAwayDate(id);\n' +
+'}\n' +
+'async function _saveAwayDates(){\n' +
+'  try {\n' +
+'    await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save_away_dates",email:AM.email,dates:_awayDates})});\n' +
+'  } catch(e){ console.error("save_away_dates error:",e); }\n' +
+'}\n' +
+'function _renderCalList(){\n' +
+'  var el=_g("cal-list-body"); if(!el) return;\n' +
+'  if(!_awayDates.length){ el.innerHTML = \'<div class="cal-empty">No away dates saved.</div>\'; return; }\n' +
+'  el.innerHTML = _awayDates.slice().sort(function(a,b){ return a.start.localeCompare(b.start); }).map(function(r){\n' +
+'    var label = (r.end && r.end !== r.start) ? (_fmtFriendly(r.start)+" \\u2013 "+_fmtFriendly(r.end)) : _fmtFriendly(r.start);\n' +
+'    return \'<div class="cal-list-row"><span class="dates">\'+escHtml(label)+\'</span>\'+\n' +
+'      \'<button title="Edit" onclick="editAwayDate(\\\'\'+r.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>\'+\n' +
+'      \'<button class="danger" title="Delete" onclick="deleteAwayDate(\\\'\'+r.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></button>\'+\n' +
+'    \'</div>\';\n' +
+'  }).join("");\n' +
+'}\n' +
+'async function openAdminOOOModal(){\n' +
+'  _g("admin-ooo-overlay").classList.add("open");\n' +
+'  _g("admin-ooo-body").innerHTML = \'<div class="cal-empty">Loading...</div>\';\n' +
+'  try {\n' +
+'    var r=await fetch("/api/leads?action=get_away_dates&scope=all");\n' +
+'    var d=await r.json();\n' +
+'    var byEmail = (d && d.byEmail) || {};\n' +
+'    var now = new Date(); var cutoff = _fmtYMD(new Date(now.getFullYear(),now.getMonth(),now.getDate()+30));\n' +
+'    var todayStr = _todayYMD();\n' +
+'    var rows = [];\n' +
+'    Object.keys(byEmail).forEach(function(em){\n' +
+'      (byEmail[em]||[]).forEach(function(r){\n' +
+'        if(!r||!r.start) return;\n' +
+'        var end = r.end || r.start;\n' +
+'        if(end < todayStr) return;\n' +
+'        if(r.start > cutoff) return;\n' +
+'        rows.push({ email: em, start: r.start, end: end, id: r.id });\n' +
+'      });\n' +
+'    });\n' +
+'    if(!rows.length){ _g("admin-ooo-body").innerHTML = \'<div class="cal-empty">No upcoming away dates</div>\'; return; }\n' +
+'    rows.sort(function(a,b){ return a.start.localeCompare(b.start); });\n' +
+'    var nameFor = function(em){ var k = Object.keys(AM_EMAIL_MAP||{}).find(function(n){ return AM_EMAIL_MAP[n] === em; }); return k ? k.split(" ").map(function(w){ return w.charAt(0).toUpperCase()+w.slice(1); }).join(" ") : em; };\n' +
+'    _g("admin-ooo-body").innerHTML = rows.map(function(r){\n' +
+'      var label = (r.end && r.end !== r.start) ? (_fmtFriendly(r.start)+" \\u2013 "+_fmtFriendly(r.end)) : _fmtFriendly(r.start);\n' +
+'      return \'<div class="cal-list-row"><span class="dates"><strong>\'+escHtml(nameFor(r.email))+\'</strong> &mdash; \'+escHtml(label)+\'</span>\'+\n' +
+'        \'<button class="danger" title="Remove" onclick="adminDeleteAwayDate(\\\'\'+escHtml(r.email)+\'\\\',\\\'\'+escHtml(r.id)+\'\\\')">Remove</button>\'+\n' +
+'      \'</div>\';\n' +
+'    }).join("");\n' +
+'  } catch(e){ _g("admin-ooo-body").innerHTML = \'<div class="cal-empty">Failed to load.</div>\'; }\n' +
+'}\n' +
+'function closeAdminOOOModal(){ _g("admin-ooo-overlay").classList.remove("open"); }\n' +
+'async function adminDeleteAwayDate(email, id){\n' +
+'  if(!confirm("Remove this out-of-office entry?")) return;\n' +
+'  try {\n' +
+'    await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delete_away_date",email:email,date_id:id})});\n' +
+'    openAdminOOOModal();\n' +
+'    loadAwayDatesForAdmin();\n' +
+'  } catch(e){ console.error("adminDeleteAwayDate error:",e); }\n' +
+'}\n' +
+'\n' +
+'// Admin mapping for nameFor lookup inside openAdminOOOModal\n' +
+'var AM_EMAIL_MAP = {\n' +
+'  "mark sapoznikov": "msapoznikov@impactbusinessgroup.com",\n' +
+'  "matt peal": "mpeal@impactbusinessgroup.com",\n' +
+'  "curt willbrandt": "cwillbrandt@impactbusinessgroup.com",\n' +
+'  "doug koetsier": "dkoetsier@impactbusinessgroup.com",\n' +
+'  "paul kujawski": "pkujawski@impactbusinessgroup.com",\n' +
+'  "lauren sylvester": "lsylvester@impactbusinessgroup.com",\n' +
+'  "dan teliczan": "dteliczan@impactbusinessgroup.com",\n' +
+'  "trish wangler": "twangler@impactbusinessgroup.com",\n' +
+'  "mark herman": "mherman@impactbusinessgroup.com",\n' +
+'  "jamie drajka": "jdrajka@impactbusinessgroup.com",\n' +
+'  "drew bentsen": "dbentsen@impactbusinessgroup.com",\n' +
+'  "steve betteley": "sbetteley@impactbusinessgroup.com"\n' +
+'};\n' +
+'\n' +
+'function updateAmScoreboard() {\n' +
+'  if(AM.role === "admin") return;\n' +
+'  var source = (typeof allLeadsCache !== "undefined" && allLeadsCache && allLeadsCache.length) ? allLeadsCache : leads;\n' +
+'  var mine = source.filter(function(l){ return (l.assignedAMEmail||"").toLowerCase() === AM.email.toLowerCase(); });\n' +
+'  var today = new Date();\n' +
+'  var todayStr = today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");\n' +
+'  var pending = mine.filter(function(l){ return (l.status==="new"||l.status==="pending") && Array.isArray(l.contacts) && l.contacts.length>0; });\n' +
+'  var newToday = pending.filter(function(l){ return l.date === todayStr || (typeof l.id === "string" && l.id.indexOf("lead:"+todayStr+":") === 0); }).length;\n' +
+'  var followups = mine.filter(function(l){\n' +
+'    if(l.status !== "awaiting_followup") return false;\n' +
+'    var d = l.last_reminder_date || l.completedAt;\n' +
+'    if(!d) return false;\n' +
+'    return _clientBizDaysBetween(new Date(d), today) >= 3;\n' +
+'  }).length;\n' +
+'  var el;\n' +
+'  if((el=_g("score-new-today"))) el.textContent = newToday;\n' +
+'  if((el=_g("score-total-pending"))) el.textContent = pending.length;\n' +
+'  if((el=_g("score-followups"))) el.textContent = followups;\n' +
 '}\n' +
 '\n' +
 '// Shared post-render pass for any view that builds card HTML via renderCard().\n' +
@@ -1102,6 +1381,16 @@ module.exports = async function handler(req, res) {
 '  });\n' +
 '}\n' +
 '\n' +
+'function _cardBorderForStatus(lead) {\n' +
+'  var hasOutreach = lead.outreach_log && typeof lead.outreach_log === "object" && Object.keys(lead.outreach_log).length > 0;\n' +
+'  var stage = Number(lead.reminder_stage || 0);\n' +
+'  if(lead.status === "awaiting_followup" && stage >= 3) return "#E8620A";\n' +
+'  if(lead.status === "awaiting_followup") return "#1A4EA2";\n' +
+'  if((lead.status === "new" || lead.status === "pending") && !hasOutreach) return "#00a86b";\n' +
+'  if(hasOutreach) return "#444444";\n' +
+'  return "#444444";\n' +
+'}\n' +
+'\n' +
 'function renderCard(lead) {\n' +
 '  var blocked=isCompanyBlocked(lead.company);\n' +
 '  var cat=lead.category||"engineering";\n' +
@@ -1134,6 +1423,7 @@ module.exports = async function handler(req, res) {
 '  if(lead.jobUrl) linksRight+=\'<a class="link-icon" href="\'+lead.jobUrl+\'" target="_blank" data-tooltip="View Posting">\'+SVG_LINK+\'</a>\';\n' +
 '\n' +
 '  var amBadgeHtml = (AM.role==="admin" && lead.assignedAM) ? \'<div class="am-badge">\'+escHtml(lead.assignedAM)+\'</div>\' : "";\n' +
+'  var statusBorderColor = _cardBorderForStatus(lead);\n' +
 '  var unreadCount = _leadHasUnreadNotes(lead);\n' +
 '  var noteClass = unreadCount>0 ? "notes-icon-btn has-unread has-tooltip" : "notes-icon-btn has-tooltip";\n' +
 '  // Only show the notes bubble when there is actually an unread note for this AM.\n' +
@@ -1142,7 +1432,7 @@ module.exports = async function handler(req, res) {
 '  var notesBtnHtml = unreadCount > 0\n' +
 '    ? \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" data-tooltip="Unread note from admin" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+unreadCount+\'</span></button>\'\n' +
 '    : "";\n' +
-'  return \'<div class="card" id="card-\'+safeId+\'">\'+amBadgeHtml+notesBtnHtml+\n' +
+'  return \'<div class="card" id="card-\'+safeId+\'" style="border-left:3px solid \'+statusBorderColor+\';">\'+amBadgeHtml+notesBtnHtml+\n' +
 '    \'<div class="card-top">\'+\n' +
 '      \'<div class="card-top-left">\'+\n' +
 '        \'<div class="company-logo-wrap" id="logo-\'+safeId+\'" style="display:none;"></div>\'+\n' +
@@ -2560,6 +2850,7 @@ module.exports = async function handler(req, res) {
 '  _g("analytics-view").classList.toggle("visible", tab === "analytics");\n' +
 '  var inactView=_g("inactivity-view"); if(inactView) inactView.style.display = tab === "inactivity" ? "block" : "none";\n' +
 '  var filterBar=_g("admin-filter-bar"); if(filterBar && AM.role==="admin") filterBar.style.display = tab === "leads" ? "flex" : "none";\n' +
+'  var sb=_g("am-scoreboard"); if(sb && AM.role !== "admin") sb.style.display = tab === "leads" ? "flex" : "none";\n' +
 '  if (tab === "analytics" && !analyticsLoaded) { loadAnalytics(); }\n' +
 '  if (tab === "inactivity") { renderInactivityView(); }\n' +
 '}\n' +
@@ -2692,6 +2983,7 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '  if(!_hasInactivityHistory(l)){ _dbg(false,"no_inactivity_history"); return false; }\n' +
 '  if(_reassignedFromQueue[l.id]){ _dbg(false,"reassigned_this_session"); return false; }\n' +
+'  if(l.reassignedFromInactivityQueue){ _dbg(false,"reassigned_persisted_flag"); return false; }\n' +
 '  var st = l.status || "";\n' +
 '  if(st !== "new" && st !== "pending"){ _dbg(false,"status_not_new_or_pending"); return false; }\n' +
 '  if(hasOutreach){ _dbg(false,"has_outreach"); return false; }\n' +

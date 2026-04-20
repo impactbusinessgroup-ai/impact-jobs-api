@@ -187,6 +187,24 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, skipped, blocked });
   }
 
+  // GET -- away dates for a specific AM, or all AMs when scope=all
+  if (method === 'GET' && query.action === 'get_away_dates') {
+    if (query.scope === 'all') {
+      const allKeys = await redisKeys('away_dates:*');
+      const out = {};
+      for (const k of allKeys) {
+        const email = k.replace(/^away_dates:/, '').toLowerCase();
+        const list = (await redisGet(k)) || [];
+        out[email] = Array.isArray(list) ? list : [];
+      }
+      return res.status(200).json({ ok: true, byEmail: out });
+    }
+    const email = String(query.email || '').toLowerCase();
+    if (!email) return res.status(400).json({ error: 'Missing email' });
+    const list = (await redisGet('away_dates:' + email)) || [];
+    return res.status(200).json({ ok: true, email, dates: Array.isArray(list) ? list : [] });
+  }
+
   // GET -- return admin_viewed set for current admin
   if (method === 'GET' && query.action === 'admin_viewed') {
     const email = String(query.email || '').toLowerCase();
@@ -241,6 +259,31 @@ module.exports = async function handler(req, res) {
   // PATCH -- update a lead
   if (method === 'PATCH') {
     const body = req.body;
+
+    // --- save_away_dates / delete_away_date: standalone, not keyed on lead id ---
+    if (body.action === 'save_away_dates') {
+      const email = String(body.email || '').toLowerCase();
+      if (!email) return res.status(400).json({ error: 'Missing email' });
+      const list = Array.isArray(body.dates) ? body.dates : [];
+      // Normalize + ensure ids
+      const cleaned = list.map(d => ({
+        id: d.id || ('aw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
+        start: String(d.start || '').slice(0, 10),
+        end: String(d.end || d.start || '').slice(0, 10),
+      })).filter(d => d.start);
+      await redisSet('away_dates:' + email, cleaned);
+      return res.status(200).json({ ok: true, email, dates: cleaned });
+    }
+    if (body.action === 'delete_away_date') {
+      const email = String(body.email || '').toLowerCase();
+      const dateId = String(body.date_id || '');
+      if (!email || !dateId) return res.status(400).json({ error: 'Missing email or date_id' });
+      const list = (await redisGet('away_dates:' + email)) || [];
+      const filtered = (Array.isArray(list) ? list : []).filter(d => d.id !== dateId);
+      await redisSet('away_dates:' + email, filtered);
+      return res.status(200).json({ ok: true, email, dates: filtered });
+    }
+
     const id = body.id;
     if (!id) return res.status(400).json({ error: 'Missing id' });
 
@@ -606,6 +649,13 @@ module.exports = async function handler(req, res) {
     // receiving AM's active pipeline, not leave it in an archived status.
     if (isReassign && (lead.status === 'skipped' || lead.status === 'blocked') && !updates.status) {
       updates.status = 'pending';
+    }
+
+    // When the reassign was triggered from the inactivity queue (manual
+    // reassign) persist a flag so the queue filter can exclude this lead
+    // on subsequent page loads, not just for the current session.
+    if (isReassign && body.reassign_reason === 'manual') {
+      updates.reassignedFromInactivityQueue = true;
     }
 
     const updated = { ...lead, ...updates };
