@@ -137,6 +137,19 @@ module.exports = async function handler(req, res) {
 '.btn-cal.active-away { color: #cc3333; }\n' +
 '.btn-help { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 16px; }\n' +
 '.btn-help:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
+'.btn-search-icon { position: relative; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #888; transition: all 0.15s; padding: 0; }\n' +
+'.btn-search-icon:hover { color: #fff; background: rgba(255,255,255,0.05); }\n' +
+'.header-search-row { display: none; align-items: center; gap: 6px; padding: 0 4px; }\n' +
+'.header-btn-group.searching .header-btn-icons { display: none; }\n' +
+'.header-btn-group.searching .header-search-row { display: inline-flex; }\n' +
+'.header-btn-group.searching { background: #1f1f1f; }\n' +
+'.header-search-input { background: transparent; border: none; color: #fff; font-family: Raleway, sans-serif; font-size: 13px; padding: 6px 4px; outline: none; width: 240px; }\n' +
+'.header-search-input::placeholder { color: rgba(255,255,255,0.4); }\n' +
+'.header-search-close { background: transparent; border: none; color: #888; cursor: pointer; padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; }\n' +
+'.header-search-close:hover { color: #fff; background: rgba(255,255,255,0.06); }\n' +
+'.search-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.6); font-family: Raleway, sans-serif; }\n' +
+'.search-empty-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px; }\n' +
+'.search-empty-clear { display: inline-block; margin-top: 10px; color: #E8620A; font-size: 13px; cursor: pointer; text-decoration: underline; }\n' +
 '.help-modal { max-width: 700px !important; width: 92% !important; }\n' +
 '.help-hero { padding: 22px 26px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); background: linear-gradient(180deg, rgba(232,98,10,0.08), transparent); }\n' +
 '.help-hero h2 { font-family: Oswald, sans-serif; font-size: 22px; font-weight: 600; color: #fff; margin: 0 0 6px; letter-spacing: 0.5px; }\n' +
@@ -728,11 +741,19 @@ module.exports = async function handler(req, res) {
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
 '  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button><button class="nav-tab" id="tab-inactivity" style="display:none;" onclick="switchTab(&apos;inactivity&apos;)">Inactivity Queue</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
-'    <div class="header-btn-group">\n' +
-'      <button class="btn-add-lead has-tooltip" data-tooltip="Add Job Description" onclick="openAddModal()">+</button>\n' +
-'      <button class="btn-archive has-tooltip" data-tooltip="Re-activate skipped &amp; blocked jobs" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
-'      <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Schedule days to skip leads" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
-'      <button class="btn-help has-tooltip" id="btn-help" data-tooltip="Help &amp; Getting Started" onclick="openHelpModal()">?</button>\n' +
+'    <div class="header-btn-group" id="header-btn-group">\n' +
+'      <div class="header-btn-icons" id="header-btn-icons" style="display:inline-flex;align-items:center;gap:8px;">\n' +
+'        <button class="btn-add-lead has-tooltip" data-tooltip="Add Job Description" onclick="openAddModal()">+</button>\n' +
+'        <button class="btn-search-icon has-tooltip" id="btn-search" data-tooltip="Search Leads" onclick="openHeaderSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>\n' +
+'        <button class="btn-archive has-tooltip" data-tooltip="Re-activate skipped &amp; blocked jobs" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
+'        <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Schedule days to skip leads" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
+'        <button class="btn-help has-tooltip" id="btn-help" data-tooltip="Help &amp; Getting Started" onclick="openHelpModal()">?</button>\n' +
+'      </div>\n' +
+'      <div class="header-search-row" id="header-search-row">\n' +
+'        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>\n' +
+'        <input type="text" class="header-search-input" id="header-search-input" placeholder="Search company, job, or contact..." oninput="onSearchInput(this.value)" onkeydown="if(event.key===&apos;Escape&apos;)closeHeaderSearch()">\n' +
+'        <button class="header-search-close" onclick="closeHeaderSearch()" aria-label="Close search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>\n' +
+'      </div>\n' +
 '    </div>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
@@ -1174,10 +1195,23 @@ module.exports = async function handler(req, res) {
 '  _g("greeting-text").textContent=greet+", "+(AM.name?AM.name.split(" ")[0]:"");\n' +
 '  _g("queue-sub").innerHTML="<span style=\\"color:#666\\">Loading leads...</span>";\n' +
 '  try{\n' +
-'    var leadsUrl=(AM.role==="admin")?"/api/leads?showAll=1":"/api/leads";\n' +
-'    var results=await Promise.all([fetch(leadsUrl).then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
-'    var allLeads=results[0].leads||[];leads=(AM.role==="admin")?allLeads:allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;});blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
-'    if(AM.role==="admin"){allLeadsCache=allLeads;}\n' +
+'    // Always showAll=1 so search can reach past-30-day archived leads\n' +
+'    // regardless of role. Normal display still only shows pipeline leads.\n' +
+'    var results=await Promise.all([fetch("/api/leads?showAll=1").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
+'    var allLeads=results[0].leads||[];\n' +
+'    allLeadsCache=allLeads;\n' +
+'    if(AM.role==="admin"){\n' +
+'      leads = allLeads;\n' +
+'    } else {\n' +
+'      // AM pipeline view: only their leads, in working statuses, with contacts\n' +
+'      leads = allLeads.filter(function(l){\n' +
+'        if((l.assignedAMEmail||"").toLowerCase() !== AM.email.toLowerCase()) return false;\n' +
+'        var st = l.status||"";\n' +
+'        if(st !== "new" && st !== "pending" && st !== "in_progress") return false;\n' +
+'        return Array.isArray(l.contacts) && l.contacts.length > 0;\n' +
+'      });\n' +
+'    }\n' +
+'    blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
 '    updateLeadCount();\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
@@ -1192,11 +1226,81 @@ module.exports = async function handler(req, res) {
 'function renderLeads() {\n' +
 '  updateAmScoreboard();\n' +
 '  var container=_g("leads-container");\n' +
-'  var view=(AM.role==="admin")?applyFilterToLeads(leads):leads;\n' +
-'  if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
-'  if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
+'  var q = (_headerSearchQuery||"").trim();\n' +
+'  var view;\n' +
+'  if(q){\n' +
+'    view = _applySearchFilter(q);\n' +
+'    if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
+'    if(!view.length){\n' +
+'      container.innerHTML = \'<div class="search-empty"><div class="search-empty-title">No leads found matching "\'+escHtml(q)+\'"</div><div>Try a different search term.</div><a class="search-empty-clear" onclick="_clearHeaderSearchFromLink()">Clear search</a></div>\';\n' +
+'      return;\n' +
+'    }\n' +
+'  } else {\n' +
+'    view=(AM.role==="admin")?applyFilterToLeads(leads):leads;\n' +
+'    if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
+'    if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
+'  }\n' +
 '  container.innerHTML=view.map(function(lead){return renderCard(lead);}).join("");\n' +
 '  postRenderLeads(view);\n' +
+'}\n' +
+'\n' +
+'/* ===== Header search ===== */\n' +
+'var _headerSearchQuery = "";\n' +
+'function openHeaderSearch() {\n' +
+'  if (currentTab !== "leads") { switchTab("leads"); }\n' +
+'  var grp=_g("header-btn-group"); if(!grp) return;\n' +
+'  grp.classList.add("searching");\n' +
+'  var input=_g("header-search-input"); if(input){ input.value = _headerSearchQuery || ""; setTimeout(function(){ input.focus(); }, 50); }\n' +
+'}\n' +
+'function closeHeaderSearch() {\n' +
+'  var grp=_g("header-btn-group"); if(grp) grp.classList.remove("searching");\n' +
+'  var input=_g("header-search-input"); if(input) input.value = "";\n' +
+'  _headerSearchQuery = "";\n' +
+'  renderLeads();\n' +
+'}\n' +
+'function _clearHeaderSearchFromLink() { closeHeaderSearch(); }\n' +
+'function onSearchInput(val) {\n' +
+'  _headerSearchQuery = String(val || "");\n' +
+'  renderLeads();\n' +
+'}\n' +
+'function _applySearchFilter(q) {\n' +
+'  var query = q.toLowerCase();\n' +
+'  // Search scope: past 30 days of activity. Admin sees all AMs + current\n' +
+'  // admin filters. AM sees only their own leads.\n' +
+'  var cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;\n' +
+'  function leadActivityMs(l) {\n' +
+'    var ts = 0;\n' +
+'    var ca = (typeof l.createdAt === "number") ? l.createdAt : (l.createdAt ? Date.parse(l.createdAt) : 0);\n' +
+'    if (ca && ca > ts) ts = ca;\n' +
+'    ["assignedAt","skippedAt","retrievedAt","unblockedAt","completedAt","closedAt","last_reminder_date"].forEach(function(k){\n' +
+'      var v = l[k]; if(!v) return; var p = Date.parse(v); if(!isNaN(p) && p > ts) ts = p;\n' +
+'    });\n' +
+'    if (l.outreach_log && typeof l.outreach_log === "object") {\n' +
+'      Object.keys(l.outreach_log).forEach(function(aid){\n' +
+'        (l.outreach_log[aid]||[]).forEach(function(e){ var p = e && e.date ? Date.parse(e.date) : 0; if(!isNaN(p) && p > ts) ts = p; });\n' +
+'      });\n' +
+'    }\n' +
+'    if (Array.isArray(l.assignment_history)) {\n' +
+'      l.assignment_history.forEach(function(h){ var p = h && h.assigned_at ? Date.parse(h.assigned_at) : 0; if(!isNaN(p) && p > ts) ts = p; });\n' +
+'    }\n' +
+'    return ts;\n' +
+'  }\n' +
+'  var pool = (AM.role === "admin")\n' +
+'    ? applyFilterToLeads(allLeadsCache || [])\n' +
+'    : (allLeadsCache || []).filter(function(l){ return (l.assignedAMEmail||"").toLowerCase() === AM.email.toLowerCase(); });\n' +
+'  return pool.filter(function(l){\n' +
+'    if (leadActivityMs(l) < cutoff) return false;\n' +
+'    var hay = [];\n' +
+'    hay.push((l.company||"").toLowerCase());\n' +
+'    hay.push((l.jobTitle||"").toLowerCase());\n' +
+'    (l.contacts||[]).forEach(function(c){\n' +
+'      var fn = (c.first_name||"").toLowerCase();\n' +
+'      var ln = (c.last_name||"").toLowerCase();\n' +
+'      var full = ((c.full_name||c.name||"")).toLowerCase();\n' +
+'      if(fn) hay.push(fn); if(ln) hay.push(ln); if(full) hay.push(full);\n' +
+'    });\n' +
+'    return hay.some(function(s){ return s.indexOf(query) !== -1; });\n' +
+'  });\n' +
 '}\n' +
 '\n' +
 '/* ===== Out of Office calendar ===== */\n' +
@@ -1529,6 +1633,7 @@ module.exports = async function handler(req, res) {
 '  if (e.key !== "Escape") return;\n' +
 '  if (_g("tour-overlay") && _g("tour-overlay").classList.contains("active")) { endGuidedTour(true); return; }\n' +
 '  if (_g("help-overlay") && _g("help-overlay").classList.contains("open")) { closeHelpModal(); return; }\n' +
+'  var grp=_g("header-btn-group"); if(grp && grp.classList.contains("searching")){ closeHeaderSearch(); return; }\n' +
 '});\n' +
 '\n' +
 'function updateAmScoreboard() {\n' +
@@ -3659,6 +3764,116 @@ module.exports = async function handler(req, res) {
 '  }\n' +
 '}\n' +
 '\n' +
+'function _buildReminderStageChart(stageData) {\n' +
+'  if (!stageData.length) return \'<div style="padding:18px;font-size:12px;color:rgba(255,255,255,0.45);font-family:Raleway,sans-serif;font-style:italic;">No reminder stages yet.</div>\';\n' +
+'  var W = 640, H = 240;\n' +
+'  var padL = 28, padR = 20, padT = 40, padB = 52;\n' +
+'  var chartW = W - padL - padR;\n' +
+'  var chartH = H - padT - padB;\n' +
+'  var maxVal = 1;\n' +
+'  stageData.forEach(function(s){ if(s.val > maxVal) maxVal = s.val; });\n' +
+'  var n = stageData.length;\n' +
+'  var slot = chartW / n;\n' +
+'  var barW = Math.min(72, slot * 0.62);\n' +
+'  var baseY = padT + chartH;\n' +
+'  var svg = \'<svg viewBox="0 0 \'+W+\' \'+H+\'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;max-width:100%;">\';\n' +
+'  // Baseline\n' +
+'  svg += \'<line x1="\'+padL+\'" x2="\'+(W-padR)+\'" y1="\'+baseY+\'" y2="\'+baseY+\'" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>\';\n' +
+'  stageData.forEach(function(s, i){\n' +
+'    var cx = padL + slot * (i + 0.5);\n' +
+'    var bx = cx - barW/2;\n' +
+'    var bh = Math.max(4, Math.round((s.val / maxVal) * (chartH - 16)));\n' +
+'    var by = baseY - bh;\n' +
+'    var color = (s.stage >= 3) ? "#E8620A" : "#1A4EA2";\n' +
+'    svg += \'<rect x="\'+bx+\'" y="\'+by+\'" width="\'+barW+\'" height="\'+bh+\'" rx="4" fill="\'+color+\'"/>\';\n' +
+'    svg += \'<text x="\'+cx+\'" y="\'+(by - 10)+\'" fill="#ffffff" font-family="Oswald, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">\'+s.val+\'</text>\';\n' +
+'    svg += \'<text x="\'+cx+\'" y="\'+(baseY + 26)+\'" fill="rgba(255,255,255,0.6)" font-family="Raleway, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2" text-anchor="middle">REMINDER \'+s.stage+\'</text>\';\n' +
+'  });\n' +
+'  svg += \'</svg>\';\n' +
+'  return svg;\n' +
+'}\n' +
+'function _buildWeeklyOutreachChart(weeksIn) {\n' +
+'  // Fill missing weeks in the selected date range so the axis is continuous.\n' +
+'  function weekStartDate(d){ var x=new Date(d); var day=x.getUTCDay(); var diff=x.getUTCDate()-day+(day===0?-6:1); var m=new Date(x); m.setUTCDate(diff); m.setUTCHours(0,0,0,0); return m; }\n' +
+'  function fmtYMD(d){ return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0"); }\n' +
+'  function parseYMD(s){ var p=String(s).split("-"); return new Date(Date.UTC(Number(p[0]),Number(p[1])-1,Number(p[2]))); }\n' +
+'  var countsByWeek = {};\n' +
+'  (weeksIn || []).forEach(function(w){ countsByWeek[w.week] = Number(w.count||0); });\n' +
+'  // Determine the range\n' +
+'  var fromInput = _g("custom-from"), toInput = _g("custom-to");\n' +
+'  var fromDate = null, toDate = new Date();\n' +
+'  if (analyticsDateRange === "custom" && fromInput && toInput && fromInput.value && toInput.value) {\n' +
+'    fromDate = parseYMD(fromInput.value); toDate = parseYMD(toInput.value);\n' +
+'  } else if (typeof analyticsDateRange === "number") {\n' +
+'    fromDate = new Date(); fromDate.setUTCDate(fromDate.getUTCDate() - Number(analyticsDateRange));\n' +
+'  } else if (analyticsDateRange === "all") {\n' +
+'    // All time: infer earliest week from data\n' +
+'    var keys = Object.keys(countsByWeek).sort();\n' +
+'    if (keys.length) fromDate = parseYMD(keys[0]); else fromDate = new Date();\n' +
+'  } else {\n' +
+'    fromDate = new Date(); fromDate.setUTCDate(fromDate.getUTCDate() - 30);\n' +
+'  }\n' +
+'  var startWeek = weekStartDate(fromDate);\n' +
+'  var endWeek = weekStartDate(toDate);\n' +
+'  var weeks = [];\n' +
+'  var cur = new Date(startWeek);\n' +
+'  while (cur <= endWeek && weeks.length < 52) {\n' +
+'    var key = fmtYMD(cur);\n' +
+'    weeks.push({ week: key, count: countsByWeek[key] || 0, start: new Date(cur) });\n' +
+'    cur = new Date(cur); cur.setUTCDate(cur.getUTCDate() + 7);\n' +
+'  }\n' +
+'  if (!weeks.length) return \'<div style="padding:18px;font-size:12px;color:rgba(255,255,255,0.45);font-family:Raleway,sans-serif;font-style:italic;">No data for this range.</div>\';\n' +
+'  var maxVal = 1;\n' +
+'  weeks.forEach(function(w){ if(w.count > maxVal) maxVal = w.count; });\n' +
+'  // Snap maxVal to a tidy gridline value\n' +
+'  function niceCeil(v){\n' +
+'    if (v <= 5) return 5;\n' +
+'    var mag = Math.pow(10, Math.floor(Math.log10(v)));\n' +
+'    var n = v / mag;\n' +
+'    var step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;\n' +
+'    return step * mag;\n' +
+'  }\n' +
+'  var yMax = niceCeil(maxVal);\n' +
+'  var ticks = 5;\n' +
+'  var W = 820, H = 260;\n' +
+'  var padL = 44, padR = 16, padT = 18, padB = 56;\n' +
+'  var chartW = W - padL - padR;\n' +
+'  var chartH = H - padT - padB;\n' +
+'  var slot = chartW / weeks.length;\n' +
+'  var barW = Math.max(3, slot - 4);\n' +
+'  var baseY = padT + chartH;\n' +
+'  var svg = \'<svg viewBox="0 0 \'+W+\' \'+H+\'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;max-width:100%;">\';\n' +
+'  // Y-axis gridlines + tick labels\n' +
+'  for (var t = 0; t <= ticks; t++) {\n' +
+'    var yv = (yMax * t) / ticks;\n' +
+'    var y = baseY - (yv / yMax) * chartH;\n' +
+'    svg += \'<line x1="\'+padL+\'" x2="\'+(W-padR)+\'" y1="\'+y+\'" y2="\'+y+\'" stroke="rgba(255,255,255,\'+(t===0?"0.18":"0.06")+\')" stroke-width="1"/>\';\n' +
+'    svg += \'<text x="\'+(padL - 8)+\'" y="\'+(y + 3)+\'" fill="rgba(255,255,255,0.45)" font-family="Raleway, Arial, sans-serif" font-size="10" text-anchor="end">\'+Math.round(yv)+\'</text>\';\n' +
+'  }\n' +
+'  // Bars\n' +
+'  weeks.forEach(function(w, i){\n' +
+'    if (w.count <= 0) return;\n' +
+'    var x = padL + slot * i + (slot - barW)/2;\n' +
+'    var bh = Math.max(2, (w.count / yMax) * chartH);\n' +
+'    svg += \'<rect x="\'+x+\'" y="\'+(baseY - bh)+\'" width="\'+barW+\'" height="\'+bh+\'" rx="2" fill="#E8620A"><title>\'+w.count+\' outreach\'+(w.count===1?"":"s")+\'</title></rect>\';\n' +
+'  });\n' +
+'  // X-axis labels\n' +
+'  var labelCount = weeks.length;\n' +
+'  var labelFont = labelCount > 16 ? 8 : (labelCount > 10 ? 9 : 10);\n' +
+'  var labelStep = labelCount > 16 ? 2 : 1;\n' +
+'  var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n' +
+'  weeks.forEach(function(w, i){\n' +
+'    if (i % labelStep !== 0 && i !== weeks.length - 1) return;\n' +
+'    var cx = padL + slot * (i + 0.5);\n' +
+'    var s = w.start;\n' +
+'    var e = new Date(s); e.setUTCDate(s.getUTCDate() + 6);\n' +
+'    var lbl = monthNames[s.getUTCMonth()] + " " + s.getUTCDate() + "-" + e.getUTCDate();\n' +
+'    svg += \'<text x="\'+cx+\'" y="\'+(baseY + 18)+\'" fill="rgba(255,255,255,0.6)" font-family="Raleway, Arial, sans-serif" font-size="\'+labelFont+\'" font-weight="500" text-anchor="middle">\'+lbl+\'</text>\';\n' +
+'  });\n' +
+'  svg += \'</svg>\';\n' +
+'  return svg;\n' +
+'}\n' +
+'\n' +
 'function renderAmDetail(am) {\n' +
 '  var h = \'<h3>\' + am.name + \' \\u2014 Individual Stats</h3>\';\n' +
 '  var amFunnelId = "am-funnel-" + (am.email || "unknown").replace(/[^a-zA-Z0-9]/g, "_");\n' +
@@ -3687,29 +3902,18 @@ module.exports = async function handler(req, res) {
 '    h += \'<div class="am-hbar"><div class="am-hbar-label">\' + (reasonLabels[k]||k) + \'</div><div class="am-hbar-track"><div class="am-hbar-fill" style="width:\' + pct + \'%;background:\' + (reasonColors[k]||"#E8620A") + \'"></div></div><div class="am-hbar-val">\' + reasons[k] + \'</div></div>\';\n' +
 '  }\n' +
 '  h += \'</div>\';\n' +
-'  // Reminder stage funnel\n' +
-'  var stages = am.reminderStages;\n' +
-'  var maxStage = Math.max(stages.stage1, stages.stage2, stages.stage3, 1);\n' +
-'  h += \'<div class="am-chart-section"><div class="am-chart-title">Reminder Stage Funnel</div><div class="am-funnel">\';\n' +
-'  var stageData = [{label:"Reminder 1",val:stages.stage1},{label:"Reminder 2",val:stages.stage2},{label:"Reminder 3",val:stages.stage3}];\n' +
-'  for (var i = 0; i < stageData.length; i++) {\n' +
-'    var ht = Math.max(8, Math.round((stageData[i].val / maxStage) * 80));\n' +
-'    h += \'<div class="am-funnel-step"><div class="am-funnel-bar" style="height:\' + ht + \'px;background:rgba(232,98,10,\' + (0.3 + i * 0.2) + \')"></div><div class="am-funnel-val">\' + stageData[i].val + \'</div><div class="am-funnel-label">\' + stageData[i].label + \'</div></div>\';\n' +
-'  }\n' +
-'  h += \'</div></div>\';\n' +
-'  // Weekly outreach chart\n' +
+'  // Reminder stage bar chart\n' +
+'  var stages = am.reminderStages || {};\n' +
+'  var stageKeys = Object.keys(stages).filter(function(k){ return /^stage\\d+$/.test(k); }).sort(function(a,b){ return Number(a.slice(5)) - Number(b.slice(5)); });\n' +
+'  var stageData = stageKeys.map(function(k){ return { stage: Number(k.slice(5)), val: Number(stages[k]||0) }; }).filter(function(s){ return s.val > 0; });\n' +
+'  h += \'<div class="am-chart-section"><div class="am-chart-title">Reminder Stage</div>\';\n' +
+'  h += _buildReminderStageChart(stageData);\n' +
+'  h += \'</div>\';\n' +
+'  // Weekly outreach bar chart\n' +
 '  var weeks = am.outreachByWeek || [];\n' +
-'  if (weeks.length > 0) {\n' +
-'    var maxWeek = 0; for (var i = 0; i < weeks.length; i++) { if (weeks[i].count > maxWeek) maxWeek = weeks[i].count; }\n' +
-'    if (maxWeek === 0) maxWeek = 1;\n' +
-'    h += \'<div class="am-chart-section"><div class="am-chart-title">Outreach Activity by Week</div><div class="am-weekly-chart">\';\n' +
-'    for (var i = 0; i < weeks.length; i++) {\n' +
-'      var ht = Math.max(2, Math.round((weeks[i].count / maxWeek) * 100));\n' +
-'      var lbl = weeks[i].week.substring(5);\n' +
-'      h += \'<div class="am-weekly-bar-wrap"><div class="am-weekly-bar" style="height:\' + ht + \'px"></div><div class="am-weekly-label">\' + lbl + \'</div></div>\';\n' +
-'    }\n' +
-'    h += \'</div></div>\';\n' +
-'  }\n' +
+'  h += \'<div class="am-chart-section"><div class="am-chart-title">Outreach Activity by Week</div>\';\n' +
+'  h += _buildWeeklyOutreachChart(weeks);\n' +
+'  h += \'</div>\';\n' +
 '  _g("analytics-am-detail").innerHTML = h;\n' +
 '  var amContactsMade = (am.removalReasons && Number(am.removalReasons.made_contact || 0)) || 0;\n' +
 '  _renderFunnel(amFunnelId, { leadsReceived: am.leadsReceived, outreachSent: am.outreachSent, contactsMade: amContactsMade });\n' +
