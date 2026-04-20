@@ -691,9 +691,9 @@ module.exports = async function handler(req, res) {
 '  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button><button class="nav-tab" id="tab-inactivity" style="display:none;" onclick="switchTab(&apos;inactivity&apos;)">Inactivity Queue</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
 '    <div class="header-btn-group">\n' +
-'      <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
-'      <button class="btn-archive has-tooltip" data-tooltip="View Skipped &amp; Blocked" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
-'      <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Out of Office" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
+'      <button class="btn-add-lead has-tooltip" data-tooltip="Add Job Description" onclick="openAddModal()">+</button>\n' +
+'      <button class="btn-archive has-tooltip" data-tooltip="Re-activate skipped &amp; blocked jobs" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
+'      <button class="btn-cal has-tooltip" id="btn-cal" data-tooltip="Schedule days to skip leads" onclick="openCalendarModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>\n' +
 '    </div>\n' +
 '    <div class="outlook-toggle"><span>Outlook:</span><div class="outlook-toggle-btns"><button class="outlook-toggle-btn active" id="ol-classic" onclick="setOutlookPref(&apos;classic&apos;)">Classic</button><button class="outlook-toggle-btn" id="ol-new" onclick="setOutlookPref(&apos;new&apos;)">New</button></div></div>\n' +
 '    <div class="header-meta" id="header-date"></div>\n' +
@@ -2905,7 +2905,7 @@ module.exports = async function handler(req, res) {
 '  if(!wasOpen) dd.classList.add("open");\n' +
 '}\n' +
 'function closeAllFilterDDs() {\n' +
-'  _filterKinds.forEach(function(k){ var dd=_g("dd-"+k); if(dd) dd.classList.remove("open"); });\n' +
+'  document.querySelectorAll(".custom-dd.open").forEach(function(el){ el.classList.remove("open"); });\n' +
 '}\n' +
 'function setFilterValue(kind, value, label) {\n' +
 '  adminFilters[kind] = value || "";\n' +
@@ -3025,20 +3025,67 @@ module.exports = async function handler(req, res) {
 '}\n' +
 'var _inactivitySelected = {};\n' +
 'var _inactivityList = [];\n' +
+'var _inactFilterCategory = "";\n' +
+'var _inactFilterLocation = "";\n' +
+'var _inactFilterOptions = {\n' +
+'  category: [{v:"",l:"All Categories"},{v:"engineering",l:"Engineering"},{v:"it",l:"IT"},{v:"accounting",l:"Accounting"},{v:"other",l:"Other"}],\n' +
+'  location: [{v:"",l:"All Locations"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"other",l:"Other"}]\n' +
+'};\n' +
+'function _inactFilterCur(kind){ return kind === "category" ? _inactFilterCategory : _inactFilterLocation; }\n' +
+'function _renderInactFilterPanel(kind) {\n' +
+'  var panel=_g("ipanel-"+kind); if(!panel) return;\n' +
+'  var opts=_inactFilterOptions[kind]||[]; var cur=_inactFilterCur(kind);\n' +
+'  var esc=function(s){ return String(s).replace(/\\\\/g,"\\\\\\\\").replace(/\'/g,"\\\\\'"); };\n' +
+'  panel.innerHTML = opts.map(function(o){\n' +
+'    var sel=(o.v===cur)?" selected":"";\n' +
+'    return \'<div class="custom-dd-opt\'+sel+\'" onclick="setInactFilterValue(\\\'\'+kind+\'\\\',\\\'\'+esc(o.v)+\'\\\',\\\'\'+esc(o.l)+\'\\\')">\'+o.l+\'</div>\';\n' +
+'  }).join("");\n' +
+'}\n' +
+'function _syncInactFilterTrigger(kind) {\n' +
+'  var lbl=_g("ilbl-"+kind); if(!lbl) return;\n' +
+'  var opts=_inactFilterOptions[kind]||[]; var cur=_inactFilterCur(kind);\n' +
+'  var match=opts.find(function(o){ return o.v===cur; })||opts[0];\n' +
+'  lbl.textContent = match ? match.l : "";\n' +
+'  var dd=_g("idd-"+kind); if(dd) dd.classList.toggle("active", !!cur);\n' +
+'}\n' +
+'function toggleInactFilterDD(kind, evt) {\n' +
+'  if(evt){ evt.stopPropagation(); evt.preventDefault(); }\n' +
+'  var dd=_g("idd-"+kind); if(!dd) return;\n' +
+'  var wasOpen = dd.classList.contains("open");\n' +
+'  closeAllFilterDDs();\n' +
+'  if(!wasOpen) dd.classList.add("open");\n' +
+'}\n' +
+'function setInactFilterValue(kind, value, label) {\n' +
+'  if(kind === "category") _inactFilterCategory = value || "";\n' +
+'  else if(kind === "location") _inactFilterLocation = value || "";\n' +
+'  closeAllFilterDDs();\n' +
+'  renderInactivityView();\n' +
+'}\n' +
 'function renderInactivityView() {\n' +
 '  var container=_g("inactivity-container"); if(!container) return;\n' +
 '  var src = (AM.role==="admin" && allLeadsCache.length) ? allLeadsCache : leads;\n' +
-'  var list = src.filter(_inactivityQueueEligible).slice().sort(function(a,b){ return _lastActivityMs(a) - _lastActivityMs(b); });\n' +
+'  var list = src.filter(_inactivityQueueEligible).filter(function(l){\n' +
+'    if(_inactFilterCategory && (l.category||"").toLowerCase() !== _inactFilterCategory) return false;\n' +
+'    if(_inactFilterLocation && _leadLocationBucket(l) !== _inactFilterLocation) return false;\n' +
+'    return true;\n' +
+'  }).slice().sort(function(a,b){ return _lastActivityMs(a) - _lastActivityMs(b); });\n' +
 '  _inactivityList = list;\n' +
 '  // Drop stale selections (leads that no longer qualify)\n' +
 '  var visibleIds = {}; list.forEach(function(l){ visibleIds[l.id]=true; });\n' +
 '  Object.keys(_inactivitySelected).forEach(function(id){ if(!visibleIds[id]) delete _inactivitySelected[id]; });\n' +
 '  _g("inactivity-sub").innerHTML = list.length ? \'<span style="color:#FFA000;font-weight:600;">\' + list.length + \' lead\' + (list.length===1?"":"s") + \' in queue</span>\' : \'<span style="color:#666;">No leads in queue</span>\';\n' +
-'  if(!list.length){ container.innerHTML = \'<div class="empty"><h3>No leads in inactivity queue</h3></div>\'; return; }\n' +
 '  var toolbar = \'<div class="inact-toolbar">\'+\n' +
+'    \'<div class="custom-dd" id="idd-category"><button class="custom-dd-btn" onclick="toggleInactFilterDD(&apos;category&apos;,event)"><span class="custom-dd-label" id="ilbl-category">All Categories</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="ipanel-category"></div></div>\'+\n' +
+'    \'<div class="custom-dd" id="idd-location"><button class="custom-dd-btn" onclick="toggleInactFilterDD(&apos;location&apos;,event)"><span class="custom-dd-label" id="ilbl-location">All Locations</span><span class="custom-dd-chevron">&#9662;</span></button><div class="custom-dd-panel" id="ipanel-location"></div></div>\'+\n' +
 '    \'<span class="inact-selected-count" id="inact-selected-count">0 selected</span>\'+\n' +
 '    \'<button class="inact-reassign-btn" id="inact-reassign-btn" disabled onclick="openBulkReassignModal()">Reassign Selected</button>\'+\n' +
 '  \'</div>\';\n' +
+'  if(!list.length){\n' +
+'    container.innerHTML = toolbar + \'<div class="empty"><h3>No leads in inactivity queue</h3></div>\';\n' +
+'    ["category","location"].forEach(function(k){ _renderInactFilterPanel(k); _syncInactFilterTrigger(k); });\n' +
+'    _updateInactivityToolbar();\n' +
+'    return;\n' +
+'  }\n' +
 '  container.innerHTML = toolbar + list.map(function(lead){\n' +
 '    var html = renderCard(lead);\n' +
 '    var timeline = _buildInactivityTimeline(lead);\n' +
@@ -3062,6 +3109,7 @@ module.exports = async function handler(req, res) {
 '    headerLeft.insertBefore(cb, headerLeft.firstChild);\n' +
 '  });\n' +
 '  setTimeout(function(){ postRenderLeads(list); }, 150);\n' +
+'  ["category","location"].forEach(function(k){ _renderInactFilterPanel(k); _syncInactFilterTrigger(k); });\n' +
 '  _updateInactivityToolbar();\n' +
 '}\n' +
 'function toggleInactivityLead(leadId, checked) {\n' +
