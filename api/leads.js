@@ -187,11 +187,24 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, skipped, blocked });
   }
 
-  // GET -- return leads for dashboard (new, pending, in_progress, and reminder leads)
+  // GET -- return admin_viewed set for current admin
+  if (method === 'GET' && query.action === 'admin_viewed') {
+    const email = String(query.email || '').toLowerCase();
+    if (!email) return res.status(400).json({ error: 'Missing email' });
+    const set = (await redisGet('admin_viewed:' + email)) || [];
+    return res.status(200).json({ ok: true, viewed: Array.isArray(set) ? set : [] });
+  }
+
+  // GET -- return leads for dashboard. Admins with ?showAll=1 get every
+  // lead regardless of status (used by the admin filter bar and the
+  // Inactivity Queue tab). AMs/default callers get the usual pipeline view.
   if (method === 'GET') {
     const keys = await redisKeys('lead:*');
     const leads = [];
-    const VISIBLE_STATUSES = ['new', 'pending', 'in_progress'];
+    const showAll = String(query.showAll || '') === '1';
+    const VISIBLE_STATUSES = showAll
+      ? null
+      : ['new', 'pending', 'in_progress'];
 
     // Load blocked companies for filtering (entries may be strings or {company,reason,at})
     const blockedRaw = await redisGet('blocklist:companies');
@@ -204,7 +217,7 @@ module.exports = async function handler(req, res) {
       try {
         const lead = await redisGet(key);
         if (!lead || !lead.company) continue;
-        if (!VISIBLE_STATUSES.includes(lead.status)) continue;
+        if (VISIBLE_STATUSES && !VISIBLE_STATUSES.includes(lead.status)) continue;
         const norm = (lead.normalizedCompany || lead.company.toLowerCase()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
         const isBlocked = blockedCompanies.some(bc => norm.includes(bc) || bc.includes(norm));
         if (!isBlocked) leads.push(lead);
@@ -213,8 +226,11 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Exclude leads with no contacts
-    const ready = leads.filter(lead => lead.contacts && lead.contacts.length > 0);
+    // AMs only see their assigned leads with contacts. Admin showAll sees
+    // everything regardless of contacts so filter-bar counts add up.
+    const ready = showAll
+      ? leads
+      : leads.filter(lead => lead.contacts && lead.contacts.length > 0);
 
     // Sort by createdAt descending
     ready.sort((a, b) => b.createdAt - a.createdAt);
@@ -306,6 +322,52 @@ module.exports = async function handler(req, res) {
       lead.retrievedAt = new Date().toISOString();
       await redisSet(id, lead, 60 * 60 * 24 * 14);
       return res.status(200).json({ ok: true, lead });
+    }
+
+    // --- add_note: append a note to the lead ---
+    if (action === 'add_note') {
+      const { message, authorEmail, authorName } = body;
+      const msg = (message || '').toString().trim();
+      if (!msg) return res.status(400).json({ error: 'Missing message' });
+      if (!Array.isArray(lead.notes)) lead.notes = [];
+      const note = {
+        id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        author: (authorName || '').toString(),
+        authorEmail: (authorEmail || '').toString().toLowerCase(),
+        timestamp: new Date().toISOString(),
+        message: msg,
+      };
+      lead.notes.push(note);
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, note, notes: lead.notes });
+    }
+
+    // --- mark_notes_read: mark all notes on this lead as read for the current AM ---
+    if (action === 'mark_notes_read') {
+      const email = String(body.am_email || '').toLowerCase();
+      if (!email) return res.status(400).json({ error: 'Missing am_email' });
+      const count = Array.isArray(lead.notes) ? lead.notes.length : 0;
+      if (!lead.notes_read_by || typeof lead.notes_read_by !== 'object') lead.notes_read_by = {};
+      lead.notes_read_by[email] = count;
+      await redisSet(id, lead, 60 * 60 * 24 * 14);
+      return res.status(200).json({ ok: true, readCount: count });
+    }
+
+    // --- admin_mark_viewed / admin_unmark_viewed: per-admin viewed-lead set ---
+    if (action === 'admin_mark_viewed' || action === 'admin_unmark_viewed') {
+      const email = String(body.admin_email || '').toLowerCase();
+      if (!email) return res.status(400).json({ error: 'Missing admin_email' });
+      const key = 'admin_viewed:' + email;
+      const cur = (await redisGet(key)) || [];
+      const list = Array.isArray(cur) ? cur : [];
+      let next;
+      if (action === 'admin_mark_viewed') {
+        next = list.includes(id) ? list : list.concat([id]);
+      } else {
+        next = list.filter(x => x !== id);
+      }
+      await redisSet(key, next);
+      return res.status(200).json({ ok: true, viewed: next });
     }
 
     // --- unblock: remove company from blocklist and restore lead to pending ---

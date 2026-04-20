@@ -159,6 +159,37 @@ module.exports = async function handler(req, res) {
 '.btn-archive-action:hover { background: #16a34a; }\n' +
 '.btn-archive-action:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
 '.archive-empty { padding: 14px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; }\n' +
+'.admin-filter-bar { display: none; gap: 10px; padding: 14px 24px; background: rgba(26,26,26,0.6); border-bottom: 1px solid #2a2a2a; align-items: center; flex-wrap: wrap; position: sticky; top: 64px; z-index: 40; }\n' +
+'.admin-filter-bar.visible { display: flex; }\n' +
+'.admin-filter-bar select { background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 12px; font-family: Raleway, sans-serif; }\n' +
+'.admin-filter-bar select:focus { outline: 1px solid #E8620A; border-color: #E8620A; }\n' +
+'.admin-filter-bar .filter-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-right: 4px; }\n' +
+'.admin-filter-clear { font-size: 12px; padding: 7px 14px; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border-radius: 6px; cursor: pointer; font-family: Raleway, sans-serif; font-weight: 600; }\n' +
+'.admin-filter-clear:hover { border-color: #E8620A; color: #E8620A; }\n' +
+'.admin-filter-count { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.5); font-family: Raleway, sans-serif; }\n' +
+'.am-badge { position: absolute; top: 12px; right: 64px; background: rgba(26,78,162,0.18); color: #8AB4F0; border: 1px solid rgba(26,78,162,0.35); padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; font-family: Oswald, sans-serif; letter-spacing: 0.5px; text-transform: uppercase; pointer-events: none; }\n' +
+'.inactivity-timeline { margin-top: 12px; padding: 10px 12px; background: rgba(255,160,0,0.06); border: 1px solid rgba(255,160,0,0.2); border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.65; font-family: Raleway, sans-serif; }\n' +
+'.inactivity-timeline strong { color: #FFA000; font-weight: 700; }\n' +
+'.archive-row.viewed { opacity: 0.45; filter: grayscale(0.3); }\n' +
+'.btn-archive-mark { padding: 6px 10px; font-size: 11px; font-weight: 600; font-family: Raleway, sans-serif; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; cursor: pointer; margin-right: 6px; }\n' +
+'.btn-archive-mark:hover { background: rgba(255,255,255,0.1); color: #fff; }\n' +
+'.btn-archive-mark.marked { background: rgba(46,125,50,0.18); color: #6EE7C7; border-color: rgba(46,125,50,0.3); }\n' +
+'.archive-toolbar { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }\n' +
+'.hide-viewed-toggle { font-size: 12px; color: rgba(255,255,255,0.6); font-family: Raleway, sans-serif; display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }\n' +
+'.notes-icon-btn { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; z-index: 3; padding: 0; }\n' +
+'.notes-icon-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }\n' +
+'.notes-icon-btn.has-unread { background: #E8620A; color: #fff; border-color: #E8620A; box-shadow: 0 2px 6px rgba(232,98,10,0.35); }\n' +
+'.notes-icon-badge { position: absolute; top: -4px; right: -4px; background: #fff; color: #E8620A; font-size: 9px; font-weight: 800; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 8px; display: none; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }\n' +
+'.notes-icon-btn.has-unread .notes-icon-badge { display: flex; }\n' +
+'.note-row { padding: 10px 12px; margin-bottom: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }\n' +
+'.note-author { font-size: 12px; font-weight: 700; color: #fff; font-family: Oswald, sans-serif; }\n' +
+'.note-time { font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 8px; }\n' +
+'.note-message { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 6px; line-height: 1.5; white-space: pre-wrap; }\n' +
+'.notes-empty { font-size: 12px; color: rgba(255,255,255,0.4); font-style: italic; text-align: center; padding: 14px; }\n' +
+'.notes-input-row { display: flex; gap: 8px; margin-top: 12px; }\n' +
+'.notes-input-row textarea { flex: 1; background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 8px 10px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 13px; resize: vertical; min-height: 60px; }\n' +
+'.notes-input-row .btn-submit { background: #E8620A; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-family: Raleway, sans-serif; cursor: pointer; align-self: flex-end; }\n' +
+'.notes-input-row .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }\n' +
 '.btn-check { width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; padding: 0; box-shadow: 0 2px 6px rgba(59,130,246,0.35); }\n' +
 '.btn-check:hover { background: #2563eb; transform: scale(1.08); }\n' +
 '.contact-actions .btn-check { height: 28px; width: 28px; }\n' +
@@ -206,7 +237,7 @@ module.exports = async function handler(req, res) {
 '.queue-bar h2 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }\n' +
 '.queue-bar .sub { font-size: 13px; color: #999999; margin-top: 3px; }\n' +
 '.lead-count-badge { background: linear-gradient(135deg, #FFA000, #E8620A); color: white; font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; box-shadow: 0 2px 12px rgba(232,98,10,0.35); }\n' +
-'.card { background: #3a3a3a; border-radius: 18px; margin-bottom: 24px; overflow: visible; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
+'.card { position: relative; background: #3a3a3a; border-radius: 18px; margin-bottom: 24px; overflow: visible; box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04); border: 1px solid #333333; }\n' +
 '.card-top { background: linear-gradient(135deg, #2a3a5c 0%, #1e2a42 60%, #161e30 100%); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); position: relative; z-index: 1; }\n' +
 '.card-top-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }\n' +
 '.company-logo-wrap { width: 80px; height: 80px; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }\n' +
@@ -594,7 +625,7 @@ module.exports = async function handler(req, res) {
 '\n' +
 '<div class="header">\n' +
 '  <img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" class="header-logo" alt="iMPact">\n' +
-'  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button></div></div>\n' +
+'  <div class="header-center"><div class="nav-tabs"><button class="nav-tab active" id="tab-leads" onclick="switchTab(&apos;leads&apos;)">Leads</button><button class="nav-tab" id="tab-analytics" onclick="switchTab(&apos;analytics&apos;)">Analytics</button><button class="nav-tab" id="tab-inactivity" style="display:none;" onclick="switchTab(&apos;inactivity&apos;)">Inactivity Queue</button></div></div>\n' +
 '  <div style="display:flex;align-items:center;gap:14px;">\n' +
 '    <button class="btn-add-lead" onclick="openAddModal()" title="Add Job Lead">+</button>\n' +
 '    <button class="btn-archive has-tooltip" data-tooltip="View Skipped &amp; Blocked" onclick="openArchiveModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg><span class="btn-archive-badge" id="archive-badge" style="display:none;">0</span></button>\n' +
@@ -740,6 +771,15 @@ module.exports = async function handler(req, res) {
 '  </div>\n' +
 '</div>\n' +
 '\n' +
+'<div class="admin-filter-bar" id="admin-filter-bar">\n' +
+'  <span class="filter-label">AM</span><select id="af-am" onchange="applyAdminFilters()"><option value="">All</option></select>\n' +
+'  <span class="filter-label">Category</span><select id="af-category" onchange="applyAdminFilters()"><option value="">All</option><option value="engineering">Engineering</option><option value="it">IT</option><option value="accounting">Accounting</option><option value="other">Other</option></select>\n' +
+'  <span class="filter-label">Location</span><select id="af-location" onchange="applyAdminFilters()"><option value="">All</option><option value="michigan">Michigan</option><option value="florida">Florida</option><option value="other">Other</option></select>\n' +
+'  <span class="filter-label">Status</span><select id="af-status" onchange="applyAdminFilters()"><option value="">All</option><option value="new">New</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="awaiting_followup">Awaiting Follow-up</option><option value="skipped">Skipped</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="closed">Closed</option></select>\n' +
+'  <button class="admin-filter-clear" onclick="clearAdminFilters()">Clear</button>\n' +
+'  <span class="admin-filter-count" id="admin-filter-count">0 leads</span>\n' +
+'</div>\n' +
+'\n' +
 '<div class="container" id="leads-view">\n' +
 '  <div class="queue-bar">\n' +
 '    <div>\n' +
@@ -749,6 +789,29 @@ module.exports = async function handler(req, res) {
 '' +
 '  </div>\n' +
 '  <div id="leads-container"><div class="loading">Loading leads...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="container" id="inactivity-view" style="display:none;">\n' +
+'  <div class="queue-bar">\n' +
+'    <div>\n' +
+'      <h2>Inactivity Queue</h2>\n' +
+'      <div class="sub" id="inactivity-sub">Loading...</div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'  <div id="inactivity-container"><div class="loading">Loading inactivity queue...</div></div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="notes-overlay" onclick="if(event.target===this)closeNotesModal()">\n' +
+'  <div class="modal" style="max-width:520px;">\n' +
+'    <div class="modal-header"><h3 id="notes-modal-title">Notes</h3><button class="modal-close" onclick="closeNotesModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div id="notes-list"><div class="notes-empty">Loading notes...</div></div>\n' +
+'      <div class="notes-input-row">\n' +
+'        <textarea id="notes-input" placeholder="Add a note..."></textarea>\n' +
+'        <button class="btn-submit" id="notes-submit-btn" onclick="submitNote()">Add Note</button>\n' +
+'      </div>\n' +
+'    </div>\n' +
+'  </div>\n' +
 '</div>\n' +
 '\n' +
 '<div class="analytics-container" id="analytics-view">\n' +
@@ -910,14 +973,23 @@ module.exports = async function handler(req, res) {
 'async function init() {\n' +
 '  var ok=await resolveAuth();\n' +
 '  if(!ok){ renderAccessDenied(); return; }\n' +
+'  if(AM.role==="admin"){\n' +
+'    _g("admin-filter-bar").classList.add("visible");\n' +
+'    _g("tab-inactivity").style.display="inline-block";\n' +
+'    populateAmFilterOptions();\n' +
+'    readAdminFiltersFromUrl();\n' +
+'    loadAdminViewedSet();\n' +
+'  }\n' +
 '  var today=new Date();\n' +
 '  _g("header-date").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});\n' +
 '  var hr=today.getHours(); var greet=hr<12?"Good morning":hr<18?"Good afternoon":"Good evening";\n' +
 '  _g("greeting-text").textContent=greet+", "+(AM.name?AM.name.split(" ")[0]:"");\n' +
 '  _g("queue-sub").innerHTML="<span style=\\"color:#666\\">Loading leads...</span>";\n' +
 '  try{\n' +
-'    var results=await Promise.all([fetch("/api/leads").then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
+'    var leadsUrl=(AM.role==="admin")?"/api/leads?showAll=1":"/api/leads";\n' +
+'    var results=await Promise.all([fetch(leadsUrl).then(function(r){return r.json();}),fetch("/api/blocklist").then(function(r){return r.json();})]);\n' +
 '    var allLeads=results[0].leads||[];leads=(AM.role==="admin")?allLeads:allLeads.filter(function(l){return(l.assignedAMEmail||"")==AM.email;});blocklist={companies:results[1].companies||[],titles:results[1].titles||[]};\n' +
+'    if(AM.role==="admin"){allLeadsCache=allLeads;}\n' +
 '    updateLeadCount();\n' +
 '    renderLeads();\n' +
 '    leads.forEach(function(lead){var sid=getSafeId(lead.id);fetchLogo(lead.company,lead.company_domain||lead.company_website||lead.employerWebsite||"",lead.location||"",sid,lead.company_logo_apollo||lead.company_logo||"");});\n' +
@@ -929,8 +1001,10 @@ module.exports = async function handler(req, res) {
 '\n' +
 'function renderLeads() {\n' +
 '  var container=_g("leads-container");\n' +
-'  if(!leads.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
-'  container.innerHTML=leads.map(function(lead){return renderCard(lead);}).join("");\n' +
+'  var view=(AM.role==="admin")?applyFilterToLeads(leads):leads;\n' +
+'  if(AM.role==="admin"){ var cEl=_g("admin-filter-count"); if(cEl) cEl.textContent = view.length + " lead" + (view.length===1?"":"s"); }\n' +
+'  if(!view.length){container.innerHTML=\'<div class="empty"><h3>No pending leads</h3><p style="color:rgba(255,255,255,0.35);font-size:13px;">Check back after the morning fetch runs.</p></div>\';return;}\n' +
+'  container.innerHTML=view.map(function(lead){return renderCard(lead);}).join("");\n' +
 '  // <script> tags embedded via innerHTML do not execute, so populate the per-lead window maps here.\n' +
 '  window._leadJobTitles=window._leadJobTitles||{};\n' +
 '  window._leadCategories=window._leadCategories||{};\n' +
@@ -1001,7 +1075,11 @@ module.exports = async function handler(req, res) {
 '  if(hasJD) linksRight+=\'<a class="link-icon" href="#" onclick="openJD(\\\'\'+safeId+\'\\\');return false;" data-tooltip="Job Description">\'+SVG_DOC+\'</a>\';\n' +
 '  if(lead.jobUrl) linksRight+=\'<a class="link-icon" href="\'+lead.jobUrl+\'" target="_blank" data-tooltip="View Posting">\'+SVG_LINK+\'</a>\';\n' +
 '\n' +
-'  return \'<div class="card" id="card-\'+safeId+\'">\'+\n' +
+'  var amBadgeHtml = (AM.role==="admin" && lead.assignedAM) ? \'<div class="am-badge">\'+escHtml(lead.assignedAM)+\'</div>\' : "";\n' +
+'  var unreadCount = _leadHasUnreadNotes(lead);\n' +
+'  var noteClass = unreadCount>0 ? "notes-icon-btn has-unread" : "notes-icon-btn";\n' +
+'  var notesBtnHtml = \'<button class="\'+noteClass+\'" id="notes-btn-\'+safeId+\'" onclick="event.stopPropagation();openNotesModal(\\\'\'+lead.id+\'\\\')" title="Notes"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="notes-icon-badge" id="notes-badge-\'+safeId+\'">\'+(unreadCount>0?unreadCount:"")+\'</span></button>\';\n' +
+'  return \'<div class="card" id="card-\'+safeId+\'">\'+amBadgeHtml+notesBtnHtml+\n' +
 '    \'<div class="card-top">\'+\n' +
 '      \'<div class="card-top-left">\'+\n' +
 '        \'<div class="company-logo-wrap" id="logo-\'+safeId+\'" style="display:none;"></div>\'+\n' +
@@ -1951,6 +2029,9 @@ module.exports = async function handler(req, res) {
 '}\n' +
 'function renderArchive(skipped,blocked){\n' +
 '  var h="";\n' +
+'  if(AM.role==="admin"){\n' +
+'    h+=\'<div class="archive-toolbar"><label class="hide-viewed-toggle"><input type="checkbox" id="hide-viewed-cb" \'+(_archiveHideViewed?"checked":"")+\' onchange="toggleHideViewed(this)"> Hide viewed</label></div>\';\n' +
+'  }\n' +
 '  h+=\'<div class="archive-section-title">Skipped</div>\';\n' +
 '  if(!skipped.length){h+=\'<div class="archive-empty">Nothing skipped in this period</div>\';}\n' +
 '  else{h+=skipped.map(function(l){return _archiveRow(l,"skipped");}).join("");}\n' +
@@ -1958,6 +2039,12 @@ module.exports = async function handler(req, res) {
 '  if(!blocked.length){h+=\'<div class="archive-empty">Nothing blocked in this period</div>\';}\n' +
 '  else{h+=blocked.map(function(l){return _archiveRow(l,"blocked");}).join("");}\n' +
 '  _g("archive-body").innerHTML=h;\n' +
+'  if(AM.role==="admin" && _archiveHideViewed){\n' +
+'    document.querySelectorAll(".archive-row").forEach(function(row){\n' +
+'      var id=row.getAttribute("data-lead-id")||"";\n' +
+'      if(id && adminViewedSet[id]) row.style.display="none";\n' +
+'    });\n' +
+'  }\n' +
 '}\n' +
 'function _archiveRow(l,kind){\n' +
 '  var safeId=getSafeId(l.id);\n' +
@@ -1965,16 +2052,24 @@ module.exports = async function handler(req, res) {
 '  var companyEsc=escHtml(l.company||"");\n' +
 '  var titleEsc=escHtml(cleanJobTitle(l.jobTitle||""));\n' +
 '  var date=_fmtArchiveDate(l._dateMs||l.createdAt||0);\n' +
-'  var btn=kind==="skipped"\n' +
+'  var action=kind==="skipped"\n' +
 '    ? \'<button class="btn-archive-action" id="arch-act-\'+safeId+\'" onclick="undoSkipFromArchive(\\\'\'+l.id+\'\\\')">Undo Skip</button>\'\n' +
 '    : \'<button class="btn-archive-action" id="arch-act-\'+safeId+\'" onclick="unblockFromArchive(\\\'\'+l.id+\'\\\')">Unblock</button>\';\n' +
-'  return \'<div class="archive-row" id="arch-row-\'+safeId+\'">\'+\n' +
+'  var markBtn="";\n' +
+'  var viewedClass="";\n' +
+'  if(AM.role==="admin"){\n' +
+'    var isMarked = !!adminViewedSet[l.id];\n' +
+'    viewedClass = isMarked ? " viewed" : "";\n' +
+'    markBtn = \'<button class="btn-archive-mark\'+(isMarked?" marked":"")+\'" id="arch-mark-\'+safeId+\'" onclick="adminToggleViewed(\\\'\'+l.id+\'\\\',this)">\'+(isMarked?"Viewed":"Mark as Viewed")+\'</button>\';\n' +
+'  }\n' +
+'  return \'<div class="archive-row\'+viewedClass+\'" id="arch-row-\'+safeId+\'" data-lead-id="\'+escHtml(l.id)+\'">\'+\n' +
 '    \'<div class="archive-row-main">\'+\n' +
 '      \'<div class="archive-row-company">\'+companyEsc+\'</div>\'+\n' +
 '      \'<div class="archive-row-title">\'+titleEsc+\'</div>\'+\n' +
 '      \'<div class="archive-row-meta"><span class="archive-cat-pill \'+_catClass(cat)+\'">\'+cat+\'</span><span class="archive-date">\'+date+\'</span></div>\'+\n' +
 '    \'</div>\'+\n' +
-'    btn+\n' +
+'    markBtn+\n' +
+'    action+\n' +
 '  \'</div>\';\n' +
 '}\n' +
 'async function undoSkipFromArchive(leadId){\n' +
@@ -2375,9 +2470,208 @@ module.exports = async function handler(req, res) {
 '  currentTab = tab;\n' +
 '  _g("tab-leads").classList.toggle("active", tab === "leads");\n' +
 '  _g("tab-analytics").classList.toggle("active", tab === "analytics");\n' +
+'  var inactTab=_g("tab-inactivity"); if(inactTab) inactTab.classList.toggle("active", tab === "inactivity");\n' +
 '  _g("leads-view").style.display = tab === "leads" ? "block" : "none";\n' +
 '  _g("analytics-view").classList.toggle("visible", tab === "analytics");\n' +
+'  var inactView=_g("inactivity-view"); if(inactView) inactView.style.display = tab === "inactivity" ? "block" : "none";\n' +
+'  var filterBar=_g("admin-filter-bar"); if(filterBar && AM.role==="admin") filterBar.style.display = tab === "leads" ? "flex" : "none";\n' +
 '  if (tab === "analytics" && !analyticsLoaded) { loadAnalytics(); }\n' +
+'  if (tab === "inactivity") { renderInactivityView(); }\n' +
+'}\n' +
+'\n' +
+'/* ===== Admin filter bar ===== */\n' +
+'var allLeadsCache = [];\n' +
+'var adminViewedSet = {};\n' +
+'var adminFilters = { am: "", category: "", location: "", status: "" };\n' +
+'function populateAmFilterOptions() {\n' +
+'  var sel=_g("af-am"); if(!sel) return;\n' +
+'  var names = (typeof AM_NAMES !== "undefined" && AM_NAMES) ? AM_NAMES.slice() : [];\n' +
+'  if(names.indexOf("Mark Sapoznikov") === -1) names.unshift("Mark Sapoznikov");\n' +
+'  names.sort();\n' +
+'  for (var i=0;i<names.length;i++){ var o=document.createElement("option"); o.value=names[i]; o.textContent=names[i]; sel.appendChild(o); }\n' +
+'}\n' +
+'function readAdminFiltersFromUrl() {\n' +
+'  adminFilters.am=_params.get("f_am")||"";\n' +
+'  adminFilters.category=_params.get("f_cat")||"";\n' +
+'  adminFilters.location=_params.get("f_loc")||"";\n' +
+'  adminFilters.status=_params.get("f_status")||"";\n' +
+'  if(_g("af-am")) _g("af-am").value=adminFilters.am;\n' +
+'  if(_g("af-category")) _g("af-category").value=adminFilters.category;\n' +
+'  if(_g("af-location")) _g("af-location").value=adminFilters.location;\n' +
+'  if(_g("af-status")) _g("af-status").value=adminFilters.status;\n' +
+'}\n' +
+'function writeAdminFiltersToUrl() {\n' +
+'  var u=new URL(window.location.href);\n' +
+'  ["f_am","f_cat","f_loc","f_status"].forEach(function(k){u.searchParams.delete(k);});\n' +
+'  if(adminFilters.am) u.searchParams.set("f_am", adminFilters.am);\n' +
+'  if(adminFilters.category) u.searchParams.set("f_cat", adminFilters.category);\n' +
+'  if(adminFilters.location) u.searchParams.set("f_loc", adminFilters.location);\n' +
+'  if(adminFilters.status) u.searchParams.set("f_status", adminFilters.status);\n' +
+'  window.history.replaceState({}, "", u.toString());\n' +
+'}\n' +
+'function _leadLocationBucket(l) {\n' +
+'  var loc=(l.location||"").toLowerCase();\n' +
+'  if(loc.indexOf("michigan")!==-1 || /,\\s*mi\\b/.test(loc)) return "michigan";\n' +
+'  if(loc.indexOf("florida")!==-1 || /,\\s*fl\\b/.test(loc)) return "florida";\n' +
+'  return "other";\n' +
+'}\n' +
+'function applyFilterToLeads(src) {\n' +
+'  if(AM.role!=="admin") return src;\n' +
+'  return src.filter(function(l){\n' +
+'    if(adminFilters.am && (l.assignedAM||"") !== adminFilters.am) return false;\n' +
+'    if(adminFilters.category && (l.category||"").toLowerCase() !== adminFilters.category) return false;\n' +
+'    if(adminFilters.location && _leadLocationBucket(l) !== adminFilters.location) return false;\n' +
+'    if(adminFilters.status && (l.status||"") !== adminFilters.status) return false;\n' +
+'    return true;\n' +
+'  });\n' +
+'}\n' +
+'function applyAdminFilters() {\n' +
+'  adminFilters.am=_g("af-am").value;\n' +
+'  adminFilters.category=_g("af-category").value;\n' +
+'  adminFilters.location=_g("af-location").value;\n' +
+'  adminFilters.status=_g("af-status").value;\n' +
+'  writeAdminFiltersToUrl();\n' +
+'  renderLeads();\n' +
+'}\n' +
+'function clearAdminFilters() {\n' +
+'  adminFilters={am:"",category:"",location:"",status:""};\n' +
+'  _g("af-am").value="";_g("af-category").value="";_g("af-location").value="";_g("af-status").value="";\n' +
+'  writeAdminFiltersToUrl();\n' +
+'  renderLeads();\n' +
+'}\n' +
+'\n' +
+'/* ===== Inactivity Queue ===== */\n' +
+'function _formatShortDate(v) {\n' +
+'  if(!v) return "";\n' +
+'  try{ var d=new Date(v); if(isNaN(d.getTime())) return ""; return d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }catch(e){ return ""; }\n' +
+'}\n' +
+'function _hasInactivityHistory(l) {\n' +
+'  if(!Array.isArray(l.assignment_history)) return false;\n' +
+'  return l.assignment_history.some(function(h){ return (h.reassign_reason||"").indexOf("inactivity") !== -1; });\n' +
+'}\n' +
+'function _buildInactivityTimeline(l) {\n' +
+'  var parts=[];\n' +
+'  (l.assignment_history||[]).forEach(function(h,i){\n' +
+'    var nm = h.am_name || h.am_email || "Unknown";\n' +
+'    var d = _formatShortDate(h.assigned_at);\n' +
+'    var reasonTag = (h.reassign_reason||"").indexOf("inactivity")!==-1 ? ", inactivity" : "";\n' +
+'    var piece = (i===0 ? nm + " (" + d + ")" : nm + " (" + d + reasonTag + ")");\n' +
+'    parts.push(piece);\n' +
+'  });\n' +
+'  var currentName = l.assignedAM || "(unassigned)";\n' +
+'  var currentDate = _formatShortDate(l.assignedAt) || "";\n' +
+'  parts.push(currentName + (currentDate ? " (" + currentDate + ", current)" : " (current)"));\n' +
+'  return parts.join(" \\u2192 ");\n' +
+'}\n' +
+'function _lastActivityMs(l) {\n' +
+'  var ts=0;\n' +
+'  if(l.assignedAt){ var a=Date.parse(l.assignedAt); if(!isNaN(a) && a>ts) ts=a; }\n' +
+'  if(Array.isArray(l.assignment_history)){\n' +
+'    l.assignment_history.forEach(function(h){ var p=h.assigned_at?Date.parse(h.assigned_at):0; if(!isNaN(p) && p>ts) ts=p; });\n' +
+'  }\n' +
+'  if(l.createdAt){ var c=typeof l.createdAt==="number"?l.createdAt:Date.parse(l.createdAt); if(!isNaN(c) && c>ts) ts=c; }\n' +
+'  return ts;\n' +
+'}\n' +
+'function renderInactivityView() {\n' +
+'  var container=_g("inactivity-container"); if(!container) return;\n' +
+'  var src = (AM.role==="admin" && allLeadsCache.length) ? allLeadsCache : leads;\n' +
+'  var list = src.filter(_hasInactivityHistory).slice().sort(function(a,b){ return _lastActivityMs(a) - _lastActivityMs(b); });\n' +
+'  _g("inactivity-sub").innerHTML = list.length ? \'<span style="color:#FFA000;font-weight:600;">\' + list.length + \' lead\' + (list.length===1?"":"s") + \' in queue</span>\' : \'<span style="color:#666;">No leads in queue</span>\';\n' +
+'  if(!list.length){ container.innerHTML = \'<div class="empty"><h3>No leads in inactivity queue</h3></div>\'; return; }\n' +
+'  container.innerHTML = list.map(function(lead){\n' +
+'    var html = renderCard(lead);\n' +
+'    var timeline = _buildInactivityTimeline(lead);\n' +
+'    var inject = \'<div class="inactivity-timeline"><strong>Assignment history:</strong> \' + escHtml(timeline) + \'</div>\';\n' +
+'    return html.replace(/<\\/div>\\s*$/, inject + \'</div>\');\n' +
+'  }).join("");\n' +
+'}\n' +
+'\n' +
+'/* ===== Admin viewed tracking ===== */\n' +
+'async function loadAdminViewedSet() {\n' +
+'  if(AM.role!=="admin") return;\n' +
+'  try {\n' +
+'    var r=await fetch("/api/leads?action=admin_viewed&email="+encodeURIComponent(AM.email));\n' +
+'    var d=await r.json();\n' +
+'    adminViewedSet={};\n' +
+'    (d.viewed||[]).forEach(function(id){ adminViewedSet[id]=true; });\n' +
+'  } catch(e){ console.error("Admin viewed load error:",e); }\n' +
+'}\n' +
+'async function adminToggleViewed(leadId, btnEl) {\n' +
+'  if(AM.role!=="admin") return;\n' +
+'  var isMarked = !!adminViewedSet[leadId];\n' +
+'  var action = isMarked ? "admin_unmark_viewed" : "admin_mark_viewed";\n' +
+'  try {\n' +
+'    await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:action,admin_email:AM.email})});\n' +
+'    if(isMarked){ delete adminViewedSet[leadId]; } else { adminViewedSet[leadId]=true; }\n' +
+'    var sid=getSafeId(leadId);\n' +
+'    var row=_g("arch-row-"+sid);\n' +
+'    if(row){ row.classList.toggle("viewed", !!adminViewedSet[leadId]); if(window._archiveHideViewed && adminViewedSet[leadId]) row.style.display="none"; }\n' +
+'    if(btnEl){ btnEl.classList.toggle("marked", !!adminViewedSet[leadId]); btnEl.textContent = adminViewedSet[leadId] ? "Viewed" : "Mark as Viewed"; }\n' +
+'  } catch(e){ console.error("Admin viewed toggle error:",e); }\n' +
+'}\n' +
+'var _archiveHideViewed = false;\n' +
+'function toggleHideViewed(el) {\n' +
+'  _archiveHideViewed = el.checked;\n' +
+'  document.querySelectorAll(".archive-row").forEach(function(row){\n' +
+'    var id=row.getAttribute("data-lead-id")||"";\n' +
+'    if(!id) return;\n' +
+'    if(_archiveHideViewed && adminViewedSet[id]) row.style.display="none"; else row.style.display="";\n' +
+'  });\n' +
+'}\n' +
+'\n' +
+'/* ===== Notes feature ===== */\n' +
+'var _notesLead = null;\n' +
+'function _leadHasUnreadNotes(l) {\n' +
+'  var notes = Array.isArray(l.notes) ? l.notes : [];\n' +
+'  if(!notes.length) return 0;\n' +
+'  var readBy = (l.notes_read_by && typeof l.notes_read_by === "object") ? l.notes_read_by : {};\n' +
+'  var readCount = Number(readBy[AM.email.toLowerCase()] || 0);\n' +
+'  var fromOthers = notes.filter(function(n){ return (n.authorEmail||"").toLowerCase() !== AM.email.toLowerCase(); }).length;\n' +
+'  if(!fromOthers) return 0;\n' +
+'  var unread = notes.length - readCount;\n' +
+'  return unread > 0 ? unread : 0;\n' +
+'}\n' +
+'function openNotesModal(leadId) {\n' +
+'  var lead = (AM.role==="admin" ? allLeadsCache : leads).find(function(l){ return l.id === leadId; });\n' +
+'  if(!lead){ lead = leads.find(function(l){ return l.id === leadId; }); }\n' +
+'  if(!lead) return;\n' +
+'  _notesLead = lead;\n' +
+'  _g("notes-modal-title").textContent = "Notes \\u2014 " + (lead.company||"");\n' +
+'  _g("notes-input").value = "";\n' +
+'  renderNotesList();\n' +
+'  _g("notes-overlay").classList.add("open");\n' +
+'  // Mark as read for this AM\n' +
+'  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:leadId,action:"mark_notes_read",am_email:AM.email})}).then(function(r){return r.json();}).then(function(d){\n' +
+'    if(d && d.ok){ lead.notes_read_by = lead.notes_read_by || {}; lead.notes_read_by[AM.email.toLowerCase()] = Array.isArray(lead.notes)?lead.notes.length:0; var sid=getSafeId(leadId); var btn=_g("notes-btn-"+sid); if(btn){ btn.classList.remove("has-unread"); var bg=_g("notes-badge-"+sid); if(bg) bg.textContent=""; } }\n' +
+'  }).catch(function(){});\n' +
+'}\n' +
+'function closeNotesModal() { _g("notes-overlay").classList.remove("open"); _notesLead=null; }\n' +
+'function renderNotesList() {\n' +
+'  var el=_g("notes-list"); if(!el || !_notesLead) return;\n' +
+'  var notes = Array.isArray(_notesLead.notes) ? _notesLead.notes.slice() : [];\n' +
+'  notes.sort(function(a,b){ return new Date(a.timestamp) - new Date(b.timestamp); });\n' +
+'  if(!notes.length){ el.innerHTML = \'<div class="notes-empty">No notes yet. Add the first one below.</div>\'; return; }\n' +
+'  el.innerHTML = notes.map(function(n){\n' +
+'    var t = new Date(n.timestamp); var tStr = t.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});\n' +
+'    return \'<div class="note-row"><span class="note-author">\'+escHtml(n.author||n.authorEmail||"")+\'</span><span class="note-time">\'+tStr+\'</span><div class="note-message">\'+escHtml(n.message||"")+\'</div></div>\';\n' +
+'  }).join("");\n' +
+'}\n' +
+'async function submitNote() {\n' +
+'  if(!_notesLead) return;\n' +
+'  var input=_g("notes-input"); var msg=(input.value||"").trim(); if(!msg) return;\n' +
+'  var btn=_g("notes-submit-btn"); btn.disabled=true;\n' +
+'  try {\n' +
+'    var r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:_notesLead.id,action:"add_note",message:msg,authorEmail:AM.email,authorName:AM.name||""})});\n' +
+'    var d=await r.json();\n' +
+'    if(d && d.ok){\n' +
+'      _notesLead.notes = d.notes || [];\n' +
+'      if(!_notesLead.notes_read_by) _notesLead.notes_read_by = {};\n' +
+'      _notesLead.notes_read_by[AM.email.toLowerCase()] = _notesLead.notes.length;\n' +
+'      input.value = "";\n' +
+'      renderNotesList();\n' +
+'    }\n' +
+'  } catch(e){ console.error("add_note error:",e); }\n' +
+'  btn.disabled=false;\n' +
 '}\n' +
 '\n' +
 '/* ===== Analytics ===== */\n' +
