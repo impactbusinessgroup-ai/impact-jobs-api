@@ -2734,7 +2734,6 @@ module.exports = async function handler(req, res) {
 '  _g("inactivity-sub").innerHTML = list.length ? \'<span style="color:#FFA000;font-weight:600;">\' + list.length + \' lead\' + (list.length===1?"":"s") + \' in queue</span>\' : \'<span style="color:#666;">No leads in queue</span>\';\n' +
 '  if(!list.length){ container.innerHTML = \'<div class="empty"><h3>No leads in inactivity queue</h3></div>\'; return; }\n' +
 '  var toolbar = \'<div class="inact-toolbar">\'+\n' +
-'    \'<label class="inact-select-all"><input type="checkbox" id="inact-select-all" onchange="toggleInactivitySelectAll(this)"> Select All</label>\'+\n' +
 '    \'<span class="inact-selected-count" id="inact-selected-count">0 selected</span>\'+\n' +
 '    \'<button class="inact-reassign-btn" id="inact-reassign-btn" disabled onclick="openBulkReassignModal()">Reassign Selected</button>\'+\n' +
 '  \'</div>\';\n' +
@@ -2755,26 +2754,17 @@ module.exports = async function handler(req, res) {
 '    cb.addEventListener("change", function(){ toggleInactivityLead(lead.id, this.checked); });\n' +
 '    cardEl.insertBefore(cb, cardEl.firstChild);\n' +
 '  });\n' +
-'  postRenderLeads(list);\n' +
+'  setTimeout(function(){ postRenderLeads(list); }, 150);\n' +
 '  _updateInactivityToolbar();\n' +
 '}\n' +
 'function toggleInactivityLead(leadId, checked) {\n' +
 '  if(checked) _inactivitySelected[leadId]=true; else delete _inactivitySelected[leadId];\n' +
 '  _updateInactivityToolbar();\n' +
 '}\n' +
-'function toggleInactivitySelectAll(el) {\n' +
-'  _inactivityList.forEach(function(l){\n' +
-'    if(el.checked) _inactivitySelected[l.id]=true; else delete _inactivitySelected[l.id];\n' +
-'    var sid=getSafeId(l.id); var cardEl=_g("card-"+sid); if(!cardEl) return;\n' +
-'    var cb=cardEl.querySelector(".inact-card-checkbox"); if(cb) cb.checked=el.checked;\n' +
-'  });\n' +
-'  _updateInactivityToolbar();\n' +
-'}\n' +
 'function _updateInactivityToolbar() {\n' +
 '  var n = Object.keys(_inactivitySelected).length;\n' +
 '  var ct=_g("inact-selected-count"); if(ct) ct.textContent = n + " selected";\n' +
 '  var btn=_g("inact-reassign-btn"); if(btn) btn.disabled = (n === 0);\n' +
-'  var sa=_g("inact-select-all"); if(sa) sa.checked = (n > 0 && n === _inactivityList.length);\n' +
 '}\n' +
 '\n' +
 '/* ===== Bulk reassign modal ===== */\n' +
