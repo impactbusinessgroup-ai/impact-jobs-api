@@ -386,7 +386,7 @@ async function sendMorningEmail() {
 
   const APPROVED_AMS = [
     { email: 'msapoznikov@impactbusinessgroup.com', fullName: 'Mark Sapoznikov' },
-    // cwillbrandt temporarily removed for cron force test
+    { email: 'cwillbrandt@impactbusinessgroup.com', fullName: 'Curt Willbrandt' },
   ];
   const REVIEW_URL = 'https://impact-jobs-api.vercel.app/review';
 
