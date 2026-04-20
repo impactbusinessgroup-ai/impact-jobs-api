@@ -177,8 +177,8 @@ module.exports = async function handler(req, res) {
 '.admin-filter-clear:hover { border-color: #E8620A; color: #E8620A; }\n' +
 '.admin-filter-count { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.5); font-family: Raleway, sans-serif; }\n' +
 '.am-badge { position: absolute; top: 12px; right: 64px; background: rgba(26,78,162,0.18); color: #8AB4F0; border: 1px solid rgba(26,78,162,0.35); padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; font-family: Oswald, sans-serif; letter-spacing: 0.5px; text-transform: uppercase; pointer-events: none; }\n' +
-'.inactivity-timeline { margin-top: 12px; padding: 10px 12px; background: rgba(255,160,0,0.06); border: 1px solid rgba(255,160,0,0.2); border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.65; font-family: Raleway, sans-serif; }\n' +
-'.inactivity-timeline strong { color: #FFA000; font-weight: 700; }\n' +
+'.inactivity-timeline { margin: 12px 14px 14px; padding: 8px 12px; background: rgba(255,160,0,0.06); border: 1px solid rgba(255,160,0,0.2); border-radius: 8px; font-size: 11px; color: #999; line-height: 1.55; font-family: Raleway, sans-serif; max-width: 100%; box-sizing: border-box; overflow: hidden; word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere; }\n' +
+'.inactivity-timeline strong { color: #FFA000; font-weight: 600; }\n' +
 '.inact-toolbar { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; flex-wrap: wrap; }\n' +
 '.inact-select-all { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #fff; font-family: Raleway, sans-serif; cursor: pointer; user-select: none; }\n' +
 '.inact-select-all input { width: 16px; height: 16px; accent-color: #E8620A; cursor: pointer; }\n' +
@@ -2686,15 +2686,16 @@ module.exports = async function handler(req, res) {
 '  if(!_hasInactivityHistory(l)) return false;\n' +
 '  if(_reassignedFromQueue[l.id]) return false;\n' +
 '  var st = l.status || "";\n' +
-'  if(st !== "new" && st !== "pending" && st !== "in_progress") return false;\n' +
-'  var currentEmail = (l.assignedAMEmail||"").toLowerCase();\n' +
-'  if(currentEmail === "mpeal@impactbusinessgroup.com") return true;\n' +
-'  var assignedAtMs = l.assignedAt ? Date.parse(l.assignedAt) : 0;\n' +
-'  if(!assignedAtMs) return false;\n' +
-'  var bizDays = _clientBizDaysBetween(new Date(assignedAtMs), new Date());\n' +
-'  if(bizDays > 4) return false;\n' +
+'  if(st !== "new" && st !== "pending") return false;\n' +
+'  // Any AM activity disqualifies the lead from the queue\n' +
 '  var hasOutreach = l.outreach_log && typeof l.outreach_log === "object" && Object.keys(l.outreach_log).length > 0;\n' +
 '  if(hasOutreach) return false;\n' +
+'  if(Array.isArray(l.contacts) && l.contacts.some(function(c){ return c && c.removal_reason; })) return false;\n' +
+'  var skippedMs = l.skippedAt ? Date.parse(l.skippedAt) : 0;\n' +
+'  var retrievedMs = l.retrievedAt ? Date.parse(l.retrievedAt) : 0;\n' +
+'  if(skippedMs && !(retrievedMs && retrievedMs > skippedMs)) return false;\n' +
+'  if(l.blockReason) return false;\n' +
+'  if(typeof isCompanyBlocked === "function" && isCompanyBlocked(l.company||"")) return false;\n' +
 '  return true;\n' +
 '}\n' +
 'function _buildInactivityTimeline(l) {\n' +

@@ -602,6 +602,12 @@ module.exports = async function handler(req, res) {
     const isReassign = !!updates.assignedAMEmail &&
       (String(updates.assignedAMEmail).toLowerCase() !== String(lead.assignedAMEmail || '').toLowerCase());
 
+    // Reassigning a skipped or blocked lead should put it back into the
+    // receiving AM's active pipeline, not leave it in an archived status.
+    if (isReassign && (lead.status === 'skipped' || lead.status === 'blocked') && !updates.status) {
+      updates.status = 'pending';
+    }
+
     const updated = { ...lead, ...updates };
     await redisSet(id, updated, 60 * 60 * 24 * 14);
 

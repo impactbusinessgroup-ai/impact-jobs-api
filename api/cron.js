@@ -212,11 +212,21 @@ async function checkInactiveLeads() {
   }
 
   for (const lead of allLeads) {
+    // Any non-new/pending status counts as activity taken (skipped, blocked,
+    // in_progress, awaiting_followup, closed, completed).
     if (lead.status !== 'new' && lead.status !== 'pending') continue;
 
     // Check if any outreach logged
     const hasOutreach = lead.outreach_log && Object.keys(lead.outreach_log).length > 0;
     if (hasOutreach) continue;
+
+    // A lead that was skipped (and not retrieved since) is activity, not inactivity.
+    const skippedMs = lead.skippedAt ? Date.parse(lead.skippedAt) : 0;
+    const retrievedMs = lead.retrievedAt ? Date.parse(lead.retrievedAt) : 0;
+    if (skippedMs && !(retrievedMs && retrievedMs > skippedMs)) continue;
+
+    // Contact-level removal is also activity taken on the lead.
+    if (Array.isArray(lead.contacts) && lead.contacts.some(c => c && c.removal_reason)) continue;
 
     const assignedAt = lead.assignedAt || lead.createdAt;
     if (!assignedAt) continue;
