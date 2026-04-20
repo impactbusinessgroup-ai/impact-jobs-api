@@ -2,21 +2,7 @@
 // Consolidated Mailchimp handler: lookup (GET), add contact (POST action:"add"), update contact (POST action:"update")
 
 const crypto = require('crypto');
-
-const AM_EMAIL_MAP = {
-  'Doug Koetsier': 'dkoetsier@impactbusinessgroup.com',
-  'Paul Kujawski': 'pkujawski@impactbusinessgroup.com',
-  'Matt Peal': 'mpeal@impactbusinessgroup.com',
-  'Lauren Sylvester': 'lsylvester@impactbusinessgroup.com',
-  'Dan Teliczan': 'dteliczan@impactbusinessgroup.com',
-  'Curt Willbrandt': 'cwillbrandt@impactbusinessgroup.com',
-  'Trish Wangler': 'twangler@impactbusinessgroup.com',
-  'Mark Herman': 'mherman@impactbusinessgroup.com',
-  'Jamie Drajka': 'jdrajka@impactbusinessgroup.com',
-  'Drew Bentsen': 'dbentsen@impactbusinessgroup.com',
-  'Steve Betteley': 'sbetteley@impactbusinessgroup.com',
-  'Drew Kunkel': 'mpeal@impactbusinessgroup.com',
-};
+const { emailForName } = require('./_am_data');
 
 async function searchAudienceByCompany(dc, apiKey, audienceId, company) {
   const encoded = encodeURIComponent(company);
@@ -61,7 +47,7 @@ async function companyLookup(dc, apiKey, company) {
     if (repCounts[rep] > bestCount) { bestCount = repCounts[rep]; bestRep = rep; }
   }
 
-  const repEmail = bestRep ? (AM_EMAIL_MAP[bestRep] || null) : null;
+  const repEmail = bestRep ? (emailForName(bestRep) || null) : null;
 
   return {
     found: !!bestRep,

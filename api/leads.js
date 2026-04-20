@@ -88,23 +88,12 @@ function parseGeminiJson(text) {
   try { return JSON.parse(clean); } catch (e) { return null; }
 }
 
-// Canonical AM name -> email lookup. Used to keep assignedAM / assignedAMEmail
-// in sync when a reassign PATCH only sends the display name.
-const AM_EMAIL_MAP = {
-  'mark sapoznikov': 'msapoznikov@impactbusinessgroup.com',
-  'doug koetsier': 'dkoetsier@impactbusinessgroup.com',
-  'paul kujawski': 'pkujawski@impactbusinessgroup.com',
-  'drew kunkel': 'dkunkel@impactbusinessgroup.com',
-  'matt peal': 'mpeal@impactbusinessgroup.com',
-  'lauren sylvester': 'lsylvester@impactbusinessgroup.com',
-  'dan teliczan': 'dteliczan@impactbusinessgroup.com',
-  'curt willbrandt': 'cwillbrandt@impactbusinessgroup.com',
-  'trish wangler': 'twangler@impactbusinessgroup.com',
-  'mark herman': 'mherman@impactbusinessgroup.com',
-  'jamie drajka': 'jdrajka@impactbusinessgroup.com',
-  'drew bentsen': 'dbentsen@impactbusinessgroup.com',
-  'steve betteley': 'sbetteley@impactbusinessgroup.com'
-};
+// Shared AM directory; keep a lowercase-name -> email shim so reassign
+// PATCH handling keeps working unchanged.
+const _amData = require('./_am_data');
+const AM_EMAIL_MAP = Object.fromEntries(
+  Object.values(_amData.AMS).map(a => [a.name.toLowerCase(), a.email])
+);
 function amEmailForName(name) {
   if (!name) return '';
   return AM_EMAIL_MAP[String(name).trim().toLowerCase()] || '';

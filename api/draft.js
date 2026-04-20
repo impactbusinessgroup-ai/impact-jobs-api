@@ -1,21 +1,11 @@
 // api/draft.js
 // Generates personalized outreach email via Gemini with case study selection
 
-var CALENDLY = {
-  "cwillbrandt@impactbusinessgroup.com": "https://calendly.com/cwillbrandt/phone-call",
-  "dbentsen@impactbusinessgroup.com": "https://calendly.com/dbentsen",
-  "dkoetsier@impactbusinessgroup.com": "https://calendly.com/dkoetsier/",
-  "dkunkel@impactbusinessgroup.com": "https://calendly.com/drewkunkel/15min",
-  "dteliczan@impactbusinessgroup.com": "https://calendly.com/dteliczan-impactbusinessgroup",
-  "jdrajka@impactbusinessgroup.com": "https://calendly.com/jdrajka",
-  "lsylvester@impactbusinessgroup.com": "https://calendly.com/lsylvester",
-  "mherman@impactbusinessgroup.com": "https://calendly.com/markherman",
-  "mpeal@impactbusinessgroup.com": "https://calendly.com/mattpeal/15min",
-  "pkujawski@impactbusinessgroup.com": "https://calendly.com/pkujawski",
-  "sbetteley@impactbusinessgroup.com": "https://calendly.com/sbetteley",
-  "twangler@impactbusinessgroup.com": "https://calendly.com/twangler-impactbusinessgroup/15min",
-  "msapoznikov@impactbusinessgroup.com": "https://calendly.com/msapoznikov"
-};
+// Calendly map derived from the shared AM directory.
+var _amData = require('./_am_data');
+var CALENDLY = Object.fromEntries(
+  Object.values(_amData.AMS).map(function(a){ return [a.email, a.calendly]; })
+);
 
 var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=';
 

@@ -124,34 +124,15 @@ const ROUND_ROBIN = {
 const TAMPA_AMS = ['Mark Herman', 'Drew Bentsen'];
 const ESCALATION_AM = 'Matt Peal';
 
-const AM_EMAIL_MAP = {
-  'Doug Koetsier': 'dkoetsier@impactbusinessgroup.com',
-  'Paul Kujawski': 'pkujawski@impactbusinessgroup.com',
-  'Matt Peal': 'mpeal@impactbusinessgroup.com',
-  'Lauren Sylvester': 'lsylvester@impactbusinessgroup.com',
-  'Dan Teliczan': 'dteliczan@impactbusinessgroup.com',
-  'Curt Willbrandt': 'cwillbrandt@impactbusinessgroup.com',
-  'Trish Wangler': 'twangler@impactbusinessgroup.com',
-  'Mark Herman': 'mherman@impactbusinessgroup.com',
-  'Jamie Drajka': 'jdrajka@impactbusinessgroup.com',
-  'Drew Bentsen': 'dbentsen@impactbusinessgroup.com',
-  'Steve Betteley': 'sbetteley@impactbusinessgroup.com',
-};
-
-const CALENDLY_MAP = {
-  'cwillbrandt@impactbusinessgroup.com': 'https://calendly.com/cwillbrandt/phone-call',
-  'dbentsen@impactbusinessgroup.com': 'https://calendly.com/dbentsen',
-  'dkoetsier@impactbusinessgroup.com': 'https://calendly.com/dkoetsier/',
-  'dteliczan@impactbusinessgroup.com': 'https://calendly.com/dteliczan-impactbusinessgroup',
-  'jdrajka@impactbusinessgroup.com': 'https://calendly.com/jdrajka',
-  'lsylvester@impactbusinessgroup.com': 'https://calendly.com/lsylvester',
-  'mherman@impactbusinessgroup.com': 'https://calendly.com/markherman',
-  'mpeal@impactbusinessgroup.com': 'https://calendly.com/mattpeal/15min',
-  'pkujawski@impactbusinessgroup.com': 'https://calendly.com/pkujawski',
-  'sbetteley@impactbusinessgroup.com': 'https://calendly.com/sbetteley',
-  'twangler@impactbusinessgroup.com': 'https://calendly.com/twangler-impactbusinessgroup/15min',
-  'msapoznikov@impactbusinessgroup.com': 'https://calendly.com/msapoznikov',
-};
+// AM directory centralized in ./_am_data; compatibility shims below
+// keep the existing CALENDLY_MAP + AM_EMAIL_MAP call sites unchanged.
+const _amData = require('./_am_data');
+const AM_EMAIL_MAP = Object.fromEntries(
+  Object.values(_amData.AMS).map(a => [a.name, a.email])
+);
+const CALENDLY_MAP = Object.fromEntries(
+  Object.values(_amData.AMS).map(a => [a.email, a.calendly])
+);
 
 function businessDaysBetween(dateA, dateB) {
   const a = new Date(dateA); const b = new Date(dateB);

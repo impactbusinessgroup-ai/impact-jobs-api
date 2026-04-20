@@ -1,3 +1,8 @@
+// Shared AM directory (see ./_am_data). Serialized into the client-side
+// bundle below so the HTML page's CALENDLY + AM_EMAIL_MAP + AMS globals
+// all come from one source of truth.
+var _amData = require('./_am_data');
+
 // --- Analytics helpers (embedded to stay within Hobby plan function limit) ---
 var _aRedisGet = async function(key) {
   var url = process.env.KV_REST_API_URL + '/get/' + encodeURIComponent(key);
@@ -1085,7 +1090,8 @@ html += '' +
 'var composerState = {};\n' +
 'var customDraftCache = {};\n' +
 'var liDraftCache = {};\n' +
-'var CALENDLY = {"cwillbrandt@impactbusinessgroup.com":"https://calendly.com/cwillbrandt/phone-call","dbentsen@impactbusinessgroup.com":"https://calendly.com/dbentsen","dkoetsier@impactbusinessgroup.com":"https://calendly.com/dkoetsier/","dkunkel@impactbusinessgroup.com":"https://calendly.com/drewkunkel/15min","dteliczan@impactbusinessgroup.com":"https://calendly.com/dteliczan-impactbusinessgroup","jdrajka@impactbusinessgroup.com":"https://calendly.com/jdrajka","lsylvester@impactbusinessgroup.com":"https://calendly.com/lsylvester","mherman@impactbusinessgroup.com":"https://calendly.com/markherman","mpeal@impactbusinessgroup.com":"https://calendly.com/mattpeal/15min","pkujawski@impactbusinessgroup.com":"https://calendly.com/pkujawski","sbetteley@impactbusinessgroup.com":"https://calendly.com/sbetteley","twangler@impactbusinessgroup.com":"https://calendly.com/twangler-impactbusinessgroup/15min","msapoznikov@impactbusinessgroup.com":"https://calendly.com/msapoznikov"};\n' +
+'var AMS = ' + JSON.stringify(_amData.AMS) + ';\n' +
+'var CALENDLY = (function(){var o={};for(var em in AMS){o[em]=AMS[em].calendly;}return o;})();\n' +
 '\n' +
 'function _g(id) { return document.getElementById(id); }\n' +
 'function updateLeadCount(){ var sub=_g("queue-sub"); if(!sub)return; if(leads.length===0) sub.innerHTML="<span style=\\"color:#666\\">No pending leads</span>"; else sub.innerHTML="<span style=\\"color:#E8620A;font-weight:600;\\">"+ leads.length+" pending lead"+(leads.length===1?"":"s")+"</span>"; }\n' +
@@ -1484,21 +1490,9 @@ html += '' +
 '  } catch(e){ console.error("adminDeleteAwayDate error:",e); }\n' +
 '}\n' +
 '\n' +
-'// Admin mapping for nameFor lookup inside openAdminOOOModal\n' +
-'var AM_EMAIL_MAP = {\n' +
-'  "mark sapoznikov": "msapoznikov@impactbusinessgroup.com",\n' +
-'  "matt peal": "mpeal@impactbusinessgroup.com",\n' +
-'  "curt willbrandt": "cwillbrandt@impactbusinessgroup.com",\n' +
-'  "doug koetsier": "dkoetsier@impactbusinessgroup.com",\n' +
-'  "paul kujawski": "pkujawski@impactbusinessgroup.com",\n' +
-'  "lauren sylvester": "lsylvester@impactbusinessgroup.com",\n' +
-'  "dan teliczan": "dteliczan@impactbusinessgroup.com",\n' +
-'  "trish wangler": "twangler@impactbusinessgroup.com",\n' +
-'  "mark herman": "mherman@impactbusinessgroup.com",\n' +
-'  "jamie drajka": "jdrajka@impactbusinessgroup.com",\n' +
-'  "drew bentsen": "dbentsen@impactbusinessgroup.com",\n' +
-'  "steve betteley": "sbetteley@impactbusinessgroup.com"\n' +
-'};\n' +
+'// Lowercase-name -> email shim derived from AMS for nameFor lookups and\n' +
+'// the _amShortName helper. Single source of truth is window.AMS.\n' +
+'var AM_EMAIL_MAP = (function(){var o={};for(var em in AMS){o[AMS[em].name.toLowerCase()]=em;}return o;})();\n' +
 '\n' +
 '/* ===== Help modal + guided tour ===== */\n' +
 'var _cheatSections = [\n' +
@@ -2169,7 +2163,9 @@ html += '' +
 '      if(mcData.found&&mcData.member){\n' +
 '        uniqid=mcData.member.unique_email_id||"";\n' +
 '      } else {\n' +
-'        var addRes=await fetch("/api/mailchimp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add",email:email,fname:firstName,lname:name.split(" ").slice(1).join(" ")||"",title:title,company:companyName,source:"BD Pipeline"})});\n' +
+'        var _ownerEmail=(lead&&lead.assignedAMEmail)?lead.assignedAMEmail:AM.email;\n' +
+'        var _owner=(AMS&&AMS[(_ownerEmail||"").toLowerCase()])||{};\n' +
+'        var addRes=await fetch("/api/mailchimp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add",email:email,fname:firstName,lname:name.split(" ").slice(1).join(" ")||"",title:title,company:companyName,source:"BD Pipeline",repName:_owner.name||"",repTitle:_owner.title||"",repEmail:_owner.email||"",repPhone:_owner.phone||"",repCalendly:_owner.calendly||""})});\n' +
 '        var addData=await addRes.json();\n' +
 '        uniqid=addData.unique_email_id||"";\n' +
 '      }\n' +
@@ -2302,7 +2298,10 @@ html += '' +
 '        if(mcData.found&&mcData.member){\n' +
 '          uniqid=mcData.member.unique_email_id||"";\n' +
 '        } else {\n' +
-'          var addRes=await fetch("/api/mailchimp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add",email:email,fname:firstName,lname:name.split(" ").slice(1).join(" ")||"",title:title,company:companyName,source:"BD Pipeline"})});\n' +
+'          var _geLead=(leadRedisId && leads)?leads.find(function(l){return l.id===leadRedisId;}):null;\n' +
+'          var _geOwnerEmail=(_geLead&&_geLead.assignedAMEmail)?_geLead.assignedAMEmail:AM.email;\n' +
+'          var _geOwner=(AMS&&AMS[(_geOwnerEmail||"").toLowerCase()])||{};\n' +
+'          var addRes=await fetch("/api/mailchimp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add",email:email,fname:firstName,lname:name.split(" ").slice(1).join(" ")||"",title:title,company:companyName,source:"BD Pipeline",repName:_geOwner.name||"",repTitle:_geOwner.title||"",repEmail:_geOwner.email||"",repPhone:_geOwner.phone||"",repCalendly:_geOwner.calendly||""})});\n' +
 '          var addData=await addRes.json();\n' +
 '          uniqid=addData.unique_email_id||"";\n' +
 '        }\n' +
