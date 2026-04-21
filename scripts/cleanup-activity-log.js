@@ -1,11 +1,13 @@
 // scripts/cleanup-activity-log.js
 //
 // One-time cleanup of the contact_activity_log Redis key.
-// Applies two filters together:
+// Applies three filters together:
 //   1) Remove ALL entries where Mark Sapoznikov is involved (case-insensitive
 //      match on msapoznikov@impactbusinessgroup.com against am_email, from_am,
 //      or to_am), regardless of date.
-//   2) From what remains, remove any entry whose date is before 2026-04-16.
+//   2) Remove any entry whose date is before 2026-04-16.
+//   3) Remove any entry whose action_type is "reassigned" (admin-reassignment
+//      noise, not meaningful AM outreach activity).
 // Writes the filtered array back to the same Redis key, logs the counts, and
 // drops a marker so re-runs are no-ops.
 
@@ -69,9 +71,11 @@ async function main() {
   const totalBefore = raw.length;
   let removedByMark = 0;
   let removedByDate = 0;
+  let removedByReassigned = 0;
   const kept = [];
   const sampleByMark = [];
   const sampleByDate = [];
+  const sampleByReassigned = [];
 
   for (const e of raw) {
     if (isMarkEntry(e)) {
@@ -85,17 +89,23 @@ async function main() {
       if (sampleByDate.length < 3) sampleByDate.push({ action: e.action_type, am: e.am_email || e.from_am || '', date: ymd });
       continue;
     }
+    if ((e && e.action_type) === 'reassigned') {
+      removedByReassigned++;
+      if (sampleByReassigned.length < 3) sampleByReassigned.push({ from: e.from_am || '', to: e.to_am || '', reason: e.reason || '', date: ymd });
+      continue;
+    }
     kept.push(e);
   }
 
   await redisSet('contact_activity_log', kept);
-  await redisSet(MARKER_KEY, { ranAt: new Date().toISOString(), totalBefore, removedByMark, removedByDate, kept: kept.length }, 60 * 60 * 24 * 365);
+  await redisSet(MARKER_KEY, { ranAt: new Date().toISOString(), totalBefore, removedByMark, removedByDate, removedByReassigned, kept: kept.length }, 60 * 60 * 24 * 365);
 
   console.log('========== Cleanup Report ==========');
-  console.log('Total entries before:          ', totalBefore);
-  console.log('Removed (Mark filter):         ', removedByMark);
-  console.log('Removed (pre-' + DATE_CUTOFF + ' date filter):', removedByDate);
-  console.log('Remaining:                     ', kept.length);
+  console.log('Total entries before:               ', totalBefore);
+  console.log('Removed (Mark filter):              ', removedByMark);
+  console.log('Removed (pre-' + DATE_CUTOFF + ' date filter):    ', removedByDate);
+  console.log('Removed (reassigned action filter): ', removedByReassigned);
+  console.log('Remaining:                          ', kept.length);
   if (sampleByMark.length) {
     console.log('\nSample Mark-filter removals (first 3):');
     sampleByMark.forEach(s => console.log(' ', JSON.stringify(s)));
@@ -103,6 +113,10 @@ async function main() {
   if (sampleByDate.length) {
     console.log('\nSample date-filter removals (first 3):');
     sampleByDate.forEach(s => console.log(' ', JSON.stringify(s)));
+  }
+  if (sampleByReassigned.length) {
+    console.log('\nSample reassigned-filter removals (first 3):');
+    sampleByReassigned.forEach(s => console.log(' ', JSON.stringify(s)));
   }
   if (kept.length) {
     const byAm = {};
