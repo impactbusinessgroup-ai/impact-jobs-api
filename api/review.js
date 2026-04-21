@@ -2023,15 +2023,25 @@ html += '' +
 '    var d=await r.json();\n' +
 '    console.log("[CustomDraft] Response body:", JSON.stringify(d).slice(0,300));\n' +
 '    if(!r.ok||!d.body) throw new Error(d.error||"Draft failed");\n' +
-'    ebodyEl.innerHTML=d.body;\n' +
-'    customDraftCache[cacheKey]={body:d.body};\n' +
-'    composerState[safeId].body=d.body;\n' +
+'    customDraftCache[cacheKey]={body:d.body,subject:d.subject||""};\n' +
+'    // Route AI output through the Edit/Live state so merge tags in d.body ({firstName}, {company}, ...)\n' +
+'    // render as highlighted resolved values in Live mode.\n' +
+'    var st=composerState[safeId]; if(st){\n' +
+'      st.rawBody    = d.body;\n' +
+'      if (d.subject) st.rawSubject = d.subject;\n' +
+'      st.loadedTplId = null; st.loadedTplName = "";\n' +
+'      st.isDirty = false;\n' +
+'      st.viewMode = "live";\n' +
+'      _paintByMode(safeId); _refreshTplNamePill(safeId);\n' +
+'    } else {\n' +
+'      ebodyEl.innerHTML=d.body;\n' +
+'    }\n' +
 '  }catch(e){\n' +
 '    console.error("[CustomDraft] Error:",e);\n' +
 '    showToast("Could not generate email - using default template",3000);\n' +
 '    if(lead) ebodyEl.innerHTML=getEmailTemplate(lead,contactFirstName,uniqid);\n' +
+'    ebodyEl.setAttribute("contenteditable","true");\n' +
 '  }\n' +
-'  ebodyEl.setAttribute("contenteditable","true");\n' +
 '}\n' +
 '\n' +
 'function switchCardTab(safeId, tab, btn) {\n' +
@@ -4512,9 +4522,9 @@ html += '' +
 '  var html = "";\n' +
 '  _LINK_OPTS.forEach(function(opt, i){\n' +
 '    if (opt.submenu) {\n' +
-'      html += \'<div class="composer-dd-opt has-submenu" onclick="_openSubmenuFromOpt(this,event)">\' +\n' +
+'      html += \'<div class="composer-dd-opt has-submenu" onmouseenter="_hoverOpenSubmenu(this)" onmouseleave="_scheduleCloseSubmenus()" onclick="_openSubmenuFromOpt(this,event)">\' +\n' +
 '        \'<span>\' + escHtml(opt.label) + \'</span><span class="submenu-arrow">&#9656;</span></div>\';\n' +
-'      html += \'<div class="composer-dd-submenu">\';\n' +
+'      html += \'<div class="composer-dd-submenu" onmouseenter="_cancelCloseSubmenus()" onmouseleave="_scheduleCloseSubmenus()">\';\n' +
 '      opt.submenu.forEach(function(sub, j){\n' +
 '        html += \'<div class="composer-dd-opt" onclick="openInsertLinkModal(\\\'\'+safeId+\'\\\',\\\'\' + escAttr(sub.url) + \'\\\',\\\'\' + escAttr(sub.label) + \'\\\')">\' + escHtml(sub.label) + \'</div>\';\n' +
 '      });\n' +
@@ -4528,20 +4538,18 @@ html += '' +
 '}\n' +
 'function escAttr(s){ return String(s||"").replace(/&/g,"&amp;").replace(/\'/g,"&#39;").replace(/"/g,"&quot;"); }\n' +
 '\n' +
-'function _openSubmenuFromOpt(optEl, evt) {\n' +
-'  if (evt) evt.stopPropagation();\n' +
+'var _submenuCloseTimer = null;\n' +
+'function _positionAndOpenSubmenu(optEl) {\n' +
 '  var sub = optEl.nextElementSibling;\n' +
-'  if (!sub || !sub.classList.contains("composer-dd-submenu")) return;\n' +
-'  var alreadyOpen = sub.classList.contains("open");\n' +
+'  if (!sub || !sub.classList.contains("composer-dd-submenu")) return null;\n' +
 '  // Close any other open submenus (and clear their parent highlight)\n' +
 '  document.querySelectorAll(".composer-dd-submenu.open").forEach(function(s){\n' +
 '    if (s !== sub) { s.classList.remove("open"); var prev = s.previousElementSibling; if (prev) prev.classList.remove("open"); }\n' +
 '  });\n' +
-'  if (alreadyOpen) { sub.classList.remove("open"); optEl.classList.remove("open"); return; }\n' +
-'  // Position to the right of the parent option using viewport coords; flip left if it would overflow.\n' +
-'  var rect = optEl.getBoundingClientRect();\n' +
 '  sub.classList.add("open");\n' +
 '  optEl.classList.add("open");\n' +
+'  // Position to the right of the parent option using viewport coords; flip left if it would overflow.\n' +
+'  var rect = optEl.getBoundingClientRect();\n' +
 '  var sw = sub.offsetWidth || 280;\n' +
 '  var sh = sub.offsetHeight || 200;\n' +
 '  var left = rect.right + 4;\n' +
@@ -4550,8 +4558,35 @@ html += '' +
 '  if (top + sh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - sh - 8);\n' +
 '  sub.style.left = left + "px";\n' +
 '  sub.style.top  = top  + "px";\n' +
+'  return sub;\n' +
+'}\n' +
+'function _openSubmenuFromOpt(optEl, evt) {\n' +
+'  if (evt) evt.stopPropagation();\n' +
+'  _cancelCloseSubmenus();\n' +
+'  var sub = optEl.nextElementSibling;\n' +
+'  if (!sub || !sub.classList.contains("composer-dd-submenu")) return;\n' +
+'  if (sub.classList.contains("open")) { sub.classList.remove("open"); optEl.classList.remove("open"); return; }\n' +
+'  _positionAndOpenSubmenu(optEl);\n' +
+'}\n' +
+'function _hoverOpenSubmenu(optEl) {\n' +
+'  _cancelCloseSubmenus();\n' +
+'  var sub = optEl.nextElementSibling;\n' +
+'  if (!sub || !sub.classList.contains("composer-dd-submenu")) return;\n' +
+'  if (sub.classList.contains("open")) return;\n' +
+'  _positionAndOpenSubmenu(optEl);\n' +
+'}\n' +
+'function _scheduleCloseSubmenus() {\n' +
+'  _cancelCloseSubmenus();\n' +
+'  _submenuCloseTimer = setTimeout(function(){\n' +
+'    _closeAllSubmenus();\n' +
+'    _submenuCloseTimer = null;\n' +
+'  }, 200);\n' +
+'}\n' +
+'function _cancelCloseSubmenus() {\n' +
+'  if (_submenuCloseTimer) { clearTimeout(_submenuCloseTimer); _submenuCloseTimer = null; }\n' +
 '}\n' +
 'function _closeAllSubmenus() {\n' +
+'  _cancelCloseSubmenus();\n' +
 '  document.querySelectorAll(".composer-dd-submenu.open").forEach(function(s){ s.classList.remove("open"); });\n' +
 '  document.querySelectorAll(".composer-dd-opt.has-submenu.open").forEach(function(o){ o.classList.remove("open"); });\n' +
 '}\n' +

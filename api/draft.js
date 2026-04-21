@@ -148,11 +148,34 @@ module.exports = async function handler(req, res) {
   }
 
   var prompt =
-    'You are writing a cold outreach email for iMPact Business Group, a staffing firm in Grand Rapids MI and Tampa FL placing IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration professionals nationally.\n\n' +
-    'Write to a ' + contactTitle + ' at ' + companyName + ' about their ' + jobTitle + ' opening (category: ' + category + ').\n\n' +
+    'You are writing a cold outreach email template for iMPact Business Group, a staffing firm in Grand Rapids MI and Tampa FL placing IT, Engineering, Manufacturing, Accounting, Finance, and Business Administration professionals nationally.\n\n' +
+    'CONTEXT (use ONLY to inform your copy — do NOT paste these values verbatim into the email):\n' +
+    '- Contact first name: ' + (contactFirstName || '(unknown)') + '\n' +
+    '- Contact full name: '  + (contactName      || '(unknown)') + '\n' +
+    '- Contact job title: '  + (contactTitle     || 'Hiring Manager') + '\n' +
+    '- Company: ' + companyName + '\n' +
+    '- Posted job title: ' + jobTitle + ' (category: ' + category + ')\n' +
+    '- AM name: '     + (_amData.AMS[amEmail] ? _amData.AMS[amEmail].name     : '') + '\n' +
+    '- AM title: '    + (_amData.AMS[amEmail] ? _amData.AMS[amEmail].title    : '') + '\n' +
+    '- AM phone: '    + (_amData.AMS[amEmail] ? _amData.AMS[amEmail].phone    : '') + '\n' +
+    '- AM Calendly: ' + calendlyLink + '\n\n' +
     (description ? 'Job description context:\n' + description.slice(0, 5000) + '\n\n' : '') +
+    'MERGE TAGS (critical — this is a TEMPLATE):\n' +
+    '- The email must be written using these merge-tag placeholders instead of the actual values above:\n' +
+    '    {firstName}    - contact first name\n' +
+    '    {fullName}     - contact full name\n' +
+    '    {contactTitle} - contact job title\n' +
+    '    {company}      - company name\n' +
+    '    {jobTitle}     - posted job title\n' +
+    '    {amName}       - AM name\n' +
+    '    {amTitle}      - AM title\n' +
+    '    {amCalendly}   - AM Calendly link\n' +
+    '    {amPhone}      - AM phone\n' +
+    '- Reference the contact as {firstName} (not by their actual first name). Reference the company as {company} (not the actual company name). Reference the job as {jobTitle} (not the actual title). Reference the AM\'s Calendly as {amCalendly}. The actual values above are provided only for context so you can write coherent, natural copy about what the company does and what the role demands; the final output must use the merge-tag syntax for anything that varies per recipient.\n' +
+    '- Do NOT invent new tag names. Use only the nine listed above.\n' +
+    '- Hardcoded URLs with ?cid=*|UNIQID|* are NOT merge tags and must appear verbatim exactly as specified below. *|UNIQID|* is a Mailchimp send-time token, leave it literal.\n\n' +
     'PERSONALIZATION (highest priority):\n' +
-    '- Read the full job description carefully. In your opening paragraph, reference ONE specific detail from the job description that reveals something about the company\'s situation, challenge, or what they are looking for. This could be a specific technology, team structure, growth stage, or urgency signal. Do not make generic statements about the company. Make the opening feel like you read their posting carefully.\n\n' +
+    '- Read the full job description carefully. In your opening paragraph, reference ONE specific detail from the job description that reveals something about the company\'s situation, challenge, or what they are looking for. This could be a specific technology, team structure, growth stage, or urgency signal. Do not make generic statements about the company. Make the opening feel like you read their posting carefully. That single detail is fine to write directly (it is posting-specific), but the company name itself must be {company}.\n\n' +
     'WRITING STYLE:\n' +
     '- Sound like a real person who wrote this quickly. Short, direct, confident.\n' +
     '- NEVER start with "I noticed", "I came across", "I saw your posting", or any variation of restating their job posting. These are banned phrases.\n' +
@@ -161,20 +184,20 @@ module.exports = async function handler(req, res) {
     '- Add one additional specific detail showing knowledge of their company or industry beyond the opening reference.\n' +
     '- No buzzwords. No AI-sounding language.\n' +
     '- DASH RULES: NEVER use em dashes (—), en dashes (–), double hyphens (--), or any similar dash substitute anywhere in the email subject or body. Use commas, periods, or regular hyphens (-) only. This is strict.\n' +
-    '- Use correct articles: "an" before vowel sounds (e.g., "an Automation Engineer"), "a" before consonant sounds (e.g., "a Manufacturing Engineer").\n' +
+    '- Use correct articles: "an" before vowel sounds (e.g., "an Automation Engineer"), "a" before consonant sounds (e.g., "a Manufacturing Engineer"). Since the job title will render via {jobTitle}, pick the article that fits the actual job title "' + jobTitle + '".\n' +
     '- 3 short paragraphs maximum.\n' +
-    '- Start with "' + greeting + '"\n\n' +
+    '- Start with "Hi {firstName},"\n\n' +
     'CASE STUDY:\n' + caseStudyInstruction + '\n\n' +
-    'REQUIRED LINKS (must ALL appear in every email as proper HTML anchor tags):\n' +
-    '1. Case study link: use an <a href="..."> tag with the case study title as anchor text\n' +
+    'REQUIRED LINKS (must ALL appear in every email):\n' +
+    '1. Case study link: use an <a href="..."> tag with the case study title as anchor text (URL verbatim as provided above)\n' +
     '2. Employers page: <a href="https://impactbusinessgroup.com/employers/?cid=' + uniqid + '">Learn more about how we can help</a>\n' +
-    '3. Calendly link: output the Calendly URL as plain visible text, NOT as an anchor tag. Example: "Happy to find a time to connect: ' + calendlyLink + '". The URL must be visible in the email body.\n\n' +
+    '3. Calendly link: output {amCalendly} as plain visible text, NOT inside an anchor tag. Example: "Happy to find a time to connect: {amCalendly}". The merge tag must appear literally in the body.\n\n' +
     'Do NOT include a signature block.\n\n' +
     'FORMATTING:\n' +
-    '- Return the body as clean HTML using <p> tags for paragraphs and <a href="..."> tags for ALL links.\n' +
-    '- NEVER output raw URLs as plain text. Every URL must be wrapped in an <a> tag with descriptive anchor text.\n' +
-    '- No markdown. No backticks. No plain-text URLs.\n\n' +
-    'Generate a personalized subject line that includes the job title "' + jobTitle + '".\n\n' +
+    '- Return the body as clean HTML using <p> tags for paragraphs and <a href="..."> tags for the hardcoded tracking URLs (case study, employers page).\n' +
+    '- Merge tags like {firstName}, {company}, {jobTitle}, {amCalendly} appear as literal text (no anchor tags around them).\n' +
+    '- No markdown. No backticks. No plain-text raw URLs other than {amCalendly}.\n\n' +
+    'Generate a personalized subject line. The subject may use {company} and/or {jobTitle} merge tags, and MUST reference the job via {jobTitle} rather than writing the title literally.\n\n' +
     'Return ONLY a JSON object with no markdown fencing, no backticks, no preamble. Exact shape:\n' +
     '{ "subject": "the subject line", "body": "HTML string" }';
 
