@@ -501,6 +501,55 @@ async function sendMorningEmail() {
 }
 
 // --- 1pm reassignment email ---
+// Count-only per-AM email. Mirrors the morning-email layout (logo header,
+// greeting, single sentence with the count, Outlook-safe table CTA button)
+// per the 2026-04-21 spec change. The richer table-based variant below is
+// still used for the admin summary so the admins can see what was reassigned.
+function buildReassignmentCountEmailHtml(ctx) {
+  var ORANGE = '#E8620A';
+  var NAVY = '#0F1E3D';
+  var PAGE_BG = '#e8e8e8';
+  var CARD_BG = '#ffffff';
+  var LABEL_GREY = '#888888';
+  var BODY_FONT = 'Arial, Helvetica, sans-serif';
+  var leadWord = ctx.count === 1 ? 'lead' : 'leads';
+  var verb = ctx.count === 1 ? 'has' : 'have';
+
+  return '' +
+    '<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + PAGE_BG + ';">' +
+      '<tr><td align="center" style="padding:24px 12px;">' +
+        '<table width="600" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background:' + CARD_BG + ';border-radius:12px;overflow:hidden;">' +
+          '<tr><td align="center" style="background:' + NAVY + ';padding:24px;">' +
+            '<img src="https://impactbusinessgroup.com/wp-content/uploads/2022/05/White_ClearBG-183x79.png" width="160" alt="iMPact Business Group" style="display:block;border:0;outline:none;text-decoration:none;">' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:30px 24px 6px;">' +
+            '<div style="font-size:24px;font-weight:700;color:#1a1a1a;font-family:' + BODY_FONT + ';">Hi ' + ctx.firstName + ',</div>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 26px;">' +
+            '<div style="font-size:13px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">' + ctx.todayLabel + '</div>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 28px;">' +
+            '<div style="font-size:18px;font-weight:600;color:#1a1a1a;font-family:' + BODY_FONT + ';line-height:1.5;">' +
+              ctx.count + ' ' + leadWord + ' ' + verb + ' been reassigned to you today.' +
+            '</div>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:0 24px 34px;">' +
+            '<table cellpadding="0" cellspacing="0" border="0" align="center">' +
+              '<tr>' +
+                '<td bgcolor="' + ORANGE + '" style="border-radius: 6px; padding: 12px 24px;">' +
+                  '<a href="' + ctx.reviewUrl + '" style="color: #ffffff; font-family: Raleway, Arial, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block;">Review My Leads</a>' +
+                '</td>' +
+              '</tr>' +
+            '</table>' +
+          '</td></tr>' +
+          '<tr><td align="center" style="padding:18px 24px 24px;border-top:1px solid #eeeeee;">' +
+            '<div style="font-size:12px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">iMPact Business Group | Grand Rapids, MI &amp; Tampa, FL</div>' +
+          '</td></tr>' +
+        '</table>' +
+      '</td></tr>' +
+    '</table>';
+}
+
 function buildReassignmentEmailHtml(ctx) {
   var ORANGE = '#E8620A';
   var NAVY = '#0F1E3D';
@@ -603,6 +652,19 @@ async function sendReassignmentEmail() {
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
   });
 
+  // Build a map of AM email -> personal token so each recipient's CTA deep-links into their own view.
+  const tokenByEmail = {};
+  try {
+    const tokenKeys = await redisKeys('token:*');
+    for (const tk of tokenKeys) {
+      const rec = await redisGet(tk);
+      if (!rec || !rec.email) continue;
+      const tokenValue = tk.replace(/^token:/, '');
+      const emailLower = String(rec.email).toLowerCase();
+      if (!tokenByEmail[emailLower]) tokenByEmail[emailLower] = tokenValue;
+    }
+  } catch (e) { console.error('Token map build error:', e.message); }
+
   const firstNameFromEmail = em => {
     const key = Object.keys(AM_EMAIL_MAP).find(n => AM_EMAIL_MAP[n] === em);
     if (key) return key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1))[0];
@@ -614,15 +676,16 @@ async function sendReassignmentEmail() {
   for (const to of Object.keys(byTo)) {
     const entries = byTo[to];
     const firstName = firstNameFromEmail(to);
-    const rows = entries.map(e => ({
-      company: e.company || '',
-      jobTitle: e.job_title || '',
-      category: (e.category || '').toUpperCase() || 'OTHER',
-      from: e.from_am_name || e.from_am || 'N/A',
-      reason: reasonLabel(e.reason || 'manual'),
-    }));
-    const headline = 'Hi ' + firstName + ', you have ' + entries.length + ' lead' + (entries.length !== 1 ? 's' : '') + ' reassigned to you today';
-    const html = buildReassignmentEmailHtml({ headline, todayLabel, rows, reviewUrl: REVIEW_URL });
+    const personalToken = tokenByEmail[to];
+    const reviewUrl = personalToken
+      ? REVIEW_URL + '?token=' + encodeURIComponent(personalToken)
+      : REVIEW_URL;
+    const html = buildReassignmentCountEmailHtml({
+      firstName,
+      todayLabel,
+      count: entries.length,
+      reviewUrl,
+    });
     await transporter.sendMail({
       from: '"iMPact Lead Review" <' + process.env.GMAIL_USER + '>',
       to,
