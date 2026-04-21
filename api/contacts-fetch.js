@@ -362,37 +362,24 @@ async function processLead(lead, leadKey, debugLog) {
 
   console.log('Gemini titles:', lead.company, '-', JSON.stringify(personTitles));
 
-  // Step 3: Apollo people search (free) with location strategy
-  var jobState = extractState(lead.location);
-  var numLocations = lead.apollo_num_locations || 1;
-  var hqState = (lead.apollo_hq_state || '').toLowerCase();
-  var targetStates = ['michigan', 'florida'];
-  var hqInTarget = targetStates.indexOf(hqState) !== -1;
-
+  // Step 3: Apollo people search (free) — always US-first.
+  // Previously a location_strategy decision tree (single_location_no_filter /
+  // multi_hq_in_target / multi_hq_outside_target) sometimes sent the request
+  // with no person_locations, which let non-US contacts top the result list
+  // and get dropped at the post-match country check, leaving the lead with
+  // zero contacts. Force US filter upfront on every call instead.
   var searchBody = {
     organization_ids: [orgId],
     person_titles: personTitles,
+    person_locations: ['United States'],
     per_page: 10
   };
 
-  var locationStrategy;
-  if (numLocations === 1) {
-    // Single location: no location filter
-    locationStrategy = 'single_location_no_filter';
-  } else if (hqInTarget) {
-    // Multi-location, HQ in MI/FL: filter by job state
-    locationStrategy = 'multi_hq_in_target';
-    if (jobState) searchBody.person_locations = [jobState + ', United States'];
-  } else {
-    // Multi-location, HQ outside MI/FL: try with filter first
-    locationStrategy = 'multi_hq_outside_target';
-    if (jobState) searchBody.person_locations = [jobState + ', United States'];
-  }
-
-  dbg.location_strategy = locationStrategy;
-  dbg.num_locations = numLocations;
+  dbg.location_strategy = 'us_first';
+  dbg.num_locations = lead.apollo_num_locations || 1;
   dbg.hq_state = lead.apollo_hq_state || '';
-  console.log('Apollo location strategy:', lead.company, '-', locationStrategy, '| numLocations:', numLocations, '| HQ state:', lead.apollo_hq_state || '(unknown)', '| filter:', searchBody.person_locations || '(none)');
+  dbg.apollo_org_id = orgId;
+  console.log('Apollo people search (US-first):', lead.company, '| org_id:', orgId, '| domain:', domain, '| HQ:', lead.apollo_hq_state || '(unknown)');
 
   var apolloRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
     method: 'POST',
@@ -407,7 +394,7 @@ async function processLead(lead, leadKey, debugLog) {
     dbg.apollo_people = 'http_error_' + apolloRes.status;
     dbg.result = 'skip_apollo_http_error';
     debugLog.push(dbg);
-    console.log('No Apollo people found for', lead.company);
+    console.log('Apollo people search HTTP error for', lead.company, '-', apolloRes.status);
     return null;
   }
 
@@ -417,40 +404,15 @@ async function processLead(lead, leadKey, debugLog) {
   dbg.apollo_people_count = people.length;
   dbg.apollo_people_total = total;
   dbg.apollo_search_titles = searchBody.person_titles;
-  dbg.apollo_search_location = searchBody.person_locations || null;
-  console.log('Apollo search result:', lead.company, '-', total, 'people found');
+  dbg.apollo_search_location = searchBody.person_locations;
+  console.log('Apollo US search result:', lead.company, '-', total, 'people found (org_id:', orgId, ', apollo_people_count:', people.length, ')');
 
-  // Retry without location filter for multi-location HQ-outside-target companies
-  if (!people.length && locationStrategy === 'multi_hq_outside_target' && searchBody.person_locations) {
-    console.log('Retrying without location filter for', lead.company);
-    delete searchBody.person_locations;
-    dbg.location_retry = true;
-
-    var retryRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.APOLLO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(searchBody)
-    });
-
-    if (retryRes.ok) {
-      var retryData = await retryRes.json();
-      people = retryData.people || [];
-      total = (retryData.pagination && retryData.pagination.total_entries != null) ? retryData.pagination.total_entries : people.length;
-      dbg.apollo_retry_people_count = people.length;
-      dbg.apollo_retry_people_total = total;
-      console.log('Apollo retry result:', lead.company, '-', total, 'people found (no location filter)');
-    }
-  }
-
-  // Retry with broad default titles if Gemini's specific titles returned 0
+  // Retry with broad default titles (still US-only) if Gemini's specific titles returned 0
   if (!people.length) {
     var broadTitles = ['President', 'CEO', 'Owner', 'COO', 'Operations Manager', 'General Manager', 'Plant Manager', 'HR Manager', 'Talent Acquisition', 'Recruiter', 'Director', 'VP', 'Vice President', 'Manager'];
-    var broadBody = { organization_ids: [orgId], person_titles: broadTitles, per_page: 10 };
+    var broadBody = { organization_ids: [orgId], person_titles: broadTitles, person_locations: ['United States'], per_page: 10 };
     dbg.broad_title_retry = true;
-    console.log('Retrying with broad titles for', lead.company);
+    console.log('Retrying with broad titles (US-first) for', lead.company);
 
     var broadRes = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
       method: 'POST',
@@ -474,7 +436,7 @@ async function processLead(lead, leadKey, debugLog) {
   if (!people.length) {
     dbg.result = 'skip_no_people';
     debugLog.push(dbg);
-    console.log('No Apollo people found for', lead.company);
+    console.log('No Apollo people found for', lead.company, '(org_id:', orgId, ', US filter applied)');
     return null;
   }
 
@@ -535,16 +497,36 @@ async function processLead(lead, leadKey, debugLog) {
       });
 
       if (!matchRes.ok) {
-        console.log('Apollo enrich failed for', person.first_name, person.title);
+        if (!dbg.match_drops) dbg.match_drops = [];
+        dbg.match_drops.push({
+          name: ((person.first_name || '') + ' ' + (person.last_name || '')).trim(),
+          title: person.title || '',
+          reason: 'http_error',
+          status: matchRes.status
+        });
+        console.log('Apollo enrich http_error for', person.first_name, person.title, '-', matchRes.status);
         continue;
       }
 
       var matchData = await matchRes.json();
       var enriched = matchData.person || matchData;
 
-      // Only store US contacts or contacts with no country
+      // Post-match country filter — safety net since US-first search should
+      // make this rare. Logged when triggered so we can spot regressions.
       var country = enriched.country || '';
-      if (country && country !== 'United States') continue;
+      if (country && country !== 'United States') {
+        if (!dbg.match_drops) dbg.match_drops = [];
+        dbg.match_drops.push({
+          name: ((enriched.first_name || '') + ' ' + (enriched.last_name || '')).trim(),
+          title: enriched.title || '',
+          reason: 'country_filter_triggered',
+          country: country,
+          city: enriched.city || '',
+          state: enriched.state || ''
+        });
+        console.log('Country filter triggered for', enriched.first_name, enriched.last_name, '-', country, '(should be rare with US-first search)');
+        continue;
+      }
 
       contacts.push({
         apollo_id: enriched.id || person.id || '',
@@ -607,7 +589,9 @@ async function processLead(lead, leadKey, debugLog) {
   dbg.result = contacts.length > 0 ? 'success' : 'no_contacts_after_enrich';
   debugLog.push(dbg);
 
-  return contacts.length > 0 ? { contacts: contacts, allContacts: allContacts, companyData: companyData, usedFallback: usedFallback } : null;
+  // Always return — even with zero primary contacts we want allContacts
+  // preserved so AMs have a fallback list of obfuscated names to work from.
+  return { contacts: contacts, allContacts: allContacts, companyData: companyData, usedFallback: usedFallback };
 }
 
 module.exports = async function handler(req, res) {
@@ -671,21 +655,27 @@ module.exports = async function handler(req, res) {
       try {
         var result = await processLead(lead, keys[i], debugLog);
 
-        if (result && result.contacts && result.contacts.length > 0) {
-          lead.contacts = result.contacts;
-          lead.allContacts = result.allContacts || [];
-          if (result.companyData.apollo_org_id) lead.apollo_org_id = result.companyData.apollo_org_id;
-          if (result.usedFallback) lead.contactSelectionMethod = 'seniority-fallback';
+        if (result) {
+          lead.contacts = Array.isArray(result.contacts) ? result.contacts : [];
+          lead.allContacts = Array.isArray(result.allContacts) ? result.allContacts : [];
+          if (result.companyData && result.companyData.apollo_org_id) lead.apollo_org_id = result.companyData.apollo_org_id;
+          if (result.usedFallback && lead.contacts.length > 0) lead.contactSelectionMethod = 'seniority-fallback';
           lead.contactsEnrichedAt = Date.now();
           await redisSet(keys[i], lead, 1209600);
-          contactsFound += result.contacts.length;
-          console.log('Found', result.contacts.length, 'contacts for', lead.company, (result.usedFallback ? '(seniority fallback)' : ''), '+', lead.allContacts.length, 'additional');
+          if (lead.contacts.length > 0) contactsFound += lead.contacts.length;
+          console.log(
+            (lead.contacts.length > 0 ? 'Found ' : 'No primary contacts (kept fallback): ') +
+            lead.contacts.length + ' enriched + ' + lead.allContacts.length + ' raw for ' + lead.company +
+            (result.usedFallback && lead.contacts.length > 0 ? ' (seniority fallback)' : '')
+          );
         } else {
+          // Early-skip cases (no domain, no org id, no people, http error, employee count too low).
+          // Mark enriched so we don't re-attempt every cron tick, but leave the lead visible.
           lead.contactsEnrichedAt = Date.now();
-          lead.contacts = [];
-          lead.allContacts = [];
+          lead.contacts = lead.contacts || [];
+          lead.allContacts = lead.allContacts || [];
           await redisSet(keys[i], lead, 1209600);
-          console.log('No contacts found for', lead.company);
+          console.log('Early-skip (no result) for', lead.company);
         }
 
         processed++;
