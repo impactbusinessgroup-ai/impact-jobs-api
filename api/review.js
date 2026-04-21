@@ -1936,7 +1936,7 @@ html += '' +
 '                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'link-dd-\'+safeId+\'\\\',event);buildLinkDDPanel(\\\'\'+safeId+\'\\\');">Insert Link <span class="chev">&#9660;</span></button>\'+\n' +
 '                  \'<div class="composer-dd-panel" id="link-dd-panel-\'+safeId+\'"></div>\'+\n' +
 '                \'</div>\'+\n' +
-'                \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink:0;"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg> Custom Message</button>\'+\n' +
+'                \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink:0;"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg> Custom</button>\'+\n' +
 '              \'</div>\'+\n' +
 '            \'</div>\'+\n' +
 '          \'</div>\'+\n' +
