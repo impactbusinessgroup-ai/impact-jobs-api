@@ -27,6 +27,61 @@ const POOLS = {
 const TAMPA_AMS = ['Drew Bentsen', 'Mark Herman'];
 const EXCLUDED_AMS = new Set(['Mark Sapoznikov', 'Matt Peal', 'Drew Kunkel']);
 
+// Drew-exclusive geographic territory: every city within ~50 straight-line
+// miles of Savannah / Pooler / Statesboro / Bluffton / Ellabell. Overrides
+// Mailchimp REP, Tampa rotation, and category round-robin. Keys are lowercase
+// city names (no state suffix); the match is city + GA/SC state guard.
+const DREW_BENTSEN_EMAIL = 'dbentsen@impactbusinessgroup.com';
+const DREW_EXCLUSIVE_CITIES = new Set([
+  // Chatham County, GA (Savannah / Pooler core)
+  'savannah', 'pooler', 'garden city', 'port wentworth', 'bloomingdale',
+  'thunderbolt', 'tybee island', 'wilmington island', 'isle of hope', 'sandfly',
+  'vernonburg', 'georgetown',
+  // Bryan County, GA
+  'richmond hill', 'pembroke', 'ellabell', 'black creek',
+  // Effingham County, GA
+  'rincon', 'springfield', 'guyton', 'eden', 'clyo',
+  // Bulloch County, GA (Statesboro core)
+  'statesboro', 'brooklet', 'register', 'portal', 'nevils',
+  // Candler / Evans County, GA (west of Statesboro)
+  'metter', 'pulaski', 'claxton', 'hagan', 'bellville',
+  // Screven County, GA (north of Statesboro)
+  'sylvania', 'newington', 'oliver', 'rocky ford',
+  // Emanuel County, GA (northwest edge)
+  'swainsboro', 'twin city',
+  // Liberty County, GA (south of Savannah)
+  'hinesville', 'midway', 'walthourville', 'flemington', 'allenhurst',
+  'gum branch', 'riceboro',
+  // Long County, GA
+  'ludowici',
+  // McIntosh County, GA (southern edge)
+  'darien', 'meridian',
+  // Beaufort County, SC (Bluffton core)
+  'bluffton', 'hilton head island', 'beaufort', 'port royal', 'burton',
+  "lady's island", 'ladys island', 'laurel bay', 'sheldon', 'seabrook',
+  'saint helena island', 'st helena island', 'dataw island', 'parris island',
+  // Jasper County, SC
+  'hardeeville', 'ridgeland', 'tillman', 'gillisonville', 'levy',
+  // Hampton County, SC (eastern sliver)
+  'yemassee',
+]);
+
+function inDrewExclusiveZone(location) {
+  if (!location) return false;
+  const raw = String(location).toLowerCase().trim();
+  // Split on first comma: "city, state" → city, state. If no comma, treat the
+  // whole string as the city and skip the state guard (handles "Savannah" and
+  // "Savannah, GA" and "Savannah, Georgia").
+  const idx = raw.indexOf(',');
+  const city = (idx >= 0 ? raw.slice(0, idx) : raw).trim();
+  const state = (idx >= 0 ? raw.slice(idx + 1) : '').trim();
+  if (state) {
+    const stateOk = /^(ga|georgia|sc|south\s*carolina)\b/.test(state);
+    if (!stateOk) return false;
+  }
+  return DREW_EXCLUSIVE_CITIES.has(city);
+}
+
 function isTampaLocation(loc) {
   return !!loc && /tampa/i.test(String(loc));
 }
@@ -116,6 +171,13 @@ async function findMailchimpRep(company) {
 
 // Main entry. Returns { name, email, source } or null.
 async function assignAM({ category, location, company, allLeads, useMailchimp = true }) {
+  // 0) Drew-exclusive geographic zone. Runs before Mailchimp override,
+  //    Tampa rotation, and category round-robin per leadership routing spec.
+  if (inDrewExclusiveZone(location)) {
+    const am = _amData.byEmail(DREW_BENTSEN_EMAIL);
+    const name = am ? am.name : 'Drew Bentsen';
+    return { name, email: DREW_BENTSEN_EMAIL, source: 'drew-exclusive-zone' };
+  }
   if (useMailchimp && company) {
     const mcRep = await findMailchimpRep(company);
     if (mcRep) return mcRep;
@@ -133,7 +195,9 @@ module.exports = {
   assignAM,
   findMailchimpRep,
   isTampaLocation,
+  inDrewExclusiveZone,
   POOLS,
   TAMPA_AMS,
   EXCLUDED_AMS,
+  DREW_EXCLUSIVE_CITIES,
 };
