@@ -573,9 +573,12 @@ module.exports = async function handler(req, res) {
 '.composer-tpl-name { font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; color: #E8620A; padding: 4px 10px; border: 1px solid rgba(232,98,10,0.4); border-radius: 999px; background: rgba(232,98,10,0.08); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }\n' +
 '.composer-tpl-name.dirty::after { content: " *"; color: #ff8533; }\n' +
 '.composer-tpl-name.empty { display: none; }\n' +
-'.btn-edit-preview { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; background: #2e2e2e; color: rgba(255,255,255,0.7); border: 1px solid #444; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }\n' +
-'.btn-edit-preview:hover { border-color: #666; color: #fff; }\n' +
-'.btn-edit-preview.preview-mode { background: rgba(232,98,10,0.15); border-color: #E8620A; color: #E8620A; }\n' +
+'/* Segmented Edit/Live toggle (both segments always visible) */\n' +
+'.btn-edit-preview-group { display: inline-flex; align-items: stretch; border: 1px solid #444; border-radius: 6px; overflow: hidden; background: transparent; }\n' +
+'.btn-edit-preview-seg { display: inline-flex; align-items: center; justify-content: center; padding: 7px 14px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 500; color: #888; background: transparent; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: background 0.15s, color 0.15s; min-width: 52px; line-height: 1; }\n' +
+'.btn-edit-preview-seg:hover { background: rgba(255,255,255,0.05); color: #ccc; }\n' +
+'.btn-edit-preview-seg.active { background: #E8620A; color: #ffffff; font-weight: 700; }\n' +
+'.btn-edit-preview-seg.active:hover { background: #E8620A; color: #ffffff; }\n' +
 '.composer-dd { position: relative; display: inline-block; }\n' +
 '.composer-dd-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; background: #2e2e2e; color: rgba(255,255,255,0.85); border: 1px solid #444; transition: border-color 0.15s; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }\n' +
 '.composer-dd-btn:hover { border-color: #666; color: #fff; }\n' +
@@ -1917,7 +1920,10 @@ html += '' +
 '              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" data-tooltip="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '              \'<div class="composer-toolbar-right">\'+\n' +
 '                \'<span class="composer-tpl-name empty" id="tplname-\'+safeId+\'"></span>\'+\n' +
-'                \'<button class="btn-edit-preview" id="vw-btn-\'+safeId+\'" onclick="toggleEditLive(\\\'\'+safeId+\'\\\')">Live</button>\'+\n' +
+'                \'<div class="btn-edit-preview-group" id="vw-btn-\'+safeId+\'">\'+\n' +
+'                  \'<button type="button" class="btn-edit-preview-seg seg-live active" onclick="setEditLiveMode(\\\'\'+safeId+\'\\\',\\\'live\\\')">Live</button>\'+\n' +
+'                  \'<button type="button" class="btn-edit-preview-seg seg-edit" onclick="setEditLiveMode(\\\'\'+safeId+\'\\\',\\\'edit\\\')">Edit</button>\'+\n' +
+'                \'</div>\'+\n' +
 '                \'<div class="composer-dd" id="tpl-dd-\'+safeId+\'">\'+\n' +
 '                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'tpl-dd-\'+safeId+\'\\\',event)">Templates <span class="chev">&#9660;</span></button>\'+\n' +
 '                  \'<div class="composer-dd-panel" id="tpl-dd-panel-\'+safeId+\'"></div>\'+\n' +
@@ -4213,8 +4219,7 @@ html += '' +
 '  if (body) body.innerHTML = _renderLiveBodyHtml(st.rawBody || "", ctx);\n' +
 '  if (body) body.classList.add("live-mode");\n' +
 '  if (bar)  bar.classList.add("live-mode");\n' +
-'  var btn = _g("vw-btn-"+safeId);\n' +
-'  if (btn) { btn.classList.add("preview-mode"); btn.textContent = "Live"; }\n' +
+'  _setSegmentActive(safeId, "live");\n' +
 '  var mt = _g("mt-dd-"+safeId); if (mt) mt.style.display = "none";\n' +
 '  st.savedRange = null;\n' +
 '}\n' +
@@ -4225,10 +4230,15 @@ html += '' +
 '  if (body) body.innerHTML = st.rawBody    || "";\n' +
 '  if (body) body.classList.remove("live-mode");\n' +
 '  if (bar)  bar.classList.remove("live-mode");\n' +
-'  var btn = _g("vw-btn-"+safeId);\n' +
-'  if (btn) { btn.classList.remove("preview-mode"); btn.textContent = "Edit"; }\n' +
+'  _setSegmentActive(safeId, "edit");\n' +
 '  var mt = _g("mt-dd-"+safeId); if (mt) mt.style.display = "";\n' +
 '  st.savedRange = null;\n' +
+'}\n' +
+'function _setSegmentActive(safeId, mode) {\n' +
+'  var group = _g("vw-btn-"+safeId); if (!group) return;\n' +
+'  var live = group.querySelector(".seg-live"); var edit = group.querySelector(".seg-edit");\n' +
+'  if (live) live.classList.toggle("active", mode === "live");\n' +
+'  if (edit) edit.classList.toggle("active", mode === "edit");\n' +
 '}\n' +
 'function _paintByMode(safeId) {\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
@@ -4252,6 +4262,14 @@ html += '' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
 '  _captureCurrent(safeId);\n' +
 '  st.viewMode = (st.viewMode === "edit") ? "live" : "edit";\n' +
+'  _paintByMode(safeId);\n' +
+'}\n' +
+'function setEditLiveMode(safeId, mode) {\n' +
+'  if (mode !== "live" && mode !== "edit") return;\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.viewMode === mode) return;\n' +
+'  _captureCurrent(safeId);\n' +
+'  st.viewMode = mode;\n' +
 '  _paintByMode(safeId);\n' +
 '}\n' +
 '\n' +
