@@ -2515,6 +2515,8 @@ html += '' +
 '  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="job_location" checked onchange="fcUpdateLoc()"><span class="fc-cb"></span> \'+defaultLocLabel+\'</label>\';\n' +
 '  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="Michigan" onchange="fcUpdateLoc()"><span class="fc-cb"></span> Michigan</label>\';\n' +
 '  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="Florida" onchange="fcUpdateLoc()"><span class="fc-cb"></span> Florida</label>\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="Georgia" onchange="fcUpdateLoc()"><span class="fc-cb"></span> Georgia</label>\';\n' +
+'  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="South Carolina" onchange="fcUpdateLoc()"><span class="fc-cb"></span> South Carolina</label>\';\n' +
 '  h+=\'<label class="fc-dd-opt"><input type="checkbox" value="us_all" onchange="fcUpdateLoc()"><span class="fc-cb"></span> United States (no filter)</label>\';\n' +
 '  h+=\'</div><div class="fc-pills" id="fc-loc-pills"></div></div></div>\';\n' +
 '  h+=\'</div>\';\n' +
@@ -3382,7 +3384,7 @@ html += '' +
 'var _filterDDOptions = {\n' +
 '  am: [{v:"",l:"All"}],\n' +
 '  category: [{v:"",l:"All"},{v:"engineering",l:"Engineering"},{v:"it",l:"IT"},{v:"accounting",l:"Accounting"},{v:"other",l:"Other"}],\n' +
-'  location: [{v:"",l:"All"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"other",l:"Other"}],\n' +
+'  location: [{v:"",l:"All"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"georgia",l:"Georgia"},{v:"south_carolina",l:"South Carolina"},{v:"other",l:"Other"}],\n' +
 '  status: [{v:"",l:"All"},{v:"new",l:"New"},{v:"pending",l:"Pending"},{v:"in_progress",l:"In Progress"},{v:"awaiting_followup",l:"Awaiting Follow-up"},{v:"skipped",l:"Skipped"},{v:"blocked",l:"Blocked"},{v:"completed",l:"Completed"},{v:"closed",l:"Closed"}]\n' +
 '};\n' +
 'var _filterKinds = ["am","category","location","status"];\n' +
@@ -3453,6 +3455,8 @@ html += '' +
 '  var loc=(l.location||"").toLowerCase();\n' +
 '  if(loc.indexOf("michigan")!==-1 || /,\\s*mi\\b/.test(loc)) return "michigan";\n' +
 '  if(loc.indexOf("florida")!==-1 || /,\\s*fl\\b/.test(loc)) return "florida";\n' +
+'  if(loc.indexOf("georgia")!==-1 || /,\\s*ga\\b/.test(loc)) return "georgia";\n' +
+'  if(loc.indexOf("south carolina")!==-1 || /,\\s*sc\\b/.test(loc)) return "south_carolina";\n' +
 '  return "other";\n' +
 '}\n' +
 'function applyFilterToLeads(src) {\n' +
@@ -3486,33 +3490,64 @@ html += '' +
 '  if(!Array.isArray(l.assignment_history)) return false;\n' +
 '  return l.assignment_history.some(function(h){ return (h.reassign_reason||"").indexOf("inactivity") !== -1; });\n' +
 '}\n' +
+'// Has the lead been reassigned at least once for ANY reason (auto-inactivity,\n' +
+'// manual reassign, or bulk redistribute)? — i.e. it is no longer on its\n' +
+'// initial assignment.\n' +
+'function _hasBeenReassigned(l) {\n' +
+'  return Array.isArray(l.assignment_history) && l.assignment_history.length >= 1;\n' +
+'}\n' +
+'// Most recent outreach_log timestamp dated AFTER the current assignment\n' +
+'// started — i.e. action by the current assignee. Returns 0 if none.\n' +
+'function _lastActionByCurrentAssigneeMs(l) {\n' +
+'  var assignedMs = l.assignedAt ? Date.parse(l.assignedAt) : 0;\n' +
+'  if (!assignedMs || isNaN(assignedMs)) return 0;\n' +
+'  var lastAction = 0;\n' +
+'  if (l.outreach_log && typeof l.outreach_log === "object") {\n' +
+'    Object.keys(l.outreach_log).forEach(function(k) {\n' +
+'      var entries = l.outreach_log[k] || [];\n' +
+'      entries.forEach(function(e) {\n' +
+'        var em = (e && e.date) ? Date.parse(e.date) : 0;\n' +
+'        if (!isNaN(em) && em > assignedMs && em > lastAction) lastAction = em;\n' +
+'      });\n' +
+'    });\n' +
+'  }\n' +
+'  return lastAction;\n' +
+'}\n' +
 'function _clientBizDaysBetween(a, b) {\n' +
 '  var count=0; var d=new Date(a);\n' +
 '  while(d < b){ d.setDate(d.getDate()+1); var day=d.getDay(); if(day !== 0 && day !== 6) count++; }\n' +
 '  return count;\n' +
 '}\n' +
 'var _reassignedFromQueue = {};\n' +
+'// Inactivity queue eligibility (2026-04-21 spec):\n' +
+'//   1) Lead has been reassigned at least once (auto-inactivity OR manual)\n' +
+'//   2) Current assignee has taken NO action on the lead within 2 business\n' +
+'//      days of becoming the assignee. Any action (outreach logged, contact\n' +
+'//      removed/skipped/blocked/completed) resets the clock.\n' +
 'function _inactivityQueueEligible(l) {\n' +
 '  var co = l.company || "";\n' +
-'  var hasOutreach = l.outreach_log && typeof l.outreach_log === "object" && Object.keys(l.outreach_log).length > 0;\n' +
-'  var contactRemoved = Array.isArray(l.contacts) && l.contacts.some(function(c){ return c && c.removal_reason; });\n' +
-'  function _dbg(ok, reason){\n' +
-'    try {\n' +
-'      console.log(\'[InactQueue] eligible: \'+ok+\' | \'+co+\' | \'+reason+\' | id=\'+l.id+\' status=\'+(l.status||"")+\' outreach=\'+hasOutreach+\' contactRemoved=\'+contactRemoved+\' skippedAt=\'+(l.skippedAt||"-")+\' retrievedAt=\'+(l.retrievedAt||"-")+\' blockReason=\'+(l.blockReason||"-"));\n' +
-'    } catch(e){}\n' +
-'  }\n' +
-'  if(!_hasInactivityHistory(l)){ _dbg(false,"no_inactivity_history"); return false; }\n' +
+'  function _dbg(ok, reason){ try { console.log(\'[InactQueue] eligible: \'+ok+\' | \'+co+\' | \'+reason+\' | id=\'+l.id+\' status=\'+(l.status||"")); } catch(e){} }\n' +
+'  // 1) Must have been reassigned at least once.\n' +
+'  if(!_hasBeenReassigned(l)){ _dbg(false,"never_reassigned"); return false; }\n' +
+'  // Session-only suppression so the queue does not flicker on the AM mid-action.\n' +
 '  if(_reassignedFromQueue[l.id]){ _dbg(false,"reassigned_this_session"); return false; }\n' +
 '  if(l.reassignedFromInactivityQueue){ _dbg(false,"reassigned_persisted_flag"); return false; }\n' +
+'  // Status must be active. Skipped / blocked / completed / awaiting_followup leads\n' +
+'  // are not in the inactivity queue (they have been actioned or moved out).\n' +
 '  var st = l.status || "";\n' +
-'  if(st !== "new" && st !== "pending"){ _dbg(false,"status_not_new_or_pending"); return false; }\n' +
-'  if(hasOutreach){ _dbg(false,"has_outreach"); return false; }\n' +
-'  if(contactRemoved){ _dbg(false,"contact_removed"); return false; }\n' +
+'  if(st !== "new" && st !== "pending" && st !== "in_progress"){ _dbg(false,"status_not_active"); return false; }\n' +
 '  var skippedMs = l.skippedAt ? Date.parse(l.skippedAt) : 0;\n' +
 '  var retrievedMs = l.retrievedAt ? Date.parse(l.retrievedAt) : 0;\n' +
 '  if(skippedMs && !(retrievedMs && retrievedMs > skippedMs)){ _dbg(false,"skipped_without_retrieve"); return false; }\n' +
 '  if(l.blockReason){ _dbg(false,"has_block_reason"); return false; }\n' +
 '  if(typeof isCompanyBlocked === "function" && isCompanyBlocked(co)){ _dbg(false,"company_blocked"); return false; }\n' +
+'  // 2) 2-business-day idle window since last action by current assignee.\n' +
+'  var assignedMs = l.assignedAt ? Date.parse(l.assignedAt) : 0;\n' +
+'  if (!assignedMs || isNaN(assignedMs)){ _dbg(false,"no_assigned_at"); return false; }\n' +
+'  var lastAction = _lastActionByCurrentAssigneeMs(l);\n' +
+'  var clockStart = lastAction > assignedMs ? lastAction : assignedMs;\n' +
+'  var bizDays = _clientBizDaysBetween(new Date(clockStart), new Date());\n' +
+'  if (bizDays < 2){ _dbg(false,"under_2_bizdays"); return false; }\n' +
 '  _dbg(true,"pass");\n' +
 '  return true;\n' +
 '}\n' +
@@ -3545,7 +3580,7 @@ html += '' +
 'var _inactFilterLocation = "";\n' +
 'var _inactFilterOptions = {\n' +
 '  category: [{v:"",l:"All Categories"},{v:"engineering",l:"Engineering"},{v:"it",l:"IT"},{v:"accounting",l:"Accounting"},{v:"other",l:"Other"}],\n' +
-'  location: [{v:"",l:"All Locations"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"other",l:"Other"}]\n' +
+'  location: [{v:"",l:"All Locations"},{v:"michigan",l:"Michigan"},{v:"florida",l:"Florida"},{v:"georgia",l:"Georgia"},{v:"south_carolina",l:"South Carolina"},{v:"other",l:"Other"}]\n' +
 '};\n' +
 'function _inactFilterCur(kind){ return kind === "category" ? _inactFilterCategory : _inactFilterLocation; }\n' +
 'function _renderInactFilterPanel(kind) {\n' +
@@ -3833,6 +3868,17 @@ html += '' +
 '    analyticsData = data;\n' +
 '    analyticsLoaded = true;\n' +
 '    renderAnalyticsSummary(data.summary);\n' +
+'    // Default selection: AM view -> own row; Admin view -> top of leaderboard.\n' +
+'    // The leaderboard ordering supplied by /api/review?analytics drives the\n' +
+'    // admin "#1" pick; AMs default to their own email even if missing from\n' +
+'    // ams (e.g. nothing logged yet) so they see an empty-but-self detail card.\n' +
+'    if (AM.role === "admin") {\n' +
+'      selectedAmEmail = (data.ams[0] && data.ams[0].email) || AM.email;\n' +
+'    } else if (!data.ams.find(function(a){ return a.email === AM.email; })) {\n' +
+'      selectedAmEmail = AM.email;\n' +
+'    } else {\n' +
+'      selectedAmEmail = AM.email;\n' +
+'    }\n' +
 '    renderLeaderboard(data.ams);\n' +
 '    var selAm = data.ams.find(function(a){ return a.email === selectedAmEmail; }) || data.ams[0];\n' +
 '    if (selAm) renderAmDetail(selAm);\n' +
