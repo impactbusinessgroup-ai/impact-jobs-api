@@ -31,14 +31,20 @@ async function redisGet(key) {
 }
 
 async function redisSet(key, value, exSeconds) {
-  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  // Upstash's REST contract: POST /set/{key}?EX=N with the value as the request
+  // body. The previous {value, ex} JSON body was being stored as-is by Upstash
+  // (with no TTL applied), which is why session:* records accumulated since
+  // March instead of expiring at 1 hour. The path-based ?EX= query param
+  // honours the TTL correctly; verified via /ttl/{key} after a probe set.
+  let url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  if (exSeconds) url += '?EX=' + encodeURIComponent(exSeconds);
   await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
-    body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+    body: JSON.stringify(value),
   });
 }
 
@@ -743,16 +749,26 @@ module.exports = async function handler(req, res) {
     if (!session || session.alerted) continue;
 
     const inactive = Date.now() - Number(session.lastSeen);
+    if (inactive < SESSION_TIMEOUT_MS) continue;
 
-    if (inactive >= SESSION_TIMEOUT_MS) {
-      try {
-        await sendAlert(session.subscriber, session.pages);
-        session.alerted = true;
-        await redisSet(key, session, 3600);
-        alerted++;
-      } catch (err) {
-        console.error(`Failed to send alert for ${key}:`, err.message);
-      }
+    // Atomic claim — same SET NX EX pattern used to dedupe the morning email.
+    // Whichever cron run wins this set owns the alert; concurrent runs that
+    // lose the race skip the session entirely without sending or marking.
+    const subscriberId = key.replace(/^session:/, '');
+    const lockKey = 'alert_lock:' + subscriberId;
+    const gotLock = await redisSetNXEX(lockKey, '1', 600);
+    if (!gotLock) {
+      console.log('Skipping ' + key + ': alert_lock held by another cron run');
+      continue;
+    }
+
+    try {
+      await sendAlert(session.subscriber, session.pages);
+      session.alerted = true;
+      await redisSet(key, session, 3600);
+      alerted++;
+    } catch (err) {
+      console.error(`Failed to send alert for ${key}:`, err.message);
     }
   }
 

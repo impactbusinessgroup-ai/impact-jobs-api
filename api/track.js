@@ -26,14 +26,18 @@ async function redisGet(key) {
   }
 }
 async function redisSet(key, value, exSeconds) {
-  const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  // Upstash REST: POST /set/{key}?EX=N with the value as the request body.
+  // The previous {value, ex} JSON body was being stored verbatim by Upstash
+  // (TTL silently dropped) which is why session:* records weren't expiring.
+  let url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+  if (exSeconds) url += '?EX=' + encodeURIComponent(exSeconds);
   await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
-    body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+    body: JSON.stringify(value),
   });
 }
 
