@@ -24,7 +24,12 @@ const POOLS = {
   accounting:  ['Lauren Sylvester'],
   other:       ['Lauren Sylvester', 'Trish Wangler'],
 };
-const TAMPA_AMS = ['Drew Bentsen', 'Mark Herman'];
+// Statewide Florida pool: any FL lead, regardless of city, routes to Drew /
+// Mark H via 50/50 alternating load-balanced assignment. Previously this was
+// city-restricted to "tampa" substring matches, which left non-Tampa FL leads
+// (New Port Richey, Brandon, Riverview, Oldsmar, Clearwater, etc.) falling
+// through to category round-robin.
+const FLORIDA_AMS = ['Drew Bentsen', 'Mark Herman'];
 const EXCLUDED_AMS = new Set(['Mark Sapoznikov', 'Matt Peal', 'Drew Kunkel']);
 
 // Drew-exclusive geographic territory: every city within ~50 straight-line
@@ -82,8 +87,15 @@ function inDrewExclusiveZone(location) {
   return DREW_EXCLUSIVE_CITIES.has(city);
 }
 
-function isTampaLocation(loc) {
-  return !!loc && /tampa/i.test(String(loc));
+// Any Florida location (state = "FL" or "Florida", case-insensitive).
+function isFloridaLocation(loc) {
+  if (!loc) return false;
+  const s = String(loc);
+  // The state portion sits after the first comma (jobs-fetch builds
+  // "city, state"); fall back to a whole-string check for unstructured input.
+  const idx = s.indexOf(',');
+  const tail = (idx >= 0 ? s.slice(idx + 1) : s).trim();
+  return /^(fl|florida)\b/i.test(tail) || /(\bflorida\b|,\s*FL\b)/i.test(s);
 }
 
 function emailForName(name) {
@@ -92,7 +104,7 @@ function emailForName(name) {
 }
 
 function poolFor(category, location) {
-  if (isTampaLocation(location)) return TAMPA_AMS.slice();
+  if (isFloridaLocation(location)) return FLORIDA_AMS.slice();
   const cat = String(category || 'engineering').toLowerCase();
   return (POOLS[cat] || POOLS.engineering).slice();
 }
@@ -188,16 +200,16 @@ async function assignAM({ category, location, company, allLeads, useMailchimp = 
   const counts = buildActiveCounts(allLeads || []);
   const name = pickLoadBalanced(eligible, counts);
   if (!name) return null;
-  return { name, email: emailForName(name), source: isTampaLocation(location) ? 'round-robin-tampa' : 'round-robin-' + (category || 'engineering').toLowerCase() };
+  return { name, email: emailForName(name), source: isFloridaLocation(location) ? 'round-robin-florida' : 'round-robin-' + (category || 'engineering').toLowerCase() };
 }
 
 module.exports = {
   assignAM,
   findMailchimpRep,
-  isTampaLocation,
+  isFloridaLocation,
   inDrewExclusiveZone,
   POOLS,
-  TAMPA_AMS,
+  FLORIDA_AMS,
   EXCLUDED_AMS,
   DREW_EXCLUSIVE_CITIES,
 };

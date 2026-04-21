@@ -45,6 +45,13 @@ const JSEARCH_QUERIES = [
   'engineer Bluffton South Carolina',
   'IT Bluffton South Carolina',
   'accountant Bluffton South Carolina',
+  // CNC titles for Drew's territory (added per Drew's request 2026-04-21)
+  'CNC Machinist Savannah Georgia',
+  'CNC Programmer Savannah Georgia',
+  'CNC Operator Savannah Georgia',
+  'CNC Machinist Bluffton South Carolina',
+  'CNC Programmer Bluffton South Carolina',
+  'CNC Operator Bluffton South Carolina',
 ];
 
 // --- Dry run handler ---

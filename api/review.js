@@ -2354,10 +2354,14 @@ html += '' +
 '    libodyEl.innerHTML=curLI;updateLICount(safeId);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=newUid;\n' +
-'    // If the AM has been working with merge fields ({firstName} etc.) the\n' +
-'    // raw text doesnt change between contacts, but the resolved Preview must\n' +
-'    // re-render against the new contact context.\n' +
 '    _initComposerStateForTemplates(safeId);\n' +
+'    // Sync rawBody with the patched DOM so the next _paintByMode call doesnt\n' +
+'    // revert back to the originally-baked first contact name + uniqid. Skip\n' +
+'    // when rawBody contains {firstName}/{fullName}/{contactTitle} merge tags\n' +
+'    // (saved templates and AI drafts) — those resolve correctly per-contact\n' +
+'    // through _renderLiveBodyHtml against _composerCtx().\n' +
+'    var _rawBodyHasTags = /\\{(firstName|fullName|contactTitle)\\}/.test(composerState[safeId].rawBody||"");\n' +
+'    if (!_rawBodyHasTags) composerState[safeId].rawBody = curBody;\n' +
 '    if (composerState[safeId].viewMode === "live") _paintByMode(safeId);\n' +
 '  }\n' +
 '}\n' +
@@ -2843,12 +2847,14 @@ html += '' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.2s";setTimeout(function(){if(!_skipUndone)card.remove();},200);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
 '  updateLeadCount();\n' +
+'  updateAmScoreboard();\n' +
 '  _skipTimer=showToast("Lead skipped: "+cn+" <button class=\\"toast-undo\\" onclick=\\"undoSkip()\\">Undo</button>",5000);\n' +
 '  var pRealId=realId,pLead=lead,pReason=reason||"";\n' +
 '  window._skipUndo=function(){\n' +
 '    _skipUndone=true;clearTimeout(_skipTimer);hideToast();\n' +
 '    if(pLead)leads.push(pLead);\n' +
 '    updateLeadCount();\n' +
+'    updateAmScoreboard();\n' +
 '    if(cardHTML&&cardParent){var tmp=document.createElement("div");tmp.innerHTML=cardHTML;var r=tmp.firstChild;r.style.opacity="0";r.style.transition="opacity 0.3s";if(cardNext&&cardNext.parentNode===cardParent)cardParent.insertBefore(r,cardNext);else cardParent.appendChild(r);setTimeout(function(){r.style.opacity="1";},10);fetchLogo(pLead.company,pLead.employerWebsite||"",pLead.location||"",getSafeId(pLead.id));}\n' +
 '  };\n' +
 '  setTimeout(function(){if(!_skipUndone){var upd={status:"skipped",skippedAt:new Date().toISOString()};if(pReason)upd.skipReason=pReason;fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:pRealId,updates:upd})}).then(function(){refreshArchiveBadge();});}},5200);\n' +
@@ -2965,6 +2971,7 @@ html += '' +
 '    if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '    leads=leads.filter(function(l){return l.id!==realId;});\n' +
 '    updateLeadCount();\n' +
+'    updateAmScoreboard();\n' +
 '  },"btn-glass-complete");\n' +
 '}\n' +
 'function toggleCloseoutDD(safeId){\n' +
@@ -2977,6 +2984,7 @@ html += '' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
 '  updateLeadCount();\n' +
+'  updateAmScoreboard();\n' +
 '}\n' +
 'function addReminderLead(safeId,realId){\n' +
 '  fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:realId,action:"add_reminder"})}).then(function(){showToast("3-day reminder added",3000);}).catch(function(){});\n' +
@@ -2984,6 +2992,7 @@ html += '' +
 '  if(card){card.style.opacity="0";card.style.transition="opacity 0.3s";setTimeout(function(){card.remove();},300);}\n' +
 '  leads=leads.filter(function(l){return l.id!==realId;});\n' +
 '  updateLeadCount();\n' +
+'  updateAmScoreboard();\n' +
 '}\n' +
 '\n' +
 'var _reassignSafeId="",_reassignRealId="";\n' +
@@ -3027,6 +3036,7 @@ html += '' +
 '    setTimeout(function(){ renderInactivityView(); }, 320);\n' +
 '  }\n' +
 '  updateLeadCount();\n' +
+'  updateAmScoreboard();\n' +
 '  showToast("Lead reassigned to "+amName+(note?" with a note":""),3000);\n' +
 '}\n' +
 '\n' +

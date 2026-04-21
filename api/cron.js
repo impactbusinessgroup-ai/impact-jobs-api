@@ -121,7 +121,7 @@ const ROUND_ROBIN = {
   accounting: ['Lauren Sylvester'],
   other: ['Lauren Sylvester', 'Trish Wangler'],
 };
-const TAMPA_AMS = ['Drew Bentsen', 'Mark Herman'];
+const FLORIDA_AMS = ['Drew Bentsen', 'Mark Herman'];
 const ESCALATION_AM = 'Matt Peal';
 
 // AM directory centralized in ./_am_data; compatibility shims below
@@ -147,8 +147,9 @@ function businessDaysBetween(dateA, dateB) {
 }
 
 async function getBalancedAM(category, location, excludeAM, allLeads) {
-  const isTampa = (location || '').toLowerCase().includes('tampa');
-  const pool = isTampa ? TAMPA_AMS : (ROUND_ROBIN[category] || ROUND_ROBIN.engineering);
+  const loc = String(location || '');
+  const isFlorida = /\bflorida\b/i.test(loc) || /,\s*FL\b/i.test(loc);
+  const pool = isFlorida ? FLORIDA_AMS : (ROUND_ROBIN[category] || ROUND_ROBIN.engineering);
   const eligible = pool.filter(am => am !== excludeAM);
   if (!eligible.length) return pool[0];
 
