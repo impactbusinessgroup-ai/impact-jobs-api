@@ -609,14 +609,6 @@ function buildReassignmentEmailHtml(ctx) {
 async function sendReassignmentEmail() {
   const now = new Date();
   const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-  // Hold the 1pm reassignment email until 2026-04-22 (the bulk redistribute
-  // ran today and the inactivity clocks were just reset, so there's no real
-  // reassignment activity worth emailing about until tomorrow at the earliest).
-  const etYmd = etNow.getFullYear() + '-' + String(etNow.getMonth() + 1).padStart(2, '0') + '-' + String(etNow.getDate()).padStart(2, '0');
-  if (etYmd <= '2026-04-21') {
-    console.log('Holding reassignment email until 2026-04-22 (today is ' + etYmd + ')');
-    return false;
-  }
   const dow = etNow.getDay();
   if (dow === 0 || dow === 6) {
     console.log('Skipping reassignment email on weekend');
