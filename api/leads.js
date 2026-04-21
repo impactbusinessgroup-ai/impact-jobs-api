@@ -763,12 +763,19 @@ module.exports = async function handler(req, res) {
       }
       if (domain) domain = getRootDomain(domain);
 
-      // Step 2: Create lead object
+      // Step 2: Create lead object. Manually added leads are attributed to the
+      // user who submitted the form — pull amEmail from the request body (the
+      // client sends AM.email resolved from the session token) and look up the
+      // display name from the shared AM directory.
       const today = new Date().toISOString().split('T')[0];
       const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 40);
       const leadId = 'lead:' + today + ':' + slug;
       const cat = (category || 'engineering').toLowerCase();
-      const amEmail = body.amEmail || 'msapoznikov@impactbusinessgroup.com';
+      const amEmail = String(body.amEmail || '').toLowerCase();
+      const amRec = amEmail ? _amData.byEmail(amEmail) : null;
+      if (!amEmail || !amRec) {
+        return res.status(400).json({ error: 'Missing or unknown amEmail for manual lead' });
+      }
 
       const lead = {
         id: leadId,
@@ -781,8 +788,9 @@ module.exports = async function handler(req, res) {
         description: description,
         jobUrl: jobUrl || '',
         createdAt: Date.now(),
+        assignedAt: new Date().toISOString(),
         assignedAMEmail: amEmail,
-        assignedAM: 'Mark Sapoznikov',
+        assignedAM: amRec.name,
         source: 'manual',
         contacts: [],
         allContacts: []

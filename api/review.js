@@ -3217,7 +3217,7 @@ html += '' +
 '  if(!title||!company||!loc){showToast("Please fill in title, company and location",2000);return;}\n' +
 '  closeAddModal();\n' +
 '  showToast("Adding lead - finding contacts...",30000);\n' +
-'  var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain})});\n' +
+'  var r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_lead",jobTitle:title,company:company,location:loc,category:category,jobUrl:jobUrl,description:_addDesc,domain:domain,amEmail:AM.email})});\n' +
 '  var d=await r.json();\n' +
 '  if(d.ok){\n' +
 '    var cc=d.lead?(d.lead.contacts||[]).length:0;\n' +
