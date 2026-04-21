@@ -566,6 +566,55 @@ module.exports = async function handler(req, res) {
 '.star-burst svg { filter: drop-shadow(0 0 4px #E8620A); }\n' +
 '.btn-custom-msg:hover, .subj-bar-ai:hover { text-shadow: 0 0 8px rgba(232,98,10,0.4); }\n' +
 '.btn-custom-msg:hover { background: rgba(232,98,10,0.2); color: #ff8533; border-color: rgba(232,98,10,0.5); }\n' +
+'/* Composer toolbar additions: Templates dropdown, Insert Link dropdown, Edit/Preview toggle */\n' +
+'.composer-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }\n' +
+'.composer-toolbar-right { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }\n' +
+'.composer-tpl-name { font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; color: #E8620A; padding: 4px 10px; border: 1px solid rgba(232,98,10,0.4); border-radius: 999px; background: rgba(232,98,10,0.08); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }\n' +
+'.composer-tpl-name.dirty::after { content: " *"; color: #ff8533; }\n' +
+'.composer-tpl-name.empty { display: none; }\n' +
+'.btn-edit-preview { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; background: #2e2e2e; color: rgba(255,255,255,0.7); border: 1px solid #444; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }\n' +
+'.btn-edit-preview:hover { border-color: #666; color: #fff; }\n' +
+'.btn-edit-preview.preview-mode { background: rgba(232,98,10,0.15); border-color: #E8620A; color: #E8620A; }\n' +
+'.composer-dd { position: relative; display: inline-block; }\n' +
+'.composer-dd-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; background: #2e2e2e; color: rgba(255,255,255,0.85); border: 1px solid #444; transition: border-color 0.15s; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }\n' +
+'.composer-dd-btn:hover { border-color: #666; color: #fff; }\n' +
+'.composer-dd.open .composer-dd-btn { border-color: #E8620A; color: #E8620A; }\n' +
+'.composer-dd-btn .chev { font-size: 9px; line-height: 1; color: #E8620A; }\n' +
+'.composer-dd-panel { position: absolute; bottom: calc(100% + 6px); right: 0; min-width: 240px; max-width: 320px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; box-shadow: 0 -4px 16px rgba(0,0,0,0.5); padding: 4px 0; display: none; z-index: 200; max-height: 380px; overflow-y: auto; }\n' +
+'.composer-dd.open .composer-dd-panel { display: block; }\n' +
+'.composer-dd-opt { padding: 9px 14px; font-family: Raleway, sans-serif; font-size: 12px; color: rgba(255,255,255,0.85); cursor: pointer; transition: background 0.1s; display: flex; align-items: center; justify-content: space-between; gap: 10px; }\n' +
+'.composer-dd-opt:hover { background: rgba(232,98,10,0.12); color: #fff; }\n' +
+'.composer-dd-opt.disabled { color: rgba(255,255,255,0.3); cursor: not-allowed; }\n' +
+'.composer-dd-opt.disabled:hover { background: transparent; color: rgba(255,255,255,0.3); }\n' +
+'.composer-dd-opt.action { color: #E8620A; font-weight: 600; }\n' +
+'.composer-dd-opt.action:hover { color: #ff8533; }\n' +
+'.composer-dd-opt .submenu-arrow { font-size: 10px; color: rgba(255,255,255,0.4); }\n' +
+'.composer-dd-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }\n' +
+'.composer-dd-empty { padding: 12px 14px; font-family: Raleway, sans-serif; font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; text-align: center; }\n' +
+'.composer-dd-section-label { padding: 8px 14px 4px; font-family: Raleway, sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.6px; }\n' +
+'.composer-dd-submenu { position: absolute; top: 0; right: calc(100% + 4px); min-width: 280px; max-width: 360px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; box-shadow: -4px 0 16px rgba(0,0,0,0.5); padding: 4px 0; display: none; z-index: 201; }\n' +
+'.composer-dd-opt.has-submenu.open + .composer-dd-submenu, .composer-dd-opt.has-submenu:hover + .composer-dd-submenu { display: block; }\n' +
+'.composer-dd-opt.has-submenu { position: relative; }\n' +
+'.rich-editor.preview-mode { background: rgba(232,98,10,0.04); border-color: rgba(232,98,10,0.25); cursor: default; }\n' +
+'.subj-bar.preview-mode { background: rgba(232,98,10,0.04); border-color: rgba(232,98,10,0.25); }\n' +
+'.subj-bar.preview-mode .subj-bar-input { cursor: default; }\n' +
+'/* Manage Templates modal */\n' +
+'.tpl-mgr-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }\n' +
+'.tpl-mgr-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }\n' +
+'.tpl-mgr-row-name { flex: 1; min-width: 0; font-family: Raleway, sans-serif; font-size: 13px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n' +
+'.tpl-mgr-row-meta { font-family: Raleway, sans-serif; font-size: 11px; color: rgba(255,255,255,0.4); }\n' +
+'.tpl-mgr-btn { padding: 6px 12px; font-family: Raleway, sans-serif; font-size: 11px; font-weight: 600; border-radius: 6px; cursor: pointer; border: 1px solid; background: transparent; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }\n' +
+'.tpl-mgr-btn.rename { border-color: #E8620A; color: #E8620A; }\n' +
+'.tpl-mgr-btn.rename:hover { background: rgba(232,98,10,0.15); }\n' +
+'.tpl-mgr-btn.delete { border-color: #cc4444; color: #cc4444; }\n' +
+'.tpl-mgr-btn.delete:hover { background: rgba(204,68,68,0.15); }\n' +
+'.tpl-mgr-empty { padding: 30px 20px; text-align: center; font-family: Raleway, sans-serif; font-size: 13px; color: rgba(255,255,255,0.4); font-style: italic; }\n' +
+'/* Insert Link anchor-text confirm modal */\n' +
+'.link-confirm-row { display: flex; flex-direction: column; gap: 8px; }\n' +
+'.link-confirm-label { font-family: Raleway, sans-serif; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.6px; }\n' +
+'.link-confirm-url { font-family: monospace; font-size: 11px; color: rgba(255,255,255,0.5); padding: 8px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; word-break: break-all; }\n' +
+'.link-confirm-input { padding: 10px 12px; font-family: Raleway, sans-serif; font-size: 14px; color: #fff; background: #1e1e1e; border: 1px solid #444; border-radius: 6px; outline: none; }\n' +
+'.link-confirm-input:focus { border-color: #E8620A; }\n' +
 '.btn-ac-circle { width: 28px; height: 28px; border-radius: 50%; background: #2a2a2a; border: 1px solid #E8620A; color: #E8620A; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }\n' +
 '.btn-ac-circle:hover { box-shadow: 0 0 12px rgba(232,98,10,0.4); background: rgba(232,98,10,0.15); }\n' +
 '.btn-ac-circle.has-suggestions { border-color: #22c55e; color: #22c55e; }\n' +
@@ -1027,6 +1076,33 @@ html += '' +
 '        <textarea id="notes-input" placeholder="Add a note..."></textarea>\n' +
 '        <button class="btn-submit" id="notes-submit-btn" onclick="submitNote()">Add Note</button>\n' +
 '      </div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="tpl-mgr-overlay" onclick="if(event.target===this)closeManageTemplates()">\n' +
+'  <div class="modal" style="max-width:560px;">\n' +
+'    <div class="modal-header"><h3>Manage Templates</h3><button class="modal-close" onclick="closeManageTemplates()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div id="tpl-mgr-list" class="tpl-mgr-list"><div class="tpl-mgr-empty">Loading...</div></div>\n' +
+'    </div>\n' +
+'  </div>\n' +
+'</div>\n' +
+'\n' +
+'<div class="modal-overlay" id="link-confirm-overlay" onclick="if(event.target===this)closeInsertLinkModal()">\n' +
+'  <div class="modal" style="max-width:480px;">\n' +
+'    <div class="modal-header"><h3>Insert Link</h3><button class="modal-close" onclick="closeInsertLinkModal()">&#x2715;</button></div>\n' +
+'    <div class="modal-body">\n' +
+'      <div class="link-confirm-row">\n' +
+'        <div class="link-confirm-label">Anchor Text</div>\n' +
+'        <input type="text" id="link-confirm-text" class="link-confirm-input" placeholder="Visible link text">\n' +
+'        <div class="link-confirm-label" style="margin-top:6px;">URL (resolves at send time)</div>\n' +
+'        <div id="link-confirm-url" class="link-confirm-url"></div>\n' +
+'      </div>\n' +
+'    </div>\n' +
+'    <div class="add-footer" style="border-top:1px solid rgba(255,255,255,0.06);padding:14px 24px;">\n' +
+'      <button class="btn-glass" onclick="closeInsertLinkModal()">Cancel</button>\n' +
+'      <button class="btn-submit" onclick="confirmInsertLink()">Insert</button>\n' +
 '    </div>\n' +
 '  </div>\n' +
 '</div>\n' +
@@ -1831,9 +1907,21 @@ html += '' +
 '              \'</div>\'+\n' +
 '            \'</div>\'+\n' +
 '            \'<div class="rich-editor" contenteditable="true" id="ebody-\'+safeId+\'"></div>\'+\n' +
-'            \'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">\'+\n' +
+'            \'<div class="composer-toolbar">\'+\n' +
 '              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" data-tooltip="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
-'              \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink:0;"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg> Custom Message</button>\'+\n' +
+'              \'<div class="composer-toolbar-right">\'+\n' +
+'                \'<span class="composer-tpl-name empty" id="tplname-\'+safeId+\'"></span>\'+\n' +
+'                \'<button class="btn-edit-preview" id="vw-btn-\'+safeId+\'" onclick="toggleComposerView(\\\'\'+safeId+\'\\\')">Preview</button>\'+\n' +
+'                \'<div class="composer-dd" id="tpl-dd-\'+safeId+\'">\'+\n' +
+'                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'tpl-dd-\'+safeId+\'\\\',event)">Templates <span class="chev">&#9660;</span></button>\'+\n' +
+'                  \'<div class="composer-dd-panel" id="tpl-dd-panel-\'+safeId+\'"></div>\'+\n' +
+'                \'</div>\'+\n' +
+'                \'<div class="composer-dd" id="link-dd-\'+safeId+\'">\'+\n' +
+'                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'link-dd-\'+safeId+\'\\\',event);buildLinkDDPanel(\\\'\'+safeId+\'\\\');">Insert Link <span class="chev">&#9660;</span></button>\'+\n' +
+'                  \'<div class="composer-dd-panel" id="link-dd-panel-\'+safeId+\'"></div>\'+\n' +
+'                \'</div>\'+\n' +
+'                \'<button class="btn-custom-msg" onclick="generateCustomDraft(\\\'\'+safeId+\'\\\')"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="flex-shrink:0;"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/><path d="M19 14L19.75 17.25L23 18L19.75 18.75L19 22L18.25 18.75L15 18L18.25 17.25L19 14Z"/><path d="M5 4L5.5 6.5L8 7L5.5 7.5L5 10L4.5 7.5L2 7L4.5 6.5L5 4Z"/></svg> Custom Message</button>\'+\n' +
+'              \'</div>\'+\n' +
 '            \'</div>\'+\n' +
 '          \'</div>\'+\n' +
 '          \'<div id="li-pane-\'+safeId+\'" style="display:none;">\'+\n' +
@@ -2216,6 +2304,8 @@ html += '' +
 '    updateLICount(safeId);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=uniqid;\n' +
+'    // Initialize templates/preview state and seed raw* from current DOM.\n' +
+'    _initComposerStateForTemplates(safeId);\n' +
 '  } else {\n' +
 '    // Swap merge fields only\n' +
 '    var st=composerState[safeId];\n' +
@@ -2238,6 +2328,11 @@ html += '' +
 '    libodyEl.innerHTML=curLI;updateLICount(safeId);\n' +
 '    composerState[safeId].lastFirstName=firstName;\n' +
 '    composerState[safeId].lastUniqid=newUid;\n' +
+'    // If the AM has been working with merge fields ({firstName} etc.) the\n' +
+'    // raw text doesnt change between contacts, but the resolved Preview must\n' +
+'    // re-render against the new contact context.\n' +
+'    _initComposerStateForTemplates(safeId);\n' +
+'    if (composerState[safeId].viewMode === "preview") _paintComposer(safeId);\n' +
 '  }\n' +
 '}\n' +
 '\n' +
@@ -2248,9 +2343,13 @@ html += '' +
 '  if(!card) return;\n' +
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
-'  var subject=encodeURIComponent(_g("subj-"+safeId).value);\n' +
-'  var htmlBody=_g("ebody-"+safeId).innerHTML;\n' +
-'  var plainText=_g("ebody-"+safeId).innerText;\n' +
+'  // Resolve any merge-field placeholders before copying / opening Outlook.\n' +
+'  var ctx=_composerCtx(safeId);\n' +
+'  var subjectText=_resolveMerge(_g("subj-"+safeId).value, ctx);\n' +
+'  var subject=encodeURIComponent(subjectText);\n' +
+'  var htmlBody=_resolveMerge(_g("ebody-"+safeId).innerHTML, ctx);\n' +
+'  var tmpEl=document.createElement("div"); tmpEl.innerHTML=htmlBody;\n' +
+'  var plainText=tmpEl.innerText;\n' +
 '  try{navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([htmlBody],{type:"text/html"}),"text/plain":new Blob([plainText],{type:"text/plain"})})]).then(function(){showToast("Email copied - paste into Outlook",3000);}).catch(function(){navigator.clipboard.writeText(htmlBody).then(function(){showToast("Email copied - paste into Outlook",3000);});});}catch(e){navigator.clipboard.writeText(htmlBody);showToast("Email copied - paste into Outlook",3000);}\n' +
 '  var pref=localStorage.getItem("outlook_preference")||"classic";\n' +
 '  if(pref==="new") window.location.href="ms-outlook://compose?to="+encodeURIComponent(email)+"&subject="+subject;\n' +
@@ -3953,6 +4052,397 @@ html += '' +
 '  _g("analytics-am-detail").innerHTML = h;\n' +
 '  var amContactsMade = (am.removalReasons && Number(am.removalReasons.made_contact || 0)) || 0;\n' +
 '  _renderFunnel(amFunnelId, { leadsReceived: am.leadsReceived, outreachSent: am.outreachSent, contactsMade: amContactsMade });\n' +
+'}\n' +
+'\n' +
+'\n' +
+'/* ========================================================================\n' +
+'   Composer: Templates + Insert Link + Edit/Preview\n' +
+'   ====================================================================== */\n' +
+'\n' +
+'var _amTemplatesCache = null;       // array, scoped to current AM\n' +
+'var _pendingInsertLink = null;      // {safeId, url, defaultText}\n' +
+'var _manageTplsForSafeId = null;    // last safeId that opened the manage modal\n' +
+'var _MERGE_FIELDS = ["firstName","fullName","contactTitle","company","jobTitle","amName","amTitle","amCalendly","amPhone"];\n' +
+'\n' +
+'function _composerCtx(safeId) {\n' +
+'  var lead = leads.find(function(l){ return getSafeId(l.id)===safeId; });\n' +
+'  var cid  = activeContacts[safeId];\n' +
+'  var card = cid ? _g("cb-"+cid) : null;\n' +
+'  var fullName = card ? (card.getAttribute("data-name")||"") : "";\n' +
+'  var amRec = (typeof AMS==="object" && AMS) ? AMS[(AM.email||"").toLowerCase()] : null;\n' +
+'  return {\n' +
+'    firstName:    fullName.split(" ")[0] || "",\n' +
+'    fullName:     fullName,\n' +
+'    contactTitle: card ? (card.getAttribute("data-title")||"") : "",\n' +
+'    company:      lead ? (lead.company||"") : "",\n' +
+'    jobTitle:     lead ? cleanJobTitle(lead.jobTitle||"") : "",\n' +
+'    amName:       amRec ? amRec.name : (AM.name||""),\n' +
+'    amTitle:      amRec ? amRec.title : "",\n' +
+'    amCalendly:   amRec ? amRec.calendly : "",\n' +
+'    amPhone:      amRec ? amRec.phone : ""\n' +
+'  };\n' +
+'}\n' +
+'\n' +
+'function _resolveMerge(text, ctx) {\n' +
+'  if (text == null) return "";\n' +
+'  var pattern = new RegExp("\\\\{(" + _MERGE_FIELDS.join("|") + ")\\\\}", "g");\n' +
+'  return String(text).replace(pattern, function(_, k){ return (ctx && ctx[k] != null) ? String(ctx[k]) : ""; });\n' +
+'}\n' +
+'\n' +
+'function _captureRawIfEdit(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.viewMode !== "edit") return;\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
+'  if (subj) st.rawSubject = subj.value;\n' +
+'  if (body) st.rawBody    = body.innerHTML;\n' +
+'}\n' +
+'\n' +
+'function _setComposerReadonly(safeId, readonly) {\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId); var bar = _g("subj-bar-"+safeId);\n' +
+'  if (subj) subj.readOnly = !!readonly;\n' +
+'  if (body) body.setAttribute("contenteditable", readonly ? "false" : "true");\n' +
+'  if (body) body.classList.toggle("preview-mode", !!readonly);\n' +
+'  if (bar)  bar.classList.toggle("preview-mode",  !!readonly);\n' +
+'}\n' +
+'\n' +
+'function _paintComposer(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
+'  if (!subj || !body) return;\n' +
+'  if (st.viewMode === "preview") {\n' +
+'    var ctx = _composerCtx(safeId);\n' +
+'    subj.value     = _resolveMerge(st.rawSubject, ctx);\n' +
+'    body.innerHTML = _resolveMerge(st.rawBody,    ctx);\n' +
+'    _setComposerReadonly(safeId, true);\n' +
+'  } else {\n' +
+'    subj.value     = st.rawSubject || "";\n' +
+'    body.innerHTML = st.rawBody    || "";\n' +
+'    _setComposerReadonly(safeId, false);\n' +
+'  }\n' +
+'  var btn = _g("vw-btn-"+safeId);\n' +
+'  if (btn) {\n' +
+'    btn.classList.toggle("preview-mode", st.viewMode === "preview");\n' +
+'    btn.textContent = (st.viewMode === "preview") ? "Edit" : "Preview";\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'function toggleComposerView(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.viewMode === "edit") _captureRawIfEdit(safeId);\n' +
+'  st.viewMode = (st.viewMode === "preview") ? "edit" : "preview";\n' +
+'  _paintComposer(safeId);\n' +
+'}\n' +
+'\n' +
+'function markComposerDirty(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.viewMode !== "edit") return;\n' +
+'  st.isDirty = true;\n' +
+'  _refreshTplNamePill(safeId);\n' +
+'}\n' +
+'\n' +
+'function _refreshTplNamePill(safeId) {\n' +
+'  var pill = _g("tplname-"+safeId);\n' +
+'  if (!pill) return;\n' +
+'  var st = composerState[safeId];\n' +
+'  if (st && st.loadedTplId && st.loadedTplName) {\n' +
+'    pill.classList.remove("empty");\n' +
+'    pill.textContent = st.loadedTplName;\n' +
+'    pill.classList.toggle("dirty", !!st.isDirty);\n' +
+'  } else {\n' +
+'    pill.classList.add("empty");\n' +
+'    pill.textContent = "";\n' +
+'    pill.classList.remove("dirty");\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'function _initComposerStateForTemplates(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (typeof st.viewMode      === "undefined") st.viewMode      = "edit";\n' +
+'  if (typeof st.loadedTplId   === "undefined") st.loadedTplId   = null;\n' +
+'  if (typeof st.loadedTplName === "undefined") st.loadedTplName = "";\n' +
+'  if (typeof st.isDirty       === "undefined") st.isDirty       = false;\n' +
+'  // Seed raw* from current DOM if not yet set (so the default getEmailTemplate\n' +
+'  // output becomes the raw baseline before the AM loads any saved template).\n' +
+'  if (typeof st.rawSubject    === "undefined") {\n' +
+'    var subj = _g("subj-"+safeId);\n' +
+'    st.rawSubject = subj ? (subj.value || "") : "";\n' +
+'  }\n' +
+'  if (typeof st.rawBody       === "undefined") {\n' +
+'    var body = _g("ebody-"+safeId);\n' +
+'    st.rawBody = body ? (body.innerHTML || "") : "";\n' +
+'  }\n' +
+'  _attachComposerInputListeners(safeId);\n' +
+'  _refreshTplNamePill(safeId);\n' +
+'}\n' +
+'\n' +
+'function _attachComposerInputListeners(safeId) {\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
+'  if (subj && !subj.dataset.tplListened) {\n' +
+'    subj.addEventListener("input", function(){ _captureRawIfEdit(safeId); markComposerDirty(safeId); });\n' +
+'    subj.dataset.tplListened = "1";\n' +
+'  }\n' +
+'  if (body && !body.dataset.tplListened) {\n' +
+'    body.addEventListener("input", function(){ _captureRawIfEdit(safeId); markComposerDirty(safeId); });\n' +
+'    body.dataset.tplListened = "1";\n' +
+'  }\n' +
+'}\n' +
+'\n' +
+'/* ---- Dropdown open/close (Templates, Insert Link) ---- */\n' +
+'function toggleComposerDD(ddId, evt) {\n' +
+'  if (evt) evt.stopPropagation();\n' +
+'  var dd = _g(ddId); if (!dd) return;\n' +
+'  var wasOpen = dd.classList.contains("open");\n' +
+'  closeAllComposerDDs();\n' +
+'  if (!wasOpen) {\n' +
+'    dd.classList.add("open");\n' +
+'    if (ddId.indexOf("tpl-dd-") === 0) {\n' +
+'      var safeId = ddId.replace("tpl-dd-","");\n' +
+'      buildTemplatesDDPanel(safeId);\n' +
+'    }\n' +
+'  }\n' +
+'}\n' +
+'function closeAllComposerDDs() {\n' +
+'  document.querySelectorAll(".composer-dd.open").forEach(function(el){ el.classList.remove("open"); });\n' +
+'}\n' +
+'document.addEventListener("click", function(e){ if (!e.target.closest(".composer-dd")) closeAllComposerDDs(); });\n' +
+'\n' +
+'/* ---- Templates dropdown panel ---- */\n' +
+'async function fetchAmTemplates(force) {\n' +
+'  if (_amTemplatesCache && !force) return _amTemplatesCache;\n' +
+'  try {\n' +
+'    var r = await fetch("/api/templates?am=" + encodeURIComponent(AM.email));\n' +
+'    var d = await r.json();\n' +
+'    _amTemplatesCache = (d && d.ok && Array.isArray(d.templates)) ? d.templates : [];\n' +
+'  } catch (e) { _amTemplatesCache = []; }\n' +
+'  return _amTemplatesCache;\n' +
+'}\n' +
+'\n' +
+'async function buildTemplatesDDPanel(safeId) {\n' +
+'  var panel = _g("tpl-dd-panel-"+safeId); if (!panel) return;\n' +
+'  panel.innerHTML = \'<div class="composer-dd-empty">Loading templates...</div>\';\n' +
+'  var tpls = await fetchAmTemplates();\n' +
+'  var st = composerState[safeId] || {};\n' +
+'  var html = "";\n' +
+'  if (tpls.length === 0) {\n' +
+'    html += \'<div class="composer-dd-empty">No saved templates yet</div>\';\n' +
+'  } else {\n' +
+'    html += \'<div class="composer-dd-section-label">Load Template</div>\';\n' +
+'    tpls.forEach(function(t){\n' +
+'      var loaded = (st.loadedTplId === t.id) ? \' style="color:#E8620A;"\' : "";\n' +
+'      html += \'<div class="composer-dd-opt"\'+loaded+\' onclick="loadTemplate(\\\'\'+safeId+\'\\\',\\\'\'+t.id+\'\\\')">\' +\n' +
+'        \'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\' + escHtml(t.name) + \'</span>\' +\n' +
+'        ((st.loadedTplId === t.id) ? \'<span style="font-size:9px;color:rgba(255,255,255,0.4);">LOADED</span>\' : \'\') +\n' +
+'      \'</div>\';\n' +
+'    });\n' +
+'  }\n' +
+'  html += \'<div class="composer-dd-divider"></div>\';\n' +
+'  html += \'<div class="composer-dd-opt action" onclick="saveTemplateAsNew(\\\'\'+safeId+\'\\\')">+ Save Current as New Template</div>\';\n' +
+'  var canUpdate = !!(st.loadedTplId);\n' +
+'  html += \'<div class="composer-dd-opt action\'+(canUpdate?"":" disabled")+\'" onclick="\'+(canUpdate ? \'updateLoadedTemplate(\\\'\'+safeId+\'\\\')\' : \'\')+\'">Update Current Template</div>\';\n' +
+'  html += \'<div class="composer-dd-opt" onclick="openManageTemplates(\\\'\'+safeId+\'\\\')">Manage Templates...</div>\';\n' +
+'  panel.innerHTML = html;\n' +
+'}\n' +
+'\n' +
+'/* ---- Load / Save / Update ---- */\n' +
+'async function loadTemplate(safeId, tplId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.isDirty) {\n' +
+'    if (!window.confirm("You have unsaved edits in the composer. Loading another template will overwrite them. Continue?")) {\n' +
+'      closeAllComposerDDs();\n' +
+'      return;\n' +
+'    }\n' +
+'  }\n' +
+'  var tpls = await fetchAmTemplates();\n' +
+'  var tpl  = tpls.find(function(t){ return t.id === tplId; });\n' +
+'  if (!tpl) { showToast("Template not found", 2500); closeAllComposerDDs(); return; }\n' +
+'  st.rawSubject     = tpl.subject || "";\n' +
+'  st.rawBody        = tpl.body    || "";\n' +
+'  st.loadedTplId    = tpl.id;\n' +
+'  st.loadedTplName  = tpl.name;\n' +
+'  st.isDirty        = false;\n' +
+'  _paintComposer(safeId);\n' +
+'  _refreshTplNamePill(safeId);\n' +
+'  closeAllComposerDDs();\n' +
+'  showToast("Loaded template: " + tpl.name, 1800);\n' +
+'}\n' +
+'\n' +
+'async function saveTemplateAsNew(safeId) {\n' +
+'  closeAllComposerDDs();\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  _captureRawIfEdit(safeId);\n' +
+'  var name = window.prompt("Template name:", st.loadedTplName ? (st.loadedTplName + " (copy)") : "");\n' +
+'  if (!name || !name.trim()) return;\n' +
+'  try {\n' +
+'    var r = await fetch("/api/templates", { method:"POST", headers:{"Content-Type":"application/json"},\n' +
+'      body: JSON.stringify({ am: AM.email, action: "create", name: name.trim(), subject: st.rawSubject || "", body: st.rawBody || "" }) });\n' +
+'    var d = await r.json();\n' +
+'    if (!d || !d.ok) { showToast("Save failed: " + ((d && d.error) || "unknown"), 3500); return; }\n' +
+'    _amTemplatesCache = null; // refresh on next open\n' +
+'    st.loadedTplId   = d.template.id;\n' +
+'    st.loadedTplName = d.template.name;\n' +
+'    st.isDirty       = false;\n' +
+'    // After saving, default view returns to Preview\n' +
+'    st.viewMode      = "preview";\n' +
+'    _paintComposer(safeId);\n' +
+'    _refreshTplNamePill(safeId);\n' +
+'    showToast("Template saved: " + d.template.name, 2000);\n' +
+'  } catch (e) { showToast("Save failed: " + e.message, 3500); }\n' +
+'}\n' +
+'\n' +
+'async function updateLoadedTemplate(safeId) {\n' +
+'  closeAllComposerDDs();\n' +
+'  var st = composerState[safeId]; if (!st || !st.loadedTplId) return;\n' +
+'  _captureRawIfEdit(safeId);\n' +
+'  try {\n' +
+'    var r = await fetch("/api/templates", { method:"POST", headers:{"Content-Type":"application/json"},\n' +
+'      body: JSON.stringify({ am: AM.email, action: "update", id: st.loadedTplId, subject: st.rawSubject || "", body: st.rawBody || "" }) });\n' +
+'    var d = await r.json();\n' +
+'    if (!d || !d.ok) { showToast("Update failed: " + ((d && d.error) || "unknown"), 3500); return; }\n' +
+'    _amTemplatesCache = null;\n' +
+'    st.isDirty   = false;\n' +
+'    st.viewMode  = "preview";\n' +
+'    _paintComposer(safeId);\n' +
+'    _refreshTplNamePill(safeId);\n' +
+'    showToast("Template updated", 1800);\n' +
+'  } catch (e) { showToast("Update failed: " + e.message, 3500); }\n' +
+'}\n' +
+'\n' +
+'/* ---- Manage Templates modal ---- */\n' +
+'async function openManageTemplates(safeId) {\n' +
+'  closeAllComposerDDs();\n' +
+'  _manageTplsForSafeId = safeId;\n' +
+'  _g("tpl-mgr-overlay").classList.add("open");\n' +
+'  await renderManageList();\n' +
+'}\n' +
+'function closeManageTemplates(){ _g("tpl-mgr-overlay").classList.remove("open"); }\n' +
+'async function renderManageList() {\n' +
+'  var listEl = _g("tpl-mgr-list"); if (!listEl) return;\n' +
+'  listEl.innerHTML = \'<div class="tpl-mgr-empty">Loading...</div>\';\n' +
+'  var tpls = await fetchAmTemplates(true);\n' +
+'  if (!tpls.length) { listEl.innerHTML = \'<div class="tpl-mgr-empty">You have no saved templates yet.</div>\'; return; }\n' +
+'  var html = "";\n' +
+'  tpls.forEach(function(t){\n' +
+'    var meta = "";\n' +
+'    try { meta = "Updated " + new Date(t.updatedAt || t.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); } catch(e){}\n' +
+'    html += \'<div class="tpl-mgr-row">\' +\n' +
+'      \'<div style="flex:1;min-width:0;">\' +\n' +
+'        \'<div class="tpl-mgr-row-name">\' + escHtml(t.name) + \'</div>\' +\n' +
+'        (meta ? \'<div class="tpl-mgr-row-meta">\' + escHtml(meta) + \'</div>\' : \'\') +\n' +
+'      \'</div>\' +\n' +
+'      \'<button class="tpl-mgr-btn rename" onclick="renameTemplateRow(\\\'\'+t.id+\'\\\')">Rename</button>\' +\n' +
+'      \'<button class="tpl-mgr-btn delete" onclick="deleteTemplateRow(\\\'\'+t.id+\'\\\')">Delete</button>\' +\n' +
+'    \'</div>\';\n' +
+'  });\n' +
+'  listEl.innerHTML = html;\n' +
+'}\n' +
+'async function renameTemplateRow(tplId) {\n' +
+'  var tpls = await fetchAmTemplates();\n' +
+'  var cur  = tpls.find(function(t){ return t.id === tplId; });\n' +
+'  var name = window.prompt("New name:", cur ? cur.name : "");\n' +
+'  if (!name || !name.trim()) return;\n' +
+'  try {\n' +
+'    var r = await fetch("/api/templates", { method:"POST", headers:{"Content-Type":"application/json"},\n' +
+'      body: JSON.stringify({ am: AM.email, action: "rename", id: tplId, name: name.trim() }) });\n' +
+'    var d = await r.json();\n' +
+'    if (!d || !d.ok) { showToast("Rename failed", 2500); return; }\n' +
+'    _amTemplatesCache = null;\n' +
+'    // Update loaded label across composer if affected\n' +
+'    Object.keys(composerState).forEach(function(sid){\n' +
+'      var st = composerState[sid]; if (st && st.loadedTplId === tplId) { st.loadedTplName = name.trim(); _refreshTplNamePill(sid); }\n' +
+'    });\n' +
+'    await renderManageList();\n' +
+'  } catch (e) { showToast("Rename failed", 2500); }\n' +
+'}\n' +
+'async function deleteTemplateRow(tplId) {\n' +
+'  if (!window.confirm("Delete this template? This cannot be undone.")) return;\n' +
+'  try {\n' +
+'    var r = await fetch("/api/templates?am=" + encodeURIComponent(AM.email) + "&id=" + encodeURIComponent(tplId), { method:"DELETE" });\n' +
+'    var d = await r.json();\n' +
+'    if (!d || !d.ok) { showToast("Delete failed", 2500); return; }\n' +
+'    _amTemplatesCache = null;\n' +
+'    Object.keys(composerState).forEach(function(sid){\n' +
+'      var st = composerState[sid]; if (st && st.loadedTplId === tplId) { st.loadedTplId = null; st.loadedTplName = ""; _refreshTplNamePill(sid); }\n' +
+'    });\n' +
+'    await renderManageList();\n' +
+'  } catch (e) { showToast("Delete failed", 2500); }\n' +
+'}\n' +
+'\n' +
+'/* ---- Insert Link dropdown + modal ---- */\n' +
+'var _LINK_OPTS = [\n' +
+'  { label: "Main Website", url: "https://impactbusinessgroup.com/?cid=*|UNIQID|*", text: "our website" },\n' +
+'  { label: "Case Studies Page", url: "https://impactbusinessgroup.com/case-studies/?cid=*|UNIQID|*", text: "our case studies" },\n' +
+'  { label: "Individual Case Study", submenu: [\n' +
+'    { label: "Filling Critical Manufacturing Roles in One Week", url: "https://impactbusinessgroup.com/case-studies/critical-manufacturing-roles-in-one-week/?cid=*|UNIQID|*" },\n' +
+'    { label: "VP of Operations Executive Search", url: "https://impactbusinessgroup.com/case-studies/case-study-executive-search-vice-president-of-operations/?cid=*|UNIQID|*" },\n' +
+'    { label: "Greenfield Software System Project", url: "https://impactbusinessgroup.com/case-studies/greenfield-software-system-project/?cid=*|UNIQID|*" },\n' +
+'    { label: "Perfect General Manager Hire", url: "https://impactbusinessgroup.com/case-studies/case-study-perfect-general-manager-hire/?cid=*|UNIQID|*" }\n' +
+'  ] },\n' +
+'  { label: "Employers Page", url: "https://impactbusinessgroup.com/employers/?cid=*|UNIQID|*", text: "employer services" }\n' +
+'];\n' +
+'\n' +
+'function buildLinkDDPanel(safeId) {\n' +
+'  var panel = _g("link-dd-panel-"+safeId); if (!panel) return;\n' +
+'  if (panel.dataset.built === safeId) return;\n' +
+'  var html = "";\n' +
+'  _LINK_OPTS.forEach(function(opt, i){\n' +
+'    if (opt.submenu) {\n' +
+'      html += \'<div class="composer-dd-opt has-submenu" onclick="event.stopPropagation();this.classList.toggle(\\\'open\\\');">\' +\n' +
+'        \'<span>\' + escHtml(opt.label) + \'</span><span class="submenu-arrow">&#9656;</span></div>\';\n' +
+'      html += \'<div class="composer-dd-submenu">\';\n' +
+'      opt.submenu.forEach(function(sub, j){\n' +
+'        html += \'<div class="composer-dd-opt" onclick="openInsertLinkModal(\\\'\'+safeId+\'\\\',\\\'\' + escAttr(sub.url) + \'\\\',\\\'\' + escAttr(sub.label) + \'\\\')">\' + escHtml(sub.label) + \'</div>\';\n' +
+'      });\n' +
+'      html += \'</div>\';\n' +
+'    } else {\n' +
+'      html += \'<div class="composer-dd-opt" onclick="openInsertLinkModal(\\\'\'+safeId+\'\\\',\\\'\' + escAttr(opt.url) + \'\\\',\\\'\' + escAttr(opt.text) + \'\\\')">\' + escHtml(opt.label) + \'</div>\';\n' +
+'    }\n' +
+'  });\n' +
+'  panel.innerHTML = html;\n' +
+'  panel.dataset.built = safeId;\n' +
+'}\n' +
+'function escAttr(s){ return String(s||"").replace(/&/g,"&amp;").replace(/\'/g,"&#39;").replace(/"/g,"&quot;"); }\n' +
+'\n' +
+'function openInsertLinkModal(safeId, url, defaultText) {\n' +
+'  closeAllComposerDDs();\n' +
+'  _pendingInsertLink = { safeId: safeId, url: url, defaultText: defaultText };\n' +
+'  _g("link-confirm-text").value = defaultText || "";\n' +
+'  _g("link-confirm-url").textContent = url;\n' +
+'  _g("link-confirm-overlay").classList.add("open");\n' +
+'  setTimeout(function(){ var el = _g("link-confirm-text"); if (el){ el.focus(); el.select(); } }, 50);\n' +
+'}\n' +
+'function closeInsertLinkModal(){ _g("link-confirm-overlay").classList.remove("open"); _pendingInsertLink = null; }\n' +
+'function confirmInsertLink() {\n' +
+'  var p = _pendingInsertLink; if (!p) return;\n' +
+'  var anchorText = (_g("link-confirm-text").value || p.defaultText || p.url).trim();\n' +
+'  var html = \'<a href="\' + escAttr(p.url) + \'">\' + escHtml(anchorText) + \'</a>\';\n' +
+'  _insertLinkIntoComposer(p.safeId, html);\n' +
+'  closeInsertLinkModal();\n' +
+'}\n' +
+'\n' +
+'function _insertLinkIntoComposer(safeId, anchorHtml) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  // Force Edit mode so the AM sees the inserted markup as raw text\n' +
+'  if (st.viewMode !== "edit") { st.viewMode = "edit"; _paintComposer(safeId); }\n' +
+'  var body = _g("ebody-"+safeId); if (!body) return;\n' +
+'  body.focus();\n' +
+'  var sel = window.getSelection();\n' +
+'  var inserted = false;\n' +
+'  if (sel && sel.rangeCount > 0) {\n' +
+'    var range = sel.getRangeAt(0);\n' +
+'    if (body.contains(range.commonAncestorContainer)) {\n' +
+'      range.deleteContents();\n' +
+'      var temp = document.createElement("div"); temp.innerHTML = anchorHtml + "&nbsp;";\n' +
+'      var frag = document.createDocumentFragment(); var node;\n' +
+'      while ((node = temp.firstChild)) frag.appendChild(node);\n' +
+'      range.insertNode(frag);\n' +
+'      range.collapse(false); sel.removeAllRanges(); sel.addRange(range);\n' +
+'      inserted = true;\n' +
+'    }\n' +
+'  }\n' +
+'  if (!inserted) { body.innerHTML += " " + anchorHtml; }\n' +
+'  st.rawBody = body.innerHTML;\n' +
+'  markComposerDirty(safeId);\n' +
+'  showToast("Link inserted", 1500);\n' +
 '}\n' +
 '\n' +
 'init();\n' +
