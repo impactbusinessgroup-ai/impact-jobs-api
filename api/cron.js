@@ -105,10 +105,15 @@ async function sendAlert(subscriber, pages) {
 
 const repEmail = subscriber.merge_fields.REPEMAIL || '';
 
+  const ccList = (repEmail
+    ? ['info@impactbusinessgroup.com', 'mpeal@impactbusinessgroup.com']
+    : ['mpeal@impactbusinessgroup.com']
+  ).join(', ');
+
   await transporter.sendMail({
     from: `"iMPact Tracker" <${process.env.GMAIL_USER}>`,
     to: repEmail || 'info@impactbusinessgroup.com',
-    cc: repEmail ? 'info@impactbusinessgroup.com' : '',
+    cc: ccList,
     subject: `Client Visit: ${name} (${company})`,
     html,
   });
