@@ -611,7 +611,8 @@ module.exports = async function handler(req, res) {
     var processed = 0;
     var contactsFound = 0;
     var skipped = 0;
-    var debugLog = (await redisGet('contacts_fetch_debug')) || [];
+    // In-memory only. The persisted contacts_fetch_debug Redis key has been retired.
+    var debugLog = [];
 
     for (var i = 0; i < keys.length; i++) {
       if (processed >= MAX_PER_RUN) { console.log('Hit max ' + MAX_PER_RUN + ' leads per run, deferring rest'); break; }
@@ -687,7 +688,6 @@ module.exports = async function handler(req, res) {
       if (i < keys.length - 1) await delay(500);
     }
 
-    await redisSet('contacts_fetch_debug', debugLog, 86400);
     return res.status(200).json({ ok: true, processed: processed, contactsFound: contactsFound, skipped: skipped });
   } catch (e) {
     console.error('Contacts fetch error:', e.message);

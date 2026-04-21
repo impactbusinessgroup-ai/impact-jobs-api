@@ -114,14 +114,14 @@ const repEmail = subscriber.merge_fields.REPEMAIL || '';
   });
 }
 
-// --- Round robin config ---
+// --- Round robin config (matches api/_routing.js) ---
 const ROUND_ROBIN = {
-  engineering: ['Paul Kujawski', 'Dan Teliczan', 'Steve Betteley', 'Doug Koetsier'],
-  it: ['Doug Koetsier', 'Jamie Drajka', 'Dan Teliczan', 'Curt Willbrandt', 'Trish Wangler', 'Steve Betteley'],
-  accounting: ['Lauren Sylvester', 'Matt Peal'],
+  engineering: ['Douglas Koetsier', 'Paul Kujawski', 'Dan Teliczan', 'Steve Betteley'],
+  it: ['Curt Willbrandt', 'Dan Teliczan', 'Douglas Koetsier', 'Jamie Drajka', 'Steve Betteley', 'Trish Wangler'],
+  accounting: ['Lauren Sylvester'],
   other: ['Lauren Sylvester', 'Trish Wangler'],
 };
-const TAMPA_AMS = ['Mark Herman', 'Drew Bentsen'];
+const TAMPA_AMS = ['Drew Bentsen', 'Mark Herman'];
 const ESCALATION_AM = 'Matt Peal';
 
 // AM directory centralized in ./_am_data; compatibility shims below
@@ -402,9 +402,20 @@ async function sendMorningEmail() {
   // acquires the short lock still short-circuits on the alreadySent check.
   await redisSet(dateKey, true, 86400);
 
+  // Drew Kunkel intentionally excluded while on leave.
   const APPROVED_AMS = [
     { email: 'msapoznikov@impactbusinessgroup.com', fullName: 'Mark Sapoznikov' },
+    { email: 'mpeal@impactbusinessgroup.com',       fullName: 'Matt Peal' },
     { email: 'cwillbrandt@impactbusinessgroup.com', fullName: 'Curt Willbrandt' },
+    { email: 'dkoetsier@impactbusinessgroup.com',   fullName: 'Doug Koetsier' },
+    { email: 'pkujawski@impactbusinessgroup.com',   fullName: 'Paul Kujawski' },
+    { email: 'lsylvester@impactbusinessgroup.com',  fullName: 'Lauren Sylvester' },
+    { email: 'dteliczan@impactbusinessgroup.com',   fullName: 'Dan Teliczan' },
+    { email: 'twangler@impactbusinessgroup.com',    fullName: 'Trish Wangler' },
+    { email: 'mherman@impactbusinessgroup.com',     fullName: 'Mark Herman' },
+    { email: 'jdrajka@impactbusinessgroup.com',     fullName: 'Jamie Drajka' },
+    { email: 'dbentsen@impactbusinessgroup.com',    fullName: 'Drew Bentsen' },
+    { email: 'sbetteley@impactbusinessgroup.com',   fullName: 'Steve Betteley' },
   ];
   const REVIEW_URL = 'https://impact-jobs-api.vercel.app/review';
 
@@ -549,6 +560,14 @@ function buildReassignmentEmailHtml(ctx) {
 async function sendReassignmentEmail() {
   const now = new Date();
   const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  // Hold the 1pm reassignment email until 2026-04-22 (the bulk redistribute
+  // ran today and the inactivity clocks were just reset, so there's no real
+  // reassignment activity worth emailing about until tomorrow at the earliest).
+  const etYmd = etNow.getFullYear() + '-' + String(etNow.getMonth() + 1).padStart(2, '0') + '-' + String(etNow.getDate()).padStart(2, '0');
+  if (etYmd <= '2026-04-21') {
+    console.log('Holding reassignment email until 2026-04-22 (today is ' + etYmd + ')');
+    return false;
+  }
   const dow = etNow.getDay();
   if (dow === 0 || dow === 6) {
     console.log('Skipping reassignment email on weekend');

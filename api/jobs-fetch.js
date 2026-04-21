@@ -1,5 +1,7 @@
 // api/jobs-fetch.js
 
+const { assignAM } = require('./_routing');
+
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -417,7 +419,7 @@ async function handleDryRun(req, res) {
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
-  if (req.headers['authorization'] !== 'Bearer test123') {
+  if (req.headers['authorization'] !== 'Bearer ' + process.env.JOBS_CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -432,18 +434,23 @@ module.exports = async function handler(req, res) {
   let totalFetched = 0;
   let totalFiltered = 0;
   let geminiCalls = 0;
-  const rejectionLog = [];
 
   const { companies: blockedCompanies, titles: blockedTitles } = await loadBlocklists();
   console.log(`Blocklists: ${blockedCompanies.length} companies, ${blockedTitles.length} titles`);
 
-  const existingKeys = await redisKeys(`lead:${today}:*`);
-  for (const key of existingKeys) {
+  // Load all leads up-front so the routing module can load-balance against
+  // current active counts when assigning new leads.
+  const allLeadKeys = await redisKeys('lead:*');
+  const allLeadsForRouting = [];
+  for (const key of allLeadKeys) {
     const lead = await redisGet(key);
     if (!lead) continue;
-    const nc = lead.normalizedCompany || '';
-    const nt = lead.normalizedTitle || normalizeTitle(lead.jobTitle || '');
-    if (nc) seenCompanyTitles.add(nc + '|' + nt);
+    allLeadsForRouting.push(lead);
+    if (key.startsWith(`lead:${today}:`)) {
+      const nc = lead.normalizedCompany || '';
+      const nt = lead.normalizedTitle || normalizeTitle(lead.jobTitle || '');
+      if (nc) seenCompanyTitles.add(nc + '|' + nt);
+    }
   }
 
   const MAX_QUALIFIED = 50;
@@ -465,26 +472,19 @@ module.exports = async function handler(req, res) {
       const aggregatorHost = isAggregatorSource(job.job_apply_link, employer);
       if (aggregatorHost) {
         console.log('Filtered aggregator source:', employer, '-', aggregatorHost);
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'aggregator-whitelist', timestamp: new Date().toISOString() });
         totalFiltered++; continue;
       }
 
       if (isExcludedTitle(title, blockedTitles)) { totalFiltered++; continue; }
       if (isJobBoard(employer)) { totalFiltered++; continue; }
       if (isContractRole(job)) { totalFiltered++; continue; }
-      if (isBlockedCompany(employer, blockedCompanies)) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'blocklist', timestamp: new Date().toISOString() });
-        totalFiltered++; continue;
-      }
+      if (isBlockedCompany(employer, blockedCompanies)) { totalFiltered++; continue; }
 
       // Pre-Gemini employer keyword filter
       const empLower = employer.toLowerCase();
       const staffingHit = ['staffing','recruiting','recruitment','search partners','placement','via dice','robert half','virtual vocations','ilocatum','executiveplacements','jobot','akkodis','search & delivery','employment partners','vetjobs','vet jobs'].some(k => empLower.includes(k));
       const govEduHit = ['public schools','school district','township','department of'].some(k => empLower.includes(k)) || ['city of','county of','state of'].some(k => empLower.startsWith(k));
-      if (staffingHit || govEduHit) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'pre-gemini-keyword', timestamp: new Date().toISOString() });
-        totalFiltered++; continue;
-      }
+      if (staffingHit || govEduHit) { totalFiltered++; continue; }
 
       // Fast pre-filter: skip obviously irrelevant titles without a Gemini call
       if (!hasPrimaryKeyword(title)) { totalFiltered++; continue; }
@@ -493,21 +493,12 @@ module.exports = async function handler(req, res) {
       geminiCalls++;
       await sleep(250);
       const geminiResult = await isRelevantViaGemini(title, description);
-      if (!geminiResult.relevant) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'gemini-no', geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
-        totalFiltered++; continue;
-      }
-      if (geminiResult.response === 'EMPTY_PASSTHROUGH' || geminiResult.response.startsWith('ERROR_PASSTHROUGH')) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'gemini-empty', geminiResponse: geminiResult.response, timestamp: new Date().toISOString() });
-      }
+      if (!geminiResult.relevant) { totalFiltered++; continue; }
 
       const normalized = normalizeCompany(employer);
       const normalizedTitle = normalizeTitle(title);
       const dedupKey = normalized + '|' + normalizedTitle;
-      if (seenCompanyTitles.has(dedupKey)) {
-        rejectionLog.push({ jobTitle: title, company: employer, reason: 'company-title-dedup', timestamp: new Date().toISOString() });
-        totalFiltered++; continue;
-      }
+      if (seenCompanyTitles.has(dedupKey)) { totalFiltered++; continue; }
       seenCompanyTitles.add(dedupKey);
 
       const category = await detectCategory(title, description);
@@ -553,13 +544,18 @@ module.exports = async function handler(req, res) {
       }
 
       const locationStr = `${job.job_city || ''}, ${job.job_state || ''}`.trim().replace(/^,\s*/, '');
-      const isMichigan = /michigan/i.test(locationStr) || /,\s*MI\b/i.test(locationStr);
-      let assignedAM = 'Mark Sapoznikov';
-      let assignedAMEmail = 'msapoznikov@impactbusinessgroup.com';
-      if (category === 'it' && isMichigan) {
-        assignedAM = 'Curt Willbrandt';
-        assignedAMEmail = 'cwillbrandt@impactbusinessgroup.com';
-      }
+      // Full round-robin routing: Mailchimp REP override first (most-contacts
+      // tiebreak), then category-pool load-balanced assignment. Tampa-located
+      // leads always route to the Tampa duo. See api/_routing.js.
+      const route = await assignAM({
+        category,
+        location: locationStr,
+        company: employer,
+        allLeads: allLeadsForRouting,
+      });
+      const assignedAM = route ? route.name : 'Mark Sapoznikov';
+      const assignedAMEmail = route ? route.email : 'msapoznikov@impactbusinessgroup.com';
+      console.log('Assigned', employer, '->', assignedAM, '(' + (route ? route.source : 'fallback') + ')');
 
       const lead = {
         id: leadId,
@@ -585,23 +581,14 @@ module.exports = async function handler(req, res) {
 
       await redisSet(leadId, lead, 60 * 60 * 24 * 14);
       qualifiedLeads.push(leadId);
+      // Keep routing balance accurate for the rest of this run.
+      allLeadsForRouting.push(lead);
     }
 
     await new Promise(r => setTimeout(r, 300));
   }
 
-  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified, ${geminiCalls} Gemini calls, ${rejectionLog.length} Gemini rejections`);
-
-  // Write Gemini rejection log to Redis (append to existing)
-  if (rejectionLog.length > 0) {
-    try {
-      const existing = await redisGet('filter_rejection_log');
-      const combined = (Array.isArray(existing) ? existing : []).concat(rejectionLog);
-      await redisSet('filter_rejection_log', combined);
-    } catch (e) {
-      console.error('Failed to write rejection log:', e.message);
-    }
-  }
+  console.log(`Done: ${totalFetched} fetched, ${totalFiltered} filtered, ${qualifiedLeads.length} qualified, ${geminiCalls} Gemini calls`);
 
   return res.status(200).json({
     ok: true,
