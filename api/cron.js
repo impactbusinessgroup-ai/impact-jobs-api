@@ -355,9 +355,13 @@ function buildMorningEmailHtml(ctx) {
             '</tr></table>' +
           '</td></tr>' +
           '<tr><td align="center" style="padding:0 24px 34px;">' +
-            '<table cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td bgcolor="' + ORANGE + '" style="border-radius:6px;">' +
-              '<a href="' + ctx.reviewUrl + '" style="display:inline-block;padding:14px 32px;color:#ffffff;font-family:Raleway,Arial,sans-serif;font-size:15px;font-weight:700;text-decoration:none;">Review My Leads</a>' +
-            '</td></tr></table>' +
+            '<table cellpadding="0" cellspacing="0" border="0" align="center">' +
+              '<tr>' +
+                '<td bgcolor="' + ORANGE + '" style="border-radius: 6px; padding: 12px 24px;">' +
+                  '<a href="' + ctx.reviewUrl + '" style="color: #ffffff; font-family: Raleway, Arial, sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block;">Review My Leads</a>' +
+                '</td>' +
+              '</tr>' +
+            '</table>' +
           '</td></tr>' +
           '<tr><td align="center" style="padding:18px 24px 24px;border-top:1px solid #eeeeee;">' +
             '<div style="font-size:12px;color:' + LABEL_GREY + ';font-family:' + BODY_FONT + ';">iMPact Business Group | Grand Rapids, MI &amp; Tampa, FL</div>' +
@@ -404,6 +408,20 @@ async function sendMorningEmail() {
   ];
   const REVIEW_URL = 'https://impact-jobs-api.vercel.app/review';
 
+  // Build a map of AM email -> personal token so each recipient's CTA deep-links into their own view.
+  const tokenByEmail = {};
+  try {
+    const tokenKeys = await redisKeys('token:*');
+    for (const tk of tokenKeys) {
+      const rec = await redisGet(tk);
+      if (!rec || !rec.email) continue;
+      const tokenValue = tk.replace(/^token:/, '');
+      const emailLower = String(rec.email).toLowerCase();
+      // If multiple tokens exist for the same AM, keep the first — any valid one deep-links correctly.
+      if (!tokenByEmail[emailLower]) tokenByEmail[emailLower] = tokenValue;
+    }
+  } catch (e) { console.error('Token map build error:', e.message); }
+
   const keys = await redisKeys('lead:*');
   const allLeads = [];
   for (const key of keys) {
@@ -442,13 +460,17 @@ async function sendMorningEmail() {
     }).length;
 
     const firstName = (am.fullName || '').split(' ')[0] || '';
+    const personalToken = tokenByEmail[amEmailLower];
+    const reviewUrl = personalToken
+      ? REVIEW_URL + '?token=' + encodeURIComponent(personalToken)
+      : REVIEW_URL;
     const html = buildMorningEmailHtml({
       firstName,
       todayLabel,
       newToday,
       totalPending,
       followupsDue,
-      reviewUrl: REVIEW_URL,
+      reviewUrl,
     });
 
     await transporter.sendMail({
