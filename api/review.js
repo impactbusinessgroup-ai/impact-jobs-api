@@ -383,7 +383,8 @@ module.exports = async function handler(req, res) {
 '.cal-month { background: rgba(232,98,10,0.8); color: white; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; width: 100%; text-align: center; padding: 4px 0; }\n' +
 '.cal-day { font-size: 22px; font-weight: 800; color: white; padding: 4px 0 1px; line-height: 1; font-family: Oswald, sans-serif; }\n' +
 '.cal-year { font-size: 9px; color: rgba(255,255,255,0.4); padding-bottom: 5px; }\n' +
-'.section-label { font-size: 16px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
+'.section-label { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 12px; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
+'.section-helper { font-family: Raleway, sans-serif; font-size: 11px; color: rgba(255,255,255,0.55); margin: -6px 0 12px 13px; line-height: 1.4; }\n' +
 '.contacts-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }\n' +
 '.contact-card { position: relative; flex: 1; min-width: 200px; max-width: 320px; background: #424242; border: 1px solid #555555; border-radius: 12px; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }\n' +
 '.contact-card:hover { border-color: #666666; background: #4a4a4a; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }\n' +
@@ -420,7 +421,7 @@ module.exports = async function handler(req, res) {
 '.btn-more-contacts { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }\n' +
 '.btn-more-contacts:hover { background: rgba(255,255,255,0.08); color: #E8620A; border-color: rgba(232,98,10,0.3); }\n' +
 '.composer { background: #262626; border: 1px solid #333333; border-radius: 12px; padding: 16px; margin-top: 14px; }\n' +
-'.composer-label { font-size: 16px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
+'.composer-label { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: 0.02em; margin-bottom: 8px; font-family: Oswald, sans-serif; padding-left: 10px; border-left: 3px solid #E8620A; }\n' +
 '.composer-disabled { text-align: center; padding: 24px; color: rgba(255,255,255,0.25); font-size: 13px; font-style: italic; }\n' +
 '.subj-bar { display: flex; align-items: center; background: #323232; border: 1px solid #444444; border-radius: 10px; padding: 0; margin-bottom: 8px; overflow: visible; position: relative; }\n' +
 '.subj-bar-input { flex: 1; font-size: 14px; padding: 8px 12px; border: none; background: transparent; color: #fff; font-family: Raleway, sans-serif; outline: none; min-width: 0; border-radius: 9px 0 0 9px; }\n' +
@@ -592,12 +593,16 @@ module.exports = async function handler(req, res) {
 '.composer-dd-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }\n' +
 '.composer-dd-empty { padding: 12px 14px; font-family: Raleway, sans-serif; font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; text-align: center; }\n' +
 '.composer-dd-section-label { padding: 8px 14px 4px; font-family: Raleway, sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.6px; }\n' +
-'.composer-dd-submenu { position: absolute; top: 0; right: calc(100% + 4px); min-width: 280px; max-width: 360px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; box-shadow: -4px 0 16px rgba(0,0,0,0.5); padding: 4px 0; display: none; z-index: 201; }\n' +
-'.composer-dd-opt.has-submenu.open + .composer-dd-submenu, .composer-dd-opt.has-submenu:hover + .composer-dd-submenu { display: block; }\n' +
+'.composer-dd-submenu { position: fixed; min-width: 280px; max-width: 360px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; box-shadow: 4px 0 16px rgba(0,0,0,0.5); padding: 4px 0; display: none; z-index: 250; }\n' +
+'.composer-dd-submenu.open { display: block; }\n' +
 '.composer-dd-opt.has-submenu { position: relative; }\n' +
-'.rich-editor.preview-mode { background: rgba(232,98,10,0.04); border-color: rgba(232,98,10,0.25); cursor: default; }\n' +
-'.subj-bar.preview-mode { background: rgba(232,98,10,0.04); border-color: rgba(232,98,10,0.25); }\n' +
-'.subj-bar.preview-mode .subj-bar-input { cursor: default; }\n' +
+'.composer-dd-opt.has-submenu.open { background: rgba(232,98,10,0.12); color: #fff; }\n' +
+'/* Live mode: editor stays fully editable; subtle tinted border signals merge-tag values are resolved */\n' +
+'.rich-editor.live-mode { background: rgba(232,98,10,0.03); border-color: rgba(232,98,10,0.22); }\n' +
+'.subj-bar.live-mode { background: rgba(232,98,10,0.03); border-color: rgba(232,98,10,0.22); }\n' +
+'/* Resolved-merge-field highlight inside the live body. Class is removed on edit so highlight disappears. */\n' +
+'.rich-editor .mf-live { background: rgba(232,98,10,0.15); border-radius: 3px; padding: 0 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }\n' +
+'.rich-editor a { color: #4ea1ff; text-decoration: underline; }\n' +
 '/* Manage Templates modal */\n' +
 '.tpl-mgr-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }\n' +
 '.tpl-mgr-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }\n' +
@@ -1885,6 +1890,7 @@ html += '' +
 '        \'<div class="section-label">Contacts</div>\'+\n' +
 '        \'<button class="btn-ac-circle\'+(hasAllContacts?" has-suggestions":"")+\'" onclick="openACModal(\\\'\'+safeId+\'\\\')" data-tooltip="Find contacts">+</button>\'+\n' +
 '      \'</div>\'+\n' +
+'      \'<div class="section-helper">Click blue check mark to complete each contact before completing the lead</div>\'+\n' +
 '      \'<div class="contacts-row" id="contacts-\'+safeId+\'"></div>\'+\n' +
 '      \'<div class="composer" id="composer-\'+safeId+\'">\'+\n' +
 '        \'<div class="composer-label">Email Composer</div>\'+\n' +
@@ -1911,10 +1917,14 @@ html += '' +
 '              \'<button class="btn-send-email disabled" id="send-btn-\'+safeId+\'" onclick="sendEmail(\\\'\'+safeId+\'\\\')" data-tooltip="Activate a contact first">\'+SVG_OUTLOOK_LOGO+\' Send Email</button>\'+\n' +
 '              \'<div class="composer-toolbar-right">\'+\n' +
 '                \'<span class="composer-tpl-name empty" id="tplname-\'+safeId+\'"></span>\'+\n' +
-'                \'<button class="btn-edit-preview" id="vw-btn-\'+safeId+\'" onclick="toggleComposerView(\\\'\'+safeId+\'\\\')">Preview</button>\'+\n' +
+'                \'<button class="btn-edit-preview" id="vw-btn-\'+safeId+\'" onclick="toggleEditLive(\\\'\'+safeId+\'\\\')">Live</button>\'+\n' +
 '                \'<div class="composer-dd" id="tpl-dd-\'+safeId+\'">\'+\n' +
 '                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'tpl-dd-\'+safeId+\'\\\',event)">Templates <span class="chev">&#9660;</span></button>\'+\n' +
 '                  \'<div class="composer-dd-panel" id="tpl-dd-panel-\'+safeId+\'"></div>\'+\n' +
+'                \'</div>\'+\n' +
+'                \'<div class="composer-dd" id="mt-dd-\'+safeId+\'" style="display:none;">\'+\n' +
+'                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'mt-dd-\'+safeId+\'\\\',event);buildMergeTagsDDPanel(\\\'\'+safeId+\'\\\');">Merge Tags <span class="chev">&#9660;</span></button>\'+\n' +
+'                  \'<div class="composer-dd-panel" id="mt-dd-panel-\'+safeId+\'"></div>\'+\n' +
 '                \'</div>\'+\n' +
 '                \'<div class="composer-dd" id="link-dd-\'+safeId+\'">\'+\n' +
 '                  \'<button class="composer-dd-btn" onclick="toggleComposerDD(\\\'link-dd-\'+safeId+\'\\\',event);buildLinkDDPanel(\\\'\'+safeId+\'\\\');">Insert Link <span class="chev">&#9660;</span></button>\'+\n' +
@@ -2332,7 +2342,7 @@ html += '' +
 '    // raw text doesnt change between contacts, but the resolved Preview must\n' +
 '    // re-render against the new contact context.\n' +
 '    _initComposerStateForTemplates(safeId);\n' +
-'    if (composerState[safeId].viewMode === "preview") _paintComposer(safeId);\n' +
+'    if (composerState[safeId].viewMode === "live") _paintByMode(safeId);\n' +
 '  }\n' +
 '}\n' +
 '\n' +
@@ -2343,11 +2353,20 @@ html += '' +
 '  if(!card) return;\n' +
 '  var email=card.getAttribute("data-email")||"";\n' +
 '  if(!email) return;\n' +
-'  // Resolve any merge-field placeholders before copying / opening Outlook.\n' +
-'  var ctx=_composerCtx(safeId);\n' +
-'  var subjectText=_resolveMerge(_g("subj-"+safeId).value, ctx);\n' +
+'  // Mode-aware send: Edit mode resolves remaining {tags}; Live mode strips mf-live spans (text already resolved).\n' +
+'  var st=composerState[safeId]||{};\n' +
+'  var subjVal=_g("subj-"+safeId).value;\n' +
+'  var bodyVal=_g("ebody-"+safeId).innerHTML;\n' +
+'  var subjectText, htmlBody;\n' +
+'  if (st.viewMode === "edit") {\n' +
+'    var ctx=_composerCtx(safeId);\n' +
+'    subjectText=_resolveMerge(subjVal, ctx);\n' +
+'    htmlBody   =_resolveMerge(bodyVal, ctx);\n' +
+'  } else {\n' +
+'    subjectText=subjVal;\n' +
+'    htmlBody   =_stripMfSpansHtml(bodyVal);\n' +
+'  }\n' +
 '  var subject=encodeURIComponent(subjectText);\n' +
-'  var htmlBody=_resolveMerge(_g("ebody-"+safeId).innerHTML, ctx);\n' +
 '  var tmpEl=document.createElement("div"); tmpEl.innerHTML=htmlBody;\n' +
 '  var plainText=tmpEl.innerText;\n' +
 '  try{navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([htmlBody],{type:"text/html"}),"text/plain":new Blob([plainText],{type:"text/plain"})})]).then(function(){showToast("Email copied - paste into Outlook",3000);}).catch(function(){navigator.clipboard.writeText(htmlBody).then(function(){showToast("Email copied - paste into Outlook",3000);});});}catch(e){navigator.clipboard.writeText(htmlBody);showToast("Email copied - paste into Outlook",3000);}\n' +
@@ -4056,13 +4075,18 @@ html += '' +
 '\n' +
 '\n' +
 '/* ========================================================================\n' +
-'   Composer: Templates + Insert Link + Edit/Preview\n' +
+'   Composer: Templates + Insert Link + Merge Tags + Edit/Live mode\n' +
 '   ====================================================================== */\n' +
 '\n' +
 'var _amTemplatesCache = null;       // array, scoped to current AM\n' +
 'var _pendingInsertLink = null;      // {safeId, url, defaultText}\n' +
 'var _manageTplsForSafeId = null;    // last safeId that opened the manage modal\n' +
 'var _MERGE_FIELDS = ["firstName","fullName","contactTitle","company","jobTitle","amName","amTitle","amCalendly","amPhone"];\n' +
+'var _MERGE_TAG_LABELS = {\n' +
+'  firstName: "Contact First Name", fullName: "Contact Full Name", contactTitle: "Contact Title",\n' +
+'  company: "Company", jobTitle: "Job Title",\n' +
+'  amName: "AM Name", amTitle: "AM Title", amCalendly: "AM Calendly", amPhone: "AM Phone"\n' +
+'};\n' +
 '\n' +
 'function _composerCtx(safeId) {\n' +
 '  var lead = leads.find(function(l){ return getSafeId(l.id)===safeId; });\n' +
@@ -4089,60 +4113,146 @@ html += '' +
 '  return String(text).replace(pattern, function(_, k){ return (ctx && ctx[k] != null) ? String(ctx[k]) : ""; });\n' +
 '}\n' +
 '\n' +
-'function _captureRawIfEdit(safeId) {\n' +
-'  var st = composerState[safeId]; if (!st) return;\n' +
-'  if (st.viewMode !== "edit") return;\n' +
-'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
-'  if (subj) st.rawSubject = subj.value;\n' +
-'  if (body) st.rawBody    = body.innerHTML;\n' +
+'/* Live render: replace {tag} in raw HTML with highlighted spans whose text is the resolved value. */\n' +
+'function _renderLiveBodyHtml(rawHtml, ctx) {\n' +
+'  if (rawHtml == null) return "";\n' +
+'  var pattern = new RegExp("\\\\{(" + _MERGE_FIELDS.join("|") + ")\\\\}", "g");\n' +
+'  return String(rawHtml).replace(pattern, function(_, k){\n' +
+'    var v = (ctx && ctx[k] != null) ? String(ctx[k]) : "";\n' +
+'    if (v === "") return "";\n' +
+'    return \'<span class="mf-live" data-mf="\' + k + \'" data-mf-original="\' + escAttr(v) + \'">\' + escHtml(v) + \'</span>\';\n' +
+'  });\n' +
 '}\n' +
 '\n' +
-'function _setComposerReadonly(safeId, readonly) {\n' +
-'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId); var bar = _g("subj-bar-"+safeId);\n' +
-'  if (subj) subj.readOnly = !!readonly;\n' +
-'  if (body) body.setAttribute("contenteditable", readonly ? "false" : "true");\n' +
-'  if (body) body.classList.toggle("preview-mode", !!readonly);\n' +
-'  if (bar)  bar.classList.toggle("preview-mode",  !!readonly);\n' +
+'/* Strip mf-live wrappers (and any leftover empty <span data-mf=...> tags from broken merges). */\n' +
+'function _stripMfSpansHtml(html) {\n' +
+'  if (html == null) return "";\n' +
+'  var div = document.createElement("div");\n' +
+'  div.innerHTML = html;\n' +
+'  div.querySelectorAll("span[data-mf]").forEach(function(s){\n' +
+'    var parent = s.parentNode;\n' +
+'    while (s.firstChild) parent.insertBefore(s.firstChild, s);\n' +
+'    parent.removeChild(s);\n' +
+'  });\n' +
+'  return div.innerHTML;\n' +
 '}\n' +
 '\n' +
-'function _paintComposer(safeId) {\n' +
+'/* Drop the mf-live highlight class on any span whose text no longer matches its original resolved value. */\n' +
+'function _breakBrokenMfSpans(bodyEl) {\n' +
+'  if (!bodyEl) return;\n' +
+'  bodyEl.querySelectorAll("span.mf-live").forEach(function(s){\n' +
+'    if (s.textContent !== s.dataset.mfOriginal) s.classList.remove("mf-live");\n' +
+'  });\n' +
+'}\n' +
+'\n' +
+'/* ---- Cursor save / restore so Insert Link / Merge Tags drop where the AM expects ---- */\n' +
+'function _saveCursorRange(safeId) {\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
-'  if (!subj || !body) return;\n' +
-'  if (st.viewMode === "preview") {\n' +
-'    var ctx = _composerCtx(safeId);\n' +
-'    subj.value     = _resolveMerge(st.rawSubject, ctx);\n' +
-'    body.innerHTML = _resolveMerge(st.rawBody,    ctx);\n' +
-'    _setComposerReadonly(safeId, true);\n' +
+'  var sel = window.getSelection(); if (!sel || sel.rangeCount === 0) return;\n' +
+'  var range = sel.getRangeAt(0);\n' +
+'  var body = _g("ebody-"+safeId);\n' +
+'  if (body && body.contains(range.commonAncestorContainer)) st.savedRange = range.cloneRange();\n' +
+'}\n' +
+'function _restoreCursorRange(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st || !st.savedRange) return false;\n' +
+'  var body = _g("ebody-"+safeId); if (!body) return false;\n' +
+'  body.focus();\n' +
+'  var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(st.savedRange);\n' +
+'  return true;\n' +
+'}\n' +
+'function _insertHtmlAtCursor(safeId, html) {\n' +
+'  var body = _g("ebody-"+safeId); if (!body) return;\n' +
+'  body.focus();\n' +
+'  _restoreCursorRange(safeId);\n' +
+'  var sel = window.getSelection();\n' +
+'  if (sel && sel.rangeCount > 0 && body.contains(sel.anchorNode)) {\n' +
+'    var range = sel.getRangeAt(0);\n' +
+'    range.deleteContents();\n' +
+'    var temp = document.createElement("div"); temp.innerHTML = html;\n' +
+'    var frag = document.createDocumentFragment(); var node, lastNode = null;\n' +
+'    while ((node = temp.firstChild)) { lastNode = node; frag.appendChild(node); }\n' +
+'    range.insertNode(frag);\n' +
+'    if (lastNode) { range.setStartAfter(lastNode); range.setEndAfter(lastNode); sel.removeAllRanges(); sel.addRange(range); }\n' +
 '  } else {\n' +
-'    subj.value     = st.rawSubject || "";\n' +
-'    body.innerHTML = st.rawBody    || "";\n' +
-'    _setComposerReadonly(safeId, false);\n' +
+'    body.innerHTML += html;\n' +
 '  }\n' +
+'  _saveCursorRange(safeId);\n' +
+'}\n' +
+'function _insertTextAtCursor(safeId, text) {\n' +
+'  var body = _g("ebody-"+safeId); if (!body) return;\n' +
+'  body.focus();\n' +
+'  _restoreCursorRange(safeId);\n' +
+'  var sel = window.getSelection();\n' +
+'  if (sel && sel.rangeCount > 0 && body.contains(sel.anchorNode)) {\n' +
+'    var range = sel.getRangeAt(0); range.deleteContents();\n' +
+'    var node = document.createTextNode(text);\n' +
+'    range.insertNode(node);\n' +
+'    range.setStartAfter(node); range.setEndAfter(node); sel.removeAllRanges(); sel.addRange(range);\n' +
+'  } else {\n' +
+'    body.appendChild(document.createTextNode(text));\n' +
+'  }\n' +
+'  _saveCursorRange(safeId);\n' +
+'}\n' +
+'\n' +
+'/* ---- Mode painting ---- */\n' +
+'function _paintLive(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId); var bar = _g("subj-bar-"+safeId);\n' +
+'  var ctx = _composerCtx(safeId);\n' +
+'  if (subj) subj.value     = _resolveMerge(st.rawSubject || "", ctx);\n' +
+'  if (body) body.innerHTML = _renderLiveBodyHtml(st.rawBody || "", ctx);\n' +
+'  if (body) body.classList.add("live-mode");\n' +
+'  if (bar)  bar.classList.add("live-mode");\n' +
 '  var btn = _g("vw-btn-"+safeId);\n' +
-'  if (btn) {\n' +
-'    btn.classList.toggle("preview-mode", st.viewMode === "preview");\n' +
-'    btn.textContent = (st.viewMode === "preview") ? "Edit" : "Preview";\n' +
+'  if (btn) { btn.classList.add("preview-mode"); btn.textContent = "Live"; }\n' +
+'  var mt = _g("mt-dd-"+safeId); if (mt) mt.style.display = "none";\n' +
+'  st.savedRange = null;\n' +
+'}\n' +
+'function _paintEdit(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId); var bar = _g("subj-bar-"+safeId);\n' +
+'  if (subj) subj.value     = st.rawSubject || "";\n' +
+'  if (body) body.innerHTML = st.rawBody    || "";\n' +
+'  if (body) body.classList.remove("live-mode");\n' +
+'  if (bar)  bar.classList.remove("live-mode");\n' +
+'  var btn = _g("vw-btn-"+safeId);\n' +
+'  if (btn) { btn.classList.remove("preview-mode"); btn.textContent = "Edit"; }\n' +
+'  var mt = _g("mt-dd-"+safeId); if (mt) mt.style.display = "";\n' +
+'  st.savedRange = null;\n' +
+'}\n' +
+'function _paintByMode(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  if (st.viewMode === "edit") _paintEdit(safeId); else _paintLive(safeId);\n' +
+'}\n' +
+'\n' +
+'/* Mode-aware capture: in Edit, raw is the literal DOM. In Live, raw is the DOM with mf-live spans stripped. */\n' +
+'function _captureCurrent(safeId) {\n' +
+'  var st = composerState[safeId]; if (!st) return;\n' +
+'  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
+'  if (st.viewMode === "edit") {\n' +
+'    if (subj) st.rawSubject = subj.value;\n' +
+'    if (body) st.rawBody    = body.innerHTML;\n' +
+'  } else {\n' +
+'    if (subj) st.rawSubject = subj.value;\n' +
+'    if (body) st.rawBody    = _stripMfSpansHtml(body.innerHTML);\n' +
 '  }\n' +
 '}\n' +
 '\n' +
-'function toggleComposerView(safeId) {\n' +
+'function toggleEditLive(safeId) {\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  if (st.viewMode === "edit") _captureRawIfEdit(safeId);\n' +
-'  st.viewMode = (st.viewMode === "preview") ? "edit" : "preview";\n' +
-'  _paintComposer(safeId);\n' +
+'  _captureCurrent(safeId);\n' +
+'  st.viewMode = (st.viewMode === "edit") ? "live" : "edit";\n' +
+'  _paintByMode(safeId);\n' +
 '}\n' +
 '\n' +
 'function markComposerDirty(safeId) {\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  if (st.viewMode !== "edit") return;\n' +
 '  st.isDirty = true;\n' +
 '  _refreshTplNamePill(safeId);\n' +
 '}\n' +
 '\n' +
 'function _refreshTplNamePill(safeId) {\n' +
-'  var pill = _g("tplname-"+safeId);\n' +
-'  if (!pill) return;\n' +
+'  var pill = _g("tplname-"+safeId); if (!pill) return;\n' +
 '  var st = composerState[safeId];\n' +
 '  if (st && st.loadedTplId && st.loadedTplName) {\n' +
 '    pill.classList.remove("empty");\n' +
@@ -4157,12 +4267,11 @@ html += '' +
 '\n' +
 'function _initComposerStateForTemplates(safeId) {\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  if (typeof st.viewMode      === "undefined") st.viewMode      = "edit";\n' +
+'  if (typeof st.viewMode      === "undefined") st.viewMode      = "live";\n' +
 '  if (typeof st.loadedTplId   === "undefined") st.loadedTplId   = null;\n' +
 '  if (typeof st.loadedTplName === "undefined") st.loadedTplName = "";\n' +
 '  if (typeof st.isDirty       === "undefined") st.isDirty       = false;\n' +
-'  // Seed raw* from current DOM if not yet set (so the default getEmailTemplate\n' +
-'  // output becomes the raw baseline before the AM loads any saved template).\n' +
+'  if (typeof st.savedRange    === "undefined") st.savedRange    = null;\n' +
 '  if (typeof st.rawSubject    === "undefined") {\n' +
 '    var subj = _g("subj-"+safeId);\n' +
 '    st.rawSubject = subj ? (subj.value || "") : "";\n' +
@@ -4173,16 +4282,29 @@ html += '' +
 '  }\n' +
 '  _attachComposerInputListeners(safeId);\n' +
 '  _refreshTplNamePill(safeId);\n' +
+'  if (!st._painted) { _paintByMode(safeId); st._painted = true; }\n' +
 '}\n' +
 '\n' +
 'function _attachComposerInputListeners(safeId) {\n' +
 '  var subj = _g("subj-"+safeId); var body = _g("ebody-"+safeId);\n' +
 '  if (subj && !subj.dataset.tplListened) {\n' +
-'    subj.addEventListener("input", function(){ _captureRawIfEdit(safeId); markComposerDirty(safeId); });\n' +
+'    subj.addEventListener("input", function(){\n' +
+'      var st = composerState[safeId]; if (!st) return;\n' +
+'      if (st.viewMode === "edit") st.rawSubject = subj.value;\n' +
+'      markComposerDirty(safeId);\n' +
+'    });\n' +
 '    subj.dataset.tplListened = "1";\n' +
 '  }\n' +
 '  if (body && !body.dataset.tplListened) {\n' +
-'    body.addEventListener("input", function(){ _captureRawIfEdit(safeId); markComposerDirty(safeId); });\n' +
+'    body.addEventListener("input", function(){\n' +
+'      var st = composerState[safeId]; if (!st) return;\n' +
+'      if (st.viewMode === "edit") st.rawBody = body.innerHTML;\n' +
+'      else _breakBrokenMfSpans(body);\n' +
+'      markComposerDirty(safeId);\n' +
+'    });\n' +
+'    body.addEventListener("mouseup", function(){ _saveCursorRange(safeId); });\n' +
+'    body.addEventListener("keyup",   function(){ _saveCursorRange(safeId); });\n' +
+'    body.addEventListener("blur",    function(){ _saveCursorRange(safeId); });\n' +
 '    body.dataset.tplListened = "1";\n' +
 '  }\n' +
 '}\n' +
@@ -4203,8 +4325,13 @@ html += '' +
 '}\n' +
 'function closeAllComposerDDs() {\n' +
 '  document.querySelectorAll(".composer-dd.open").forEach(function(el){ el.classList.remove("open"); });\n' +
+'  if (typeof _closeAllSubmenus === "function") _closeAllSubmenus();\n' +
 '}\n' +
-'document.addEventListener("click", function(e){ if (!e.target.closest(".composer-dd")) closeAllComposerDDs(); });\n' +
+'document.addEventListener("click", function(e){\n' +
+'  if (e.target.closest(".composer-dd")) return;\n' +
+'  if (e.target.closest(".composer-dd-submenu")) return;\n' +
+'  closeAllComposerDDs();\n' +
+'});\n' +
 '\n' +
 '/* ---- Templates dropdown panel ---- */\n' +
 'async function fetchAmTemplates(force) {\n' +
@@ -4248,8 +4375,7 @@ html += '' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
 '  if (st.isDirty) {\n' +
 '    if (!window.confirm("You have unsaved edits in the composer. Loading another template will overwrite them. Continue?")) {\n' +
-'      closeAllComposerDDs();\n' +
-'      return;\n' +
+'      closeAllComposerDDs(); return;\n' +
 '    }\n' +
 '  }\n' +
 '  var tpls = await fetchAmTemplates();\n' +
@@ -4260,7 +4386,8 @@ html += '' +
 '  st.loadedTplId    = tpl.id;\n' +
 '  st.loadedTplName  = tpl.name;\n' +
 '  st.isDirty        = false;\n' +
-'  _paintComposer(safeId);\n' +
+'  st.viewMode       = "live";\n' +
+'  _paintByMode(safeId);\n' +
 '  _refreshTplNamePill(safeId);\n' +
 '  closeAllComposerDDs();\n' +
 '  showToast("Loaded template: " + tpl.name, 1800);\n' +
@@ -4269,7 +4396,7 @@ html += '' +
 'async function saveTemplateAsNew(safeId) {\n' +
 '  closeAllComposerDDs();\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  _captureRawIfEdit(safeId);\n' +
+'  _captureCurrent(safeId);\n' +
 '  var name = window.prompt("Template name:", st.loadedTplName ? (st.loadedTplName + " (copy)") : "");\n' +
 '  if (!name || !name.trim()) return;\n' +
 '  try {\n' +
@@ -4277,13 +4404,12 @@ html += '' +
 '      body: JSON.stringify({ am: AM.email, action: "create", name: name.trim(), subject: st.rawSubject || "", body: st.rawBody || "" }) });\n' +
 '    var d = await r.json();\n' +
 '    if (!d || !d.ok) { showToast("Save failed: " + ((d && d.error) || "unknown"), 3500); return; }\n' +
-'    _amTemplatesCache = null; // refresh on next open\n' +
+'    _amTemplatesCache = null;\n' +
 '    st.loadedTplId   = d.template.id;\n' +
 '    st.loadedTplName = d.template.name;\n' +
 '    st.isDirty       = false;\n' +
-'    // After saving, default view returns to Preview\n' +
-'    st.viewMode      = "preview";\n' +
-'    _paintComposer(safeId);\n' +
+'    st.viewMode      = "live";\n' +
+'    _paintByMode(safeId);\n' +
 '    _refreshTplNamePill(safeId);\n' +
 '    showToast("Template saved: " + d.template.name, 2000);\n' +
 '  } catch (e) { showToast("Save failed: " + e.message, 3500); }\n' +
@@ -4292,7 +4418,7 @@ html += '' +
 'async function updateLoadedTemplate(safeId) {\n' +
 '  closeAllComposerDDs();\n' +
 '  var st = composerState[safeId]; if (!st || !st.loadedTplId) return;\n' +
-'  _captureRawIfEdit(safeId);\n' +
+'  _captureCurrent(safeId);\n' +
 '  try {\n' +
 '    var r = await fetch("/api/templates", { method:"POST", headers:{"Content-Type":"application/json"},\n' +
 '      body: JSON.stringify({ am: AM.email, action: "update", id: st.loadedTplId, subject: st.rawSubject || "", body: st.rawBody || "" }) });\n' +
@@ -4300,8 +4426,8 @@ html += '' +
 '    if (!d || !d.ok) { showToast("Update failed: " + ((d && d.error) || "unknown"), 3500); return; }\n' +
 '    _amTemplatesCache = null;\n' +
 '    st.isDirty   = false;\n' +
-'    st.viewMode  = "preview";\n' +
-'    _paintComposer(safeId);\n' +
+'    st.viewMode  = "live";\n' +
+'    _paintByMode(safeId);\n' +
 '    _refreshTplNamePill(safeId);\n' +
 '    showToast("Template updated", 1800);\n' +
 '  } catch (e) { showToast("Update failed: " + e.message, 3500); }\n' +
@@ -4386,7 +4512,7 @@ html += '' +
 '  var html = "";\n' +
 '  _LINK_OPTS.forEach(function(opt, i){\n' +
 '    if (opt.submenu) {\n' +
-'      html += \'<div class="composer-dd-opt has-submenu" onclick="event.stopPropagation();this.classList.toggle(\\\'open\\\');">\' +\n' +
+'      html += \'<div class="composer-dd-opt has-submenu" onclick="_openSubmenuFromOpt(this,event)">\' +\n' +
 '        \'<span>\' + escHtml(opt.label) + \'</span><span class="submenu-arrow">&#9656;</span></div>\';\n' +
 '      html += \'<div class="composer-dd-submenu">\';\n' +
 '      opt.submenu.forEach(function(sub, j){\n' +
@@ -4402,7 +4528,37 @@ html += '' +
 '}\n' +
 'function escAttr(s){ return String(s||"").replace(/&/g,"&amp;").replace(/\'/g,"&#39;").replace(/"/g,"&quot;"); }\n' +
 '\n' +
+'function _openSubmenuFromOpt(optEl, evt) {\n' +
+'  if (evt) evt.stopPropagation();\n' +
+'  var sub = optEl.nextElementSibling;\n' +
+'  if (!sub || !sub.classList.contains("composer-dd-submenu")) return;\n' +
+'  var alreadyOpen = sub.classList.contains("open");\n' +
+'  // Close any other open submenus (and clear their parent highlight)\n' +
+'  document.querySelectorAll(".composer-dd-submenu.open").forEach(function(s){\n' +
+'    if (s !== sub) { s.classList.remove("open"); var prev = s.previousElementSibling; if (prev) prev.classList.remove("open"); }\n' +
+'  });\n' +
+'  if (alreadyOpen) { sub.classList.remove("open"); optEl.classList.remove("open"); return; }\n' +
+'  // Position to the right of the parent option using viewport coords; flip left if it would overflow.\n' +
+'  var rect = optEl.getBoundingClientRect();\n' +
+'  sub.classList.add("open");\n' +
+'  optEl.classList.add("open");\n' +
+'  var sw = sub.offsetWidth || 280;\n' +
+'  var sh = sub.offsetHeight || 200;\n' +
+'  var left = rect.right + 4;\n' +
+'  var top  = rect.top;\n' +
+'  if (left + sw > window.innerWidth - 8) left = Math.max(8, rect.left - sw - 4);\n' +
+'  if (top + sh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - sh - 8);\n' +
+'  sub.style.left = left + "px";\n' +
+'  sub.style.top  = top  + "px";\n' +
+'}\n' +
+'function _closeAllSubmenus() {\n' +
+'  document.querySelectorAll(".composer-dd-submenu.open").forEach(function(s){ s.classList.remove("open"); });\n' +
+'  document.querySelectorAll(".composer-dd-opt.has-submenu.open").forEach(function(o){ o.classList.remove("open"); });\n' +
+'}\n' +
+'\n' +
 'function openInsertLinkModal(safeId, url, defaultText) {\n' +
+'  // Capture cursor BEFORE the modal steals focus from the body.\n' +
+'  _saveCursorRange(safeId);\n' +
 '  closeAllComposerDDs();\n' +
 '  _pendingInsertLink = { safeId: safeId, url: url, defaultText: defaultText };\n' +
 '  _g("link-confirm-text").value = defaultText || "";\n' +
@@ -4414,35 +4570,41 @@ html += '' +
 'function confirmInsertLink() {\n' +
 '  var p = _pendingInsertLink; if (!p) return;\n' +
 '  var anchorText = (_g("link-confirm-text").value || p.defaultText || p.url).trim();\n' +
-'  var html = \'<a href="\' + escAttr(p.url) + \'">\' + escHtml(anchorText) + \'</a>\';\n' +
-'  _insertLinkIntoComposer(p.safeId, html);\n' +
+'  var html = \'<a href="\' + escAttr(p.url) + \'">\' + escHtml(anchorText) + \'</a>&nbsp;\';\n' +
+'  _insertHtmlAtCursor(p.safeId, html);\n' +
+'  var st = composerState[p.safeId];\n' +
+'  if (st) {\n' +
+'    var body = _g("ebody-"+p.safeId);\n' +
+'    if (body && st.viewMode === "edit") st.rawBody = body.innerHTML;\n' +
+'  }\n' +
+'  markComposerDirty(p.safeId);\n' +
 '  closeInsertLinkModal();\n' +
+'  showToast("Link inserted", 1500);\n' +
 '}\n' +
 '\n' +
-'function _insertLinkIntoComposer(safeId, anchorHtml) {\n' +
+'/* ---- Merge Tags dropdown (Edit mode only) ---- */\n' +
+'function buildMergeTagsDDPanel(safeId) {\n' +
+'  var panel = _g("mt-dd-panel-"+safeId); if (!panel) return;\n' +
+'  if (panel.dataset.built === safeId) return;\n' +
+'  var html = "";\n' +
+'  _MERGE_FIELDS.forEach(function(k){\n' +
+'    html += \'<div class="composer-dd-opt" onclick="insertMergeTagAtCursor(\\\'\'+safeId+\'\\\',\\\'\'+k+\'\\\')">\' +\n' +
+'      \'<span style="font-family:monospace;color:#E8620A;">{\'+k+\'}</span>\' +\n' +
+'      \'<span style="color:rgba(255,255,255,0.4);font-size:11px;margin-left:auto;">\'+escHtml(_MERGE_TAG_LABELS[k]||"")+\'</span>\' +\n' +
+'    \'</div>\';\n' +
+'  });\n' +
+'  panel.innerHTML = html;\n' +
+'  panel.dataset.built = safeId;\n' +
+'}\n' +
+'function insertMergeTagAtCursor(safeId, tag) {\n' +
+'  closeAllComposerDDs();\n' +
 '  var st = composerState[safeId]; if (!st) return;\n' +
-'  // Force Edit mode so the AM sees the inserted markup as raw text\n' +
-'  if (st.viewMode !== "edit") { st.viewMode = "edit"; _paintComposer(safeId); }\n' +
-'  var body = _g("ebody-"+safeId); if (!body) return;\n' +
-'  body.focus();\n' +
-'  var sel = window.getSelection();\n' +
-'  var inserted = false;\n' +
-'  if (sel && sel.rangeCount > 0) {\n' +
-'    var range = sel.getRangeAt(0);\n' +
-'    if (body.contains(range.commonAncestorContainer)) {\n' +
-'      range.deleteContents();\n' +
-'      var temp = document.createElement("div"); temp.innerHTML = anchorHtml + "&nbsp;";\n' +
-'      var frag = document.createDocumentFragment(); var node;\n' +
-'      while ((node = temp.firstChild)) frag.appendChild(node);\n' +
-'      range.insertNode(frag);\n' +
-'      range.collapse(false); sel.removeAllRanges(); sel.addRange(range);\n' +
-'      inserted = true;\n' +
-'    }\n' +
-'  }\n' +
-'  if (!inserted) { body.innerHTML += " " + anchorHtml; }\n' +
-'  st.rawBody = body.innerHTML;\n' +
+'  if (st.viewMode !== "edit") { _captureCurrent(safeId); st.viewMode = "edit"; _paintByMode(safeId); }\n' +
+'  _insertTextAtCursor(safeId, "{" + tag + "}");\n' +
+'  var body = _g("ebody-"+safeId);\n' +
+'  if (body) st.rawBody = body.innerHTML;\n' +
 '  markComposerDirty(safeId);\n' +
-'  showToast("Link inserted", 1500);\n' +
+'  showToast("Inserted {" + tag + "}", 1200);\n' +
 '}\n' +
 '\n' +
 'init();\n' +
